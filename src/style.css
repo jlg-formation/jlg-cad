@@ -15,14 +15,14 @@ footer .layout-tabs .return-paper{margin-left:0}
 footer .command-entry{min-width:0;min-height:0;padding:0;border:0;background:transparent;gap:0}
 footer .command-entry input{flex:1;min-width:0;width:100%;max-width:none;height:23px;padding:2px 6px;font-size:11px}
 footer .command-suggestions{left:0;width:300px;max-width:calc(100vw - 28px);bottom:calc(100% + 4px)}
-footer .status-message{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+footer .status-spacer{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 footer .status-mode{width:26px;height:24px;min-width:0;padding:2px;border-radius:3px}
 footer .ortho-icon{width:19px;height:19px}
 footer>span.coordinates{width:230px;min-width:0;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) 22px;gap:8px;font:10px ui-monospace,Consolas,monospace;font-variant-numeric:tabular-nums;white-space:nowrap}
 footer .coordinates>span{min-width:0;overflow:hidden;text-overflow:ellipsis;text-align:right}
 @media(max-width:1000px){footer{grid-template-columns:minmax(90px,200px) minmax(130px,180px) minmax(0,1fr) 26px 190px;gap:6px}footer>span.coordinates{width:190px}}
 @media(max-width:760px){footer{grid-template-columns:minmax(70px,140px) minmax(110px,160px) minmax(0,1fr) 26px 160px;gap:4px;padding:0 5px}footer>span.coordinates{width:160px}}
-@media(max-width:600px){footer{grid-template-columns:minmax(60px,1fr) minmax(100px,140px) 26px 140px}footer .status-message{display:none}footer>span.coordinates{width:140px;display:grid;gap:4px}}
+@media(max-width:600px){footer{grid-template-columns:minmax(60px,1fr) minmax(100px,140px) 26px 140px}footer .status-spacer{display:none}footer>span.coordinates{width:140px;display:grid;gap:4px}}
 @media(max-width:400px){footer{grid-template-columns:minmax(60px,1fr) minmax(100px,140px) 26px}footer>span.coordinates{display:none}}
 
 
@@ -55,3 +55,7 @@ footer .layout-tab-strip button:focus-visible{outline-offset:-3px}
 footer .layout-tab-strip button[aria-label="Ajouter un layout"]{width:28px;min-width:28px;max-width:28px;padding:0;margin-left:2px}
 
 .zoom-window-preview{position:absolute;pointer-events:none;z-index:4;border:1px dashed #78cdbb;background:#78cdbb18}
+
+footer .command-entry{align-self:stretch}
+footer .command-entry input{height:100%}
+.command-help{position:absolute;right:0;bottom:100%;width:max-content;min-width:100%;padding:7px 10px;white-space:normal;overflow-wrap:anywhere;line-height:1.45;text-align:left;background:#1b252ded;color:#dce6eb;border:1px solid #43515c;border-bottom:0;box-shadow:0 -2px 8px #0003;pointer-events:none;z-index:5;font-size:11px}

@@ -43,3 +43,5 @@ Les onglets mesurent 72 px. Sur desktop, leur zone de 400 px affiche Objets et q
 Le bouton + suit le dernier layout dans le défilement. Deux chevrons discrets défilent de deux onglets à la fois et se désactivent aux extrémités. La zone desktop mesure 434 px pour garder quatre layouts visibles avec ces flèches.
 
 Les onglets gardent une largeur minimale de 72 px et s’élargissent pour afficher intégralement les noms personnalisés, sans points de suspension. La zone reste limitée et défile horizontalement.
+
+La zone des onglets s’élargit désormais avec l’écran, jusqu’à 1 250 px : sur un grand desktop, Objets et quinze layouts aux noms standard tiennent simultanément. Sur écran plus étroit ou avec des noms longs, les flèches et le défilement restent disponibles.

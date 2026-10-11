@@ -19,3 +19,5 @@ Les commandes par lettres demandent maintenant une validation. Les raccourcis de
 La sélection affiche des poignées bleues de taille constante à l’écran, y compris avec Ctrl+A. Les carrés déplacent les sommets ; les poignées allongées au milieu d’une ligne ou d’un segment de polyligne déplacent ses deux extrémités ensemble. Les rectangles ont des poignées aux coins ; les cercles au centre et aux quatre points cardinaux. Les calques verrouillés ne proposent pas de poignées de modification. ORTHO et les accrochages restent actifs pendant la manipulation. Ctrl+Z annule la modification ; Échap annule une manipulation en cours. Les accrochages aux extrémités et milieux fonctionnent aussi sans sélection.
 
 Un réticule de 86 pixels avec carré central remplace le curseur dans la zone de dessin.
+
+Au démarrage et au retour dans Objet, la vue affiche au moins 50 m dans chaque direction. Sur un écran rectangulaire, la direction la plus longue montre davantage de terrain pour conserver les proportions. Un segment de 5 m représente moins d’un dixième du petit côté. La grille adapte son espacement au zoom.

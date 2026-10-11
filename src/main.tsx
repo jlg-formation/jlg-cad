@@ -73,13 +73,13 @@ function App() {
    setView({scale,x:r.width/2-(minX+maxX)/2*scale,y:r.height/2-(minY+maxY)/2*scale});
  };
  useEffect(()=>{if(layout)fit();},[layoutId,layout?.format,layout?.orientation]);
- const cancelTool=()=>{clear();setViewportId(null);setTool('select');setMessage('Prêt à dessiner');};
+ const cancelTool=()=>{if(tool==='polyline'&&pathNodes.length>=2)finishPath(false,true);clear();setViewportId(null);setTool('select');setMessage('Prêt à dessiner');};
  const chooseTool=(t:Tool)=>{setLengthText('');setCommandText('');lastPointer.current=null;setSelectedIds([]);setTool(t);setPreview(null);gesture.current=null;setCommandPoints([]);setPathNodes([]);setCommandPreview([]);setSourceId(t!=='join'&&!paper&&active?active.id:null);setBoundaryIds([]);setChoosingBoundaries(false);setMeasurement('');const target=doc.layers.find(l=>l.id===(t==='dimension'?'cotes':''));if(target?.visible&&!target.locked){setCurrentLayer(target.id);setColor(target.color);}};
  const boundaries=visible.filter(s=>!boundaryIds.length||boundaryIds.includes(s.id));
  const baseShape=()=>({id:id(),a:{x:0,y:0},b:{x:0,y:0},color,layerId:layer.id});
  const canDraw=()=>{if(!paper&&(layer.locked||!layer.visible))throw new Error('Choisissez un calque visible et déverrouillé pour dessiner.');};
- const finishPath=(closeRequested=false)=>safe(()=>{
-   const closed=closeRequested||settings.closed;
+ const finishPath=(closeRequested=false,keepOpen=false)=>safe(()=>{
+   const closed=!keepOpen&&(closeRequested||settings.closed);
    if(pathNodes.length<2)throw new Error('Placez au moins deux points.');if(closed&&pathNodes.length<3)throw new Error('Placez au moins trois points pour fermer le contour.');canDraw();
    let nodes=closeRequested?closedPolylineNodes(pathNodes):pathNodes.map(n=>({...n}));
    if(tool==='polyline'&&closed&&settings.segment==='arc'){const angle=parseAngle(settings.arcAngle);if(Math.abs(angle)>=359||Math.abs(angle)<.01)throw new Error('Angle d’arc invalide.');nodes[nodes.length-1].bulge=Math.tan(angle*Math.PI/720);}
@@ -105,7 +105,7 @@ function App() {
      canDraw();const previous=pathNodes[pathNodes.length-1];const nextPoint=previous&&tool==='polyline'?(lengthText?exactEndpoint(previous.p,p,lengthText,unit,effectiveOrtho,settings.polar,settings.angle):constrain(previous.p,p,settings.length,settings.angle)):p;
      if(previous&&distance(previous.p,nextPoint)<.001)return;
      const nodes=pathNodes.map(n=>({...n}));if(previous&&tool==='polyline'){const a=settings.segment==='arc'?parseAngle(settings.arcAngle):0;if(Math.abs(a)>=359)throw new Error('L’angle de l’arc doit être inférieur à 359°.');nodes[nodes.length-1].bulge=Math.tan(a*Math.PI/720);}
-     setPathNodes([...nodes,{p:nextPoint}]);setLengthText('');setCursor(nextPoint);setMessage('Cliquez le prochain sommet · C : fermer · Entrée : terminer');return;
+     setPathNodes([...nodes,{p:nextPoint}]);setLengthText('');setCursor(nextPoint);setMessage('Cliquez le prochain sommet · C puis Entrée : fermer · Entrée : terminer');return;
    }
    if(tool==='measure'){const pts=commandPoints.length===1?[commandPoints[0],p]:[p];setCommandPoints(pts);if(pts.length===2){const d=sub(p,pts[0]);setMeasurement(`Distance : ${displayDistance(distance(p,pts[0]),unit)} ${unit}\nX : ${displayDistance(d.x,unit)} ${unit}\nY : ${displayDistance(-d.y,unit)} ${unit}\nAngle : ${(-Math.atan2(d.y,d.x)*180/Math.PI).toFixed(2)}°`);setMessage('Mesure terminée — cliquez pour une nouvelle mesure');}return;}
    if(tool==='dimension'){canDraw();if(commandPoints.length<2){setCommandPoints([...commandPoints,p]);setMessage(commandPoints.length?'Cliquez pour placer la cote':'Cliquez le second point à coter');return;}const [a,b]=commandPoints,len=distance(a,b);if(len<.001)throw new Error('Choisissez deux points distincts.');const scale=Number(settings.annotationScale.replace(',','.')),height=parseDistance(settings.dimensionText)*scale;if(!Number.isFinite(height)||height<=0||height>1e5||scale<=0)throw new Error('Hauteur de texte ou échelle de cote invalide.');const s:Shape={...baseShape(),type:'dimension',a,b,offset:cross(sub(b,a),sub(p,a))/len,height};put([...items,s]);setSelected(s.id);setCommandPoints([]);setMessage('Cotation créée');return;}
@@ -124,7 +124,7 @@ function App() {
  useEffect(()=>{const key=(e:KeyboardEvent)=>{if(document.querySelector('dialog[open]')||(e.target as HTMLElement).closest('input,textarea,select,[role="menu"],[contenteditable]:not([contenteditable="false"])'))return;
    if(configuration)return;
    if(!e.ctrlKey&&!e.metaKey&&!e.altKey){
-     if(tool==='polyline'&&pathNodes.length&&!lengthText&&!commandText&&e.key.toUpperCase()==='C'){e.preventDefault();if(!e.repeat)finishPath(true);return;}
+     if(tool==='polyline'&&pathNodes.length&&!lengthText&&!commandText&&e.key.toUpperCase()==='C'){e.preventDefault();if(!e.repeat){setCommandText('C');setCommandIndex(0);setMessage('Fermer la polyligne · Entrée pour confirmer');}return;}
      if(dynamicStart&&(lengthText||/^[0-9.,]$/.test(e.key))){
        if(e.key==='Enter'||e.key===' '){e.preventDefault();confirmLength();return;}
        if(e.key==='Escape'){e.preventDefault();cancelTool();return;}
@@ -237,8 +237,9 @@ function App() {
  const addLayout=()=>{const l=newLayout(id(),`Présentation ${doc.layouts.length+1}`);commit({...doc,layouts:[...doc.layouts,l]});switchSpace(l.id);};
  const cartouche=()=>{if(!layout)return;const size=paperSize(layout),x=size.x-110,y=size.y-35;updateLayout({items:[...layout.items,{id:id(),type:'rect',a:{x,y},b:{x:size.x-10,y:size.y-10},color:'#17242a'},{id:id(),type:'text',a:{x:x+4,y:y+4},b:{x:x+4,y:y+4},text:doc.name,height:4,color:'#17242a'},{id:id(),type:'text',a:{x:x+4,y:y+13},b:{x:x+4,y:y+13},text:`${layout.name} · ${new Date().toLocaleDateString('fr-FR')}`,height:2.5,color:'#17242a'}]});};
  const dynamicStart=tool==='polyline'?pathNodes.at(-1)?.p:tool==='line'&&draft?.type==='line'?draft.a:undefined;
- const suggestions=commandSuggestions(commandText,bindings).filter(c=>paper?!commandTools.includes(c.id):!['text','viewport'].includes(c.id));
- const executeCommand=(id?:string)=>{if(!id&&tool==='polyline'&&pathNodes.length&&commandText.trim().toUpperCase()==='C'){finishPath(true);return;}const command=id?{id}:resolveCommand(commandText,bindings)||suggestions[commandIndex];if(!command||!suggestions.some(c=>c.id===command.id)){setMessage('Commande inconnue ou indisponible dans cet espace.');return;}chooseTool(command.id as Tool);setMessage(command.id==='polyline'||command.id==='line'?'Cliquez le premier point':labels[command.id as Tool]);};
+ const closingCommand=tool==='polyline'&&pathNodes.length>0&&commandText.trim().toUpperCase()==='C';
+ const suggestions=closingCommand?[{id:'close',name:'C',label:'Fermer la polyligne'}]:commandSuggestions(commandText,bindings).filter(c=>paper?!commandTools.includes(c.id):!['text','viewport'].includes(c.id));
+ const executeCommand=(id?:string)=>{if(closingCommand&&(!id||id==='close')){finishPath(true);return;}const command=id?{id}:resolveCommand(commandText,bindings)||suggestions[commandIndex];if(!command||!suggestions.some(c=>c.id===command.id)){setMessage('Commande inconnue ou indisponible dans cet espace.');return;}chooseTool(command.id as Tool);setMessage(command.id==='polyline'||command.id==='line'?'Cliquez le premier point':labels[command.id as Tool]);};
  const confirmLength=()=>safe(()=>{if(!dynamicStart||!lengthText)return;const end=exactEndpoint(dynamicStart,cursor,lengthText,paper?'mm':unit,effectiveOrtho,settings.polar,settings.angle);if(tool==='polyline'){commandClick(svg.current!,cursor);}else if(draftRef.current?.type==='line'){put([...items,{...draftRef.current,b:end}]);setPreview(null);gesture.current=null;setLengthText('');setMessage('Ligne créée — cliquez le premier point de la suivante.');}});
  let dynamicEnd=cursor;try{if(dynamicStart)dynamicEnd=lengthText?exactEndpoint(dynamicStart,cursor,lengthText,paper?'mm':unit,effectiveOrtho,settings.polar,settings.angle):constrain(dynamicStart,cursor,paper?'':settings.length,paper?'':settings.angle);}catch{}
  const dynamicPosition=dynamicFieldPosition(pointerScreen,svg.current?.clientWidth||800,svg.current?.clientHeight||600);

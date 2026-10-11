@@ -28,8 +28,10 @@ La vue initiale réserve une marge autour des branches négatives pour afficher 
 Un point et la lettre O identifient l’intersection des axes comme origine.
 Les instructions sont affichées dans la barre de statut, sans texte d’aide superposé à l’indicateur d’origine.
 
-Pendant le tracé d’une polyligne, C ferme immédiatement le contour après au moins trois sommets. Le dernier sommet est relié au premier sans duplication. Cette action est annulable et ne change pas le réglage de fermeture des prochains tracés. Dans le champ de commande, C puis Entrée produit la même fermeture.
+Pendant le tracé d’une polyligne, C puis Entrée ferme le contour après au moins trois sommets. Le dernier sommet est relié au premier sans duplication. Cette action est annulable et ne change pas le réglage de fermeture des prochains tracés. Dans le champ de commande, C puis Entrée produit la même fermeture.
 
 ORTHO se bascule avec F8 ou Ctrl+L. Les anciennes préférences conservant uniquement le raccourci standard F8 reçoivent aussi Ctrl+L.
 
-Le curseur affiche son carré central en sélection. Pendant un outil, la croix reste visible sans carré. Échap annule le tracé et revient à la sélection, y compris pendant une saisie de longueur ou de commande.
+Le curseur affiche son carré central en sélection. Pendant un outil, la croix reste visible sans carré. Échap conserve les segments validés de la polyligne en cours sous forme de chemin ouvert et revient à la sélection, y compris pendant une saisie de longueur ou de commande.
+
+Échap ignore le segment de prévisualisation et une longueur non confirmée. Un seul sommet ne crée pas d’objet. Les objets existants restent conservés. C prépare la fermeture ; seule Entrée la confirme.

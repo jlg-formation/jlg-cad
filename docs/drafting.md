@@ -59,3 +59,11 @@ L’en-tête affiche Fichier à gauche, Aide et Paramètres à droite. Le nom du
 L’en-tête unique mesure 42 px et accueille les outils d’architecture sous forme d’icônes. Le nom et le raccourci apparaissent au survol, avec un libellé accessible pour chaque bouton. Sur écran étroit, les outils défilent horizontalement ; Fichier, Aide et Paramètres restent accessibles.
 
 Le logo JLG CAD ouvre désormais le menu Fichiers ; le bouton Fichiers séparé est retiré. La poubelle de la barre d’outils est supprimée et Delete conserve la suppression de la sélection.
+
+## Onglets de dessin et fichier multi-dessins
+
+Les dessins sont accessibles dans des onglets à droite de l’en-tête, sans augmenter sa hauteur. Le bouton + et Fichiers > Nouveau dessin créent un modèle indépendant. Chaque onglet conserve ses objets, calques, layouts, cadrage et historiques d’annulation et de zoom pendant la session. Changer de dessin conserve les segments validés d’une polyligne en cours. Les raccourcis concernent uniquement le dessin actif.
+
+Enregistrer / Ctrl+S télécharge un seul fichier `.jlgcad` JSON contenant **tous** les onglets, leurs modèles et leurs layouts, ainsi que l’index du dessin actif. Le format de collection est `jlg-cad-workspace`, version 1, avec `name`, `drawings` et `activeDrawing`. Chaque entrée `drawings` utilise le format de dessin existant version 3. Les anciens fichiers mono-dessin restent lisibles ; les extensions `.jlgcad`, `.jlcad` et `.json` sont acceptées à l’ouverture. Ouvrir ajoute les dessins contenus dans le fichier aux onglets ouverts, sans écraser les dessins existants. Les exports DXF et PDF concernent le dessin actif.
+
+Une étoile indique les modifications non enregistrées dans un fichier. Fermer un dessin modifié propose Enregistrer puis fermer, Fermer sans enregistrer ou Annuler. Fermer le dernier onglet crée un dessin vide. Les dessins ouverts et l’onglet actif sont restaurés depuis le stockage local au rechargement ; les historiques d’annulation et les cadrages de navigation sont conservés pendant la session, pas sérialisés dans le fichier.

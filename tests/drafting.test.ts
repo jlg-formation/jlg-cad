@@ -75,3 +75,11 @@ describe('Unités et saisie dynamique',()=>{
   expect(dynamicFieldPosition({x:0,y:0},1000,800)).toEqual({x:22,y:8});
  });
 });
+
+import {radiusEndpoint} from '../src/drafting';
+test('rayon précis indépendant de la direction, unités et rayons invalides',()=>{
+ expect(radiusEndpoint({x:20,y:30},'1,5','m')).toEqual({x:1520,y:30});
+ expect(radiusEndpoint({x:20,y:30},'25 mm','m')).toEqual({x:45,y:30});
+ for(const text of ['0','-2','abc'])expect(()=>radiusEndpoint({x:0,y:0},text,'cm')).toThrow();
+ expect(resolveCommand('C')?.id).toBe('circle');
+});

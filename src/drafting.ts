@@ -6,6 +6,11 @@ export function closedPolylineNodes(nodes:Node[]):Node[]{
 }
 
 export type LengthUnit='m'|'cm'|'mm';
+export function radiusEndpoint(center:Point,text:string,unit:LengthUnit):Point{
+ const radius=parseLength(text,unit);
+ if(!Number.isFinite(radius)||radius<=0)throw new Error('Le rayon doit être positif.');
+ return {x:center.x+radius,y:center.y};
+}
 export const unitFactor:Record<LengthUnit,number>={m:1000,cm:10,mm:1};
 export function readUnit(raw:string|null):LengthUnit{return raw==='cm'||raw==='mm'?raw:'m';}
 export function displayDistance(mm:number,unit:LengthUnit){return Number((mm/unitFactor[unit]).toFixed(4)).toLocaleString('fr-FR',{maximumFractionDigits:4,useGrouping:false});}

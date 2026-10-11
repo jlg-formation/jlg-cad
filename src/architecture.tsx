@@ -1,5 +1,5 @@
 import { useContext, useEffect, useRef, useState } from 'react';
-import { ArrowRightLeft, Scissors, MoveRight, CornerDownRight, Copy, Move, RotateCw, FlipHorizontal, Ruler, Spline, Waypoints, PenLine, Eye, EyeOff, Lock, Unlock, Plus, Trash2 } from 'lucide-react';
+import { ArrowRightLeft, Scissors, MoveRight, CornerDownRight, Copy, Move, RotateCw, FlipHorizontal, Ruler, Circle, Spline, Waypoints, PenLine, Eye, EyeOff, Lock, Unlock, Plus, Trash2 } from 'lucide-react';
 import { type Drawing, type PathShape, type Shape, type Point, lockedShape } from './model';
 import { parseLength, parseAngle, moveNode, insertNode, deleteNode, smoothNodes, syncPath, distance, constrainedEnd } from './geometry';
 import './architecture.css';
@@ -18,13 +18,14 @@ export const tips:Partial<Record<Tool,string>>={
  move:'Sélectionnez un objet, puis cliquez le point de base et sa destination, ou saisissez X/Y ci-dessous.',
  rotate:'Sélectionnez un objet, cliquez le centre puis la direction de l’angle, ou appliquez un angle saisi.',
  mirror:'Sélectionnez un objet puis deux points pour l’axe du miroir. La copie peut conserver l’original.',
+ circle:'Cliquez le centre, saisissez le rayon puis Entrée, ou cliquez un point du cercle. Échap annule le cercle en cours.',
  polyline:'Cliquez les sommets successifs. Choisissez Ligne ou Arc avant le prochain point. C prépare la fermeture ; Entrée termine ; Échap conserve les points placés et quitte l’outil.',
  bezier:'Cliquez les points de passage. Entrée ou Espace termine ; Échap conserve les points placés et quitte l’outil. Sélectionnez ensuite la courbe pour éditer ses poignées.',
  measure:'Cliquez deux points pour mesurer la distance, les écarts et l’angle.',
  dimension:'Cliquez les deux points à coter, puis un troisième point pour placer la ligne de cote.',
 };
 export function ArchitectureToolbar({tool,onTool,shortcut,concealed=false}:{tool:Tool;onTool:(t:Tool)=>void;shortcut:(id:string)=>string;concealed?:boolean}) {
- const tools=[['polyline',Waypoints],['bezier',Spline],['offset',ArrowRightLeft],['trim',Scissors],['extend',MoveRight],['join',CornerDownRight],['copy',Copy],['move',Move],['rotate',RotateCw],['mirror',FlipHorizontal],['measure',Ruler],['dimension',PenLine]] as const;
+ const tools=[['polyline',Waypoints],['circle',Circle],['bezier',Spline],['offset',ArrowRightLeft],['trim',Scissors],['extend',MoveRight],['join',CornerDownRight],['copy',Copy],['move',Move],['rotate',RotateCw],['mirror',FlipHorizontal],['measure',Ruler],['dimension',PenLine]] as const;
  return <nav className={"architecture-toolbar"+(concealed?" concealed":"")} aria-label="Outils d’architecture" aria-hidden={concealed||undefined} inert={concealed}>{tools.map(([t,Icon])=><button key={t} aria-label={labels[t]} className={tool===t?'active':''} onClick={()=>onTool(t)} title={labels[t]+(shortcut(t)?' — '+shortcut(t):'')}><Icon size={18}/></button>)}</nav>;
 }
 export type Settings={length:string;angle:string;distance:string;dx:string;dy:string;rotation:string;ortho:boolean;polar:number;osnap:boolean;segment:'line'|'arc';arcAngle:string;closed:boolean;keepOriginal:boolean;dimensionText:string;annotationScale:string};

@@ -49,3 +49,5 @@ La zone des onglets s’élargit désormais avec l’écran, jusqu’à 1 250 px
 En layout, le fond autour de la feuille est gris moyen et la feuille blanc cassé pour réduire la rupture visuelle avec les panneaux sombres. Le curseur et les indications deviennent foncés pour rester lisibles. Ces couleurs d’écran ne modifient pas l’export PDF.
 
 Les onglets sont regroupés par leur contour incliné et leur fond, sans espacement entre eux. Leur hauteur est de 22 px et leur largeur minimale de 64 px ; le nom complet reste affiché. L’onglet actif a un fond plus clair et un texte renforcé.
+
+Navigation : Z puis Entrée, puis E (Étendu), W (Fenêtre), P (Précédent), A (Tout), O (Objet sélectionné) ou S (facteur numérique), puis Entrée. Zoom Tout inclut les limites par défaut de 50 × 50 m, ou la feuille papier. Fenêtre utilise deux clics avec aperçu ; Échap annule sans toucher aux objets. Molette : zoom sous le curseur ; bouton central maintenu : déplacement ; double-clic central : Étendu. Historique séparé de 50 vues par espace, avec une entrée par rafale de molette. La navigation dans une fenêtre verrouillée est refusée.

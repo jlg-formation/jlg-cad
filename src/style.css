@@ -53,3 +53,5 @@ footer .layout-tab-strip button:hover{background:#35434f;color:#edf3f6}
 footer .layout-tab-strip button.current{background:#465562;color:#f1f5f7;font-weight:600;box-shadow:inset 0 2px #8194a3,inset 0 -1px #617380}
 footer .layout-tab-strip button:focus-visible{outline-offset:-3px}
 footer .layout-tab-strip button[aria-label="Ajouter un layout"]{width:28px;min-width:28px;max-width:28px;padding:0;margin-left:2px}
+
+.zoom-window-preview{position:absolute;pointer-events:none;z-index:4;border:1px dashed #78cdbb;background:#78cdbb18}

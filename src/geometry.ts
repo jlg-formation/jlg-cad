@@ -1,4 +1,4 @@
-import { type Point, type Shape, type PathShape, type Node, type PaperItem, type Dimension } from './model';
+import { type Point, type Shape, type PathShape, type Node, type PaperItem, type Dimension, type BaseShape } from './model';
 
 const EPS=1e-8;
 export const add=(a:Point,b:Point):Point=>({x:a.x+b.x,y:a.y+b.y});
@@ -188,7 +188,7 @@ export function offsetShape(shape:Shape,amount:number,side:Point,tolerance=.1):S
 export function mapItem<T extends PaperItem>(shape:T,fn:(p:Point)=>Point,scale=1,flip=false):T {
  const common={...shape,a:fn(shape.a),b:fn(shape.b)};
  if(shape.type==='polyline'||shape.type==='bezier'){const nodes=shape.nodes.map(n=>({...n,p:fn(n.p),in:n.in?fn(n.in):undefined,out:n.out?fn(n.out):undefined,bulge:n.bulge!==undefined?n.bulge*(flip?-1:1):undefined}));return{...common,a:nodes[0].p,b:nodes[nodes.length-1].p,nodes} as T;}
- if(shape.type==='dimension')return{...common,offset:shape.offset*scale*(flip?-1:1),height:shape.height*scale} as T;
+ if(shape.type==='dimension')return{...common,offset:shape.offset*scale*(flip&&shape.kind!=='diameter'?-1:1),height:shape.height*scale} as T;
  if(shape.type==='text')return{...common,height:shape.height*scale} as T;
  return common;
 }
@@ -202,9 +202,24 @@ export function mirrorShape(s:Shape,a:Point,b:Point):Shape {
  const u=unit(sub(b,a)),source=s.type==='rect'?shapeFromSegments(s,segments(s),true):s;
  return mapItem(source,p=>{const d=sub(p,a);return add(a,sub(mul(u,2*dot(d,u)),d));},1,true);
 }
-export function dimensionGeometry(s:Dimension){
+export function diameterDimension(circle:Extract<Shape,{type:'circle'}>,pointer:Point,base:BaseShape,height:number):Dimension{
+ const radius=distance(circle.a,circle.b);if(radius<.001)throw new Error('Le cercle doit avoir un rayon positif.');
+ if(!Number.isFinite(height)||height<=0||height>1e5)throw new Error('Hauteur de cote invalide.');
+ const direction=distance(circle.a,pointer)<EPS?{x:-1,y:0}:unit(sub(pointer,circle.a));
+ return {...base,type:'dimension',kind:'diameter',a:add(circle.a,mul(direction,radius)),b:sub(circle.a,mul(direction,radius)),offset:Math.max(distance(circle.a,pointer)-radius,height*5),height};
+}
+export function dimensionGeometry(s:Dimension,displayUnit:'m'|'cm'|'mm'='mm'){
+ const measuredText=displayUnit==='mm'?formatLength(distance(s.a,s.b)):Number((distance(s.a,s.b)/({m:1000,cm:10,mm:1}[displayUnit])).toFixed(4)).toLocaleString('fr-FR',{maximumFractionDigits:4,useGrouping:false})+' '+displayUnit;
+ if(s.kind==='diameter'){
+  const u=unit(sub(s.b,s.a)),n=normal(u),text='Ø'+measuredText,extension=Math.max(Math.abs(s.offset),s.height*5),arrowLength=s.height*.8;
+  const arrow=(tip:Point,outward:Point):Point[]=>{const base=add(tip,mul(outward,arrowLength)),side=mul(normal(outward),s.height*.16);return[tip,add(base,side),sub(base,side)];};
+  let angle=-Math.atan2(u.y,u.x)*180/Math.PI;if(angle>90)angle-=180;if(angle<-90)angle+=180;
+  const up={x:Math.sin(-angle*Math.PI/180),y:-Math.cos(-angle*Math.PI/180)};
+  return {lines:[[sub(s.a,mul(u,extension)),add(s.b,mul(u,arrowLength*2))]] as [Point,Point][],arrows:[arrow(s.a,mul(u,-1)),arrow(s.b,u)],label:add(sub(s.a,mul(u,extension/2)),mul(up,s.height*.5)),text,angle};
+ }
+
  const u=unit(sub(s.b,s.a)),n=normal(u),a=add(s.a,mul(n,s.offset)),b=add(s.b,mul(n,s.offset)),tick=mul(add(u,n),s.height*.4);
- return{lines:[[s.a,add(a,mul(n,Math.sign(s.offset)*s.height*.3))],[s.b,add(b,mul(n,Math.sign(s.offset)*s.height*.3))],[a,b],[sub(a,tick),add(a,tick)],[sub(b,tick),add(b,tick)]] as [Point,Point][],label:sub(lerp(a,b,.5),mul(n,s.height*.25)),text:formatLength(distance(s.a,s.b)),angle:-Math.atan2(u.y,u.x)*180/Math.PI};
+ return{arrows:[] as Point[][],lines:[[s.a,add(a,mul(n,Math.sign(s.offset)*s.height*.3))],[s.b,add(b,mul(n,Math.sign(s.offset)*s.height*.3))],[a,b],[sub(a,tick),add(a,tick)],[sub(b,tick),add(b,tick)]] as [Point,Point][],label:sub(lerp(a,b,.5),mul(n,s.height*.25)),text:measuredText,angle:-Math.atan2(u.y,u.x)*180/Math.PI};
 }
 export function smoothNodes(nodes:Node[],closed=false):Node[]{return nodes.map((n,i)=>{const prev=nodes[i-1]?.p||(closed?nodes[nodes.length-1].p:n.p),next=nodes[i+1]?.p||(closed?nodes[0].p:n.p),t=mul(sub(next,prev),1/6);return{...n,in:sub(n.p,t),out:add(n.p,t),smooth:true};});}
 export function syncPath(s:PathShape):PathShape{return{...s,a:s.nodes[0].p,b:s.nodes[s.nodes.length-1].p};}

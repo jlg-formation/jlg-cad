@@ -38,6 +38,7 @@ export const draftingCommands=[
  {id:'trim',name:'TRIM',label:'Ajuster',aliases:['X','AJUSTER']},
  {id:'extend',name:'EXTEND',label:'Prolonger',aliases:['E','PROLONGER']},
  {id:'bezier',name:'BEZIER',label:'Bézier',aliases:['B']},
+ {id:'diameter',name:'DIMDIAMETER',label:'Diamètre',aliases:['DDI','DIAMETRE']},
  {id:'dimension',name:'DIMENSION',label:'Cotation',aliases:['D','COTATION']},
  {id:'rotate',name:'ROTATE',label:'Rotation',aliases:['RO','ROTATION']},
  {id:'mirror',name:'MIRROR',label:'Miroir',aliases:['MI','MIROIR']},

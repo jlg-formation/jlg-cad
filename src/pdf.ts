@@ -1,5 +1,6 @@
 import { jsPDF } from 'jspdf';
-import { bounds, modelToPaper, paperSize, type Drawing, type Layout, type Shape, type TextItem } from './model';
+import { bounds, modelToPaper, paperSize, visibleShapes, type Drawing, type Layout, type Shape, type TextItem } from './model';
+import { mapItem, segments, arcCubics, dimensionGeometry } from './geometry';
 
 export function createPdf(drawing: Drawing, layouts: Layout[]) {
   if (!layouts.length) throw new Error('Créez une présentation avant d’exporter.');
@@ -11,12 +12,17 @@ export function createPdf(drawing: Drawing, layouts: Layout[]) {
     if(index) pdf.addPage([size.x,size.y],layout.orientation);
     pdf.saveGraphicsState();
     pdf.rect(0,0,size.x,size.y,null);pdf.clip();pdf.discardPath();
-    const draw=(s:Shape|TextItem,scale=1)=>{
+    const draw=(s:Shape|TextItem,dimensionLabel?:string)=>{
       const color=layout.monochrome?'#17242a':s.color;
       pdf.setDrawColor(color);pdf.setTextColor(color);pdf.setLineWidth(.25);
       if(s.type==='text'){pdf.setFont('helvetica');pdf.setFontSize(s.height*72/25.4);pdf.text(s.text,s.a.x,s.a.y,{baseline:'top',lineHeightFactor:1.2});}
       else if(s.type==='line')pdf.line(s.a.x,s.a.y,s.b.x,s.b.y);
-      else if(s.type==='circle')pdf.circle(s.a.x,s.a.y,Math.hypot(s.b.x-s.a.x,s.b.y-s.a.y)*scale,'S');
+      else if(s.type==='circle')pdf.circle(s.a.x,s.a.y,Math.hypot(s.b.x-s.a.x,s.b.y-s.a.y),'S');
+      else if(s.type==='dimension'){const d=dimensionGeometry(s);d.lines.forEach(([a,b])=>pdf.line(a.x,a.y,b.x,b.y));pdf.setFontSize(s.height*72/25.4);pdf.text(dimensionLabel||d.text,d.label.x,d.label.y,{align:'center',angle:d.angle});}
+      else if(s.type==='polyline'||s.type==='bezier'){
+        const parts=segments(s);if(!parts.length)return;const path:{op:string;c:number[]}[]=[{op:'m',c:[parts[0].a.x,parts[0].a.y]}];
+        for(const part of parts){for(const seg of part.kind==='arc'?arcCubics(part):[part])path.push(seg.kind==='line'?{op:'l',c:[seg.b.x,seg.b.y]}:{op:'c',c:[seg.c1.x,seg.c1.y,seg.c2.x,seg.c2.y,seg.b.x,seg.b.y]});}if(s.closed)path.push({op:'h',c:[]});pdf.path(path);pdf.stroke();
+      }
       else {const r=bounds(s);pdf.rect(r.x,r.y,r.width,r.height,'S');}
     };
     // Match the editor: model windows are behind paper annotations.
@@ -25,7 +31,7 @@ export function createPdf(drawing: Drawing, layouts: Layout[]) {
       if(item.type!=='viewport'){draw(item);continue;}
       const r=bounds(item);
       pdf.saveGraphicsState();pdf.rect(r.x,r.y,r.width,r.height,null);pdf.clip();pdf.discardPath();
-      for(const s of drawing.shapes){const a=modelToPaper(s.a,item),b=modelToPaper(s.b,item);draw({...s,a,b});}
+      for(const s of visibleShapes(drawing)){draw(mapItem(s,p=>modelToPaper(p,item),1/item.denominator),s.type==='dimension'?dimensionGeometry(s).text:undefined);}
       pdf.restoreGraphicsState();
       if(item.printBorder){pdf.setDrawColor(layout.monochrome?'#17242a':item.color);pdf.setLineWidth(.25);pdf.rect(r.x,r.y,r.width,r.height,'S');}
     }

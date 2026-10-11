@@ -26,3 +26,4 @@ L’indicateur d’origine suit les dimensions du dessin : 5 m vers la droite et
 
 La vue initiale réserve une marge autour des branches négatives pour afficher toute la croix. Les branches positives portent une pointe de flèche et les lettres X et Y, de taille constante à l’écran.
 Un point et la lettre O identifient l’intersection des axes comme origine.
+Les instructions sont affichées dans la barre de statut, sans texte d’aide superposé à l’indicateur d’origine.

@@ -62,7 +62,7 @@ describe('Unités et saisie dynamique',()=>{
   expect(()=>exactEndpoint({x:0,y:0},{x:0,y:0},'1','m',true)).toThrow();
  });
  test('maintient le champ dynamique dans les limites du dessin',()=>{
-  expect(dynamicFieldPosition({x:990,y:790},1000,800)).toEqual({x:802,y:738});
+  expect(dynamicFieldPosition({x:990,y:790},1000,800)).toEqual({x:847,y:738});
   expect(dynamicFieldPosition({x:0,y:0},1000,800)).toEqual({x:22,y:8});
  });
 });

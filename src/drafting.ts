@@ -37,4 +37,4 @@ const normalize=(s:string)=>s.trim().normalize('NFD').replace(/[\u0300-\u036f]/g
 const names=(c:typeof draftingCommands[number],bindings:Record<string,string[]>)=>[c.name,...c.aliases,...(bindings[c.id]||[]).filter(k=>/^[A-Z]+$/.test(k))];
 export function commandSuggestions(text:string,bindings:Record<string,string[]>={}){const q=normalize(text);if(!q)return [];return draftingCommands.filter(c=>names(c,bindings).some(a=>a.startsWith(q))).sort((a,b)=>Number(names(b,bindings).some(x=>x===q))-Number(names(a,bindings).some(x=>x===q)));}
 export function resolveCommand(text:string,bindings:Record<string,string[]>={}){const q=normalize(text);return draftingCommands.find(c=>names(c,bindings).some(a=>a===q));}
-export function dynamicFieldPosition(point:Point,width:number,height:number){return{x:Math.max(8,Math.min(point.x+22,width-198)),y:Math.max(8,Math.min(point.y-52,height-62))};}
+export function dynamicFieldPosition(point:Point,width:number,height:number){return{x:Math.max(8,Math.min(point.x+22,width-153)),y:Math.max(8,Math.min(point.y-52,height-62))};}

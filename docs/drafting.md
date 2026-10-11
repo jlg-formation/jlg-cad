@@ -45,3 +45,5 @@ Le bouton + suit le dernier layout dans le défilement. Deux chevrons discrets d
 Les onglets gardent une largeur minimale de 72 px et s’élargissent pour afficher intégralement les noms personnalisés, sans points de suspension. La zone reste limitée et défile horizontalement.
 
 La zone des onglets s’élargit désormais avec l’écran, jusqu’à 1 250 px : sur un grand desktop, Objets et quinze layouts aux noms standard tiennent simultanément. Sur écran plus étroit ou avec des noms longs, les flèches et le défilement restent disponibles.
+
+En layout, le fond autour de la feuille est gris moyen et la feuille blanc cassé pour réduire la rupture visuelle avec les panneaux sombres. Le curseur et les indications deviennent foncés pour rester lisibles. Ces couleurs d’écran ne modifient pas l’export PDF.

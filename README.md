@@ -23,6 +23,7 @@ Le site est publié sur https://jlg-formation.github.io/jlg-cad/ par GitHub Acti
 - Molette pour zoomer autour du pointeur ; bouton de cadrage pour afficher tout le dessin.
 - Grille et aimantation de 10 mm activables, couleurs, liste et dimensions des objets.
 - Ctrl+Z / Ctrl+Maj+Z pour annuler/rétablir ; Échap pour quitter un outil.
+- Dans l’espace objet, Ctrl+A sélectionne tous les objets, puis Suppr efface la sélection en une opération annulable. Les objets verrouillés restent protégés. Dans un champ texte, Ctrl+A sélectionne le texte.
 - Sauvegarder (Ctrl+S) télécharge un `.jlgcad` JSON versionné ; Ouvrir recharge ce format.
 - Une copie est automatiquement conservée dans le stockage local du navigateur.
 

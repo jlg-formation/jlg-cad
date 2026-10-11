@@ -11,3 +11,13 @@ footer{height:40px;min-height:40px;flex:0 0 40px;display:grid;grid-template-colu
 .cad-cursor{position:absolute;pointer-events:none;z-index:3;overflow:visible;fill:none;stroke:#d8e1e7;stroke-width:1;filter:drop-shadow(0 0 1px #10171d)}.object-grip{cursor:none}
 
 .cad-cursor path,.cad-cursor rect{vector-effect:non-scaling-stroke}
+
+/* Fine, dark scrollbars keep every panel scrollable. */
+:root{color-scheme:dark}
+*{scrollbar-width:thin;scrollbar-color:#52636d transparent}
+*::-webkit-scrollbar{width:6px;height:6px}
+*::-webkit-scrollbar-track,*::-webkit-scrollbar-corner{background:transparent}
+*::-webkit-scrollbar-thumb{background:#52636d;border-radius:999px}
+*::-webkit-scrollbar-thumb:hover{background:#8ab5ac}
+*::-webkit-scrollbar-button{display:none;width:0;height:0}
+@supports selector(::-webkit-scrollbar){*{scrollbar-width:auto;scrollbar-color:auto}}

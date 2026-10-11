@@ -41,3 +41,5 @@ La barre inférieure unique mesure 30 px : onglets Objet et présentations, ajou
 Les onglets mesurent 72 px. Sur desktop, leur zone de 400 px affiche Objets et quatre layouts avec le bouton + fixe. Les layouts supplémentaires défilent horizontalement ; l’onglet actif est rendu visible automatiquement. Les anciens noms standard Présentation N sont affichés comme Layout N ; les noms personnalisés sont conservés.
 
 Le bouton + suit le dernier layout dans le défilement. Deux chevrons discrets défilent de deux onglets à la fois et se désactivent aux extrémités. La zone desktop mesure 434 px pour garder quatre layouts visibles avec ces flèches.
+
+Les onglets gardent une largeur minimale de 72 px et s’élargissent pour afficher intégralement les noms personnalisés, sans points de suspension. La zone reste limitée et défile horizontalement.

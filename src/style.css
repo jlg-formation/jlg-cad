@@ -8,7 +8,7 @@ footer .status-mode{width:32px;height:28px;padding:2px;border:1px solid #43515c;
 footer{height:30px;min-height:30px;flex:0 0 30px;display:grid;grid-template-columns:434px minmax(130px,210px) minmax(0,1fr) 26px 230px;gap:10px;padding:0 8px;white-space:nowrap}
 footer .layout-tabs{min-width:0;min-height:0;height:28px;padding:0;gap:2px;background:transparent;border:0;overflow:hidden}
 footer .layout-tab-strip{display:flex;gap:2px;min-width:0;flex:1;height:28px;align-items:center;overflow-x:auto;overflow-y:hidden}
-footer .layout-tab-strip button{width:72px;min-width:72px;max-width:72px;overflow:hidden;text-overflow:ellipsis;display:block;white-space:nowrap}
+footer .layout-tab-strip button{width:max-content;min-width:72px;max-width:none;overflow:visible;text-overflow:clip;display:block;white-space:nowrap}
 footer .layout-tabs button{height:24px;flex-shrink:0;padding:2px 8px;border-radius:3px;font-size:11px}
 footer .layout-tabs button[aria-label="Ajouter un layout"]{width:24px;min-width:24px;max-width:24px;display:inline-flex;padding:0}
 footer .layout-tabs .return-paper{margin-left:0}

@@ -73,3 +73,5 @@ Double-cliquer le nom d’un onglet de dessin permet de le modifier sur place. E
 Les onglets Objet/Layout du footer partagent les couleurs, le relief et la pente des onglets de dessin de l’en-tête, avec des hauteurs plus compactes de 22 px (inactif) et 28 px (actif). La barre d’outils d’architecture conserve sa place dans l’en-tête en espace papier : elle est masquée et non interactive, sans déplacer les onglets.
 
 La commande Enregistrer le projet / Ctrl+S et son dialogue sont globaux au projet. Un seul téléchargement contient tous les onglets, y compris les dessins inactifs. Les étoiles restent propres aux dessins modifiés, mais sont toutes effacées par cette unique sauvegarde globale.
+
+Ctrl+S enregistre directement tous les dessins et layouts dans un seul fichier, sans dialogue, avec le nom actuel du projet (Dessins.jlgcad par défaut). La commande du menu Fichiers conserve le dialogue pour choisir un autre nom. Les segments validés de la polyligne en cours sont inclus avant le téléchargement.

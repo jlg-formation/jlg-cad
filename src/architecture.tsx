@@ -1,5 +1,5 @@
 import { useContext, useEffect, useRef, useState } from 'react';
-import { ArrowRightLeft, Scissors, MoveRight, CornerDownRight, Copy, Move, RotateCw, FlipHorizontal, Ruler, Circle, Spline, Waypoints, PenLine, Eye, EyeOff, Lock, Unlock, Plus, Trash2 } from 'lucide-react';
+import { ArrowRightLeft, Scissors, MoveRight, CornerDownRight, Copy, Move, RotateCw, FlipHorizontal, Ruler, Circle, Minus, Spline, Waypoints, PenLine, Eye, EyeOff, Lock, Unlock, Plus, Trash2 } from 'lucide-react';
 import { type Drawing, type PathShape, type Shape, type Point, lockedShape } from './model';
 import { parseLength, parseAngle, moveNode, insertNode, deleteNode, smoothNodes, syncPath, distance, constrainedEnd } from './geometry';
 import './architecture.css';
@@ -25,8 +25,8 @@ export const tips:Partial<Record<Tool,string>>={
  dimension:'Cliquez les deux points à coter, puis un troisième point pour placer la ligne de cote.',
 };
 export function ArchitectureToolbar({tool,onTool,shortcut,concealed=false}:{tool:Tool;onTool:(t:Tool)=>void;shortcut:(id:string)=>string;concealed?:boolean}) {
- const tools=[['polyline',Waypoints],['circle',Circle],['bezier',Spline],['offset',ArrowRightLeft],['trim',Scissors],['extend',MoveRight],['join',CornerDownRight],['copy',Copy],['move',Move],['rotate',RotateCw],['mirror',FlipHorizontal],['measure',Ruler],['dimension',PenLine]] as const;
- return <nav className={"architecture-toolbar"+(concealed?" concealed":"")} aria-label="Outils d’architecture" aria-hidden={concealed||undefined} inert={concealed}>{tools.map(([t,Icon])=><button key={t} aria-label={labels[t]} className={tool===t?'active':''} onClick={()=>onTool(t)} title={labels[t]+(shortcut(t)?' — '+shortcut(t):'')}><Icon size={18}/></button>)}</nav>;
+ const groups=[[['polyline',Waypoints],['circle',Circle],['line',Minus],['bezier',Spline],['dimension',PenLine]],[['offset',ArrowRightLeft],['trim',Scissors],['extend',MoveRight],['join',CornerDownRight],['copy',Copy],['move',Move],['rotate',RotateCw],['mirror',FlipHorizontal],['measure',Ruler]]] as const;
+ return <nav className={"architecture-toolbar"+(concealed?" concealed":"")} aria-label="Outils d’architecture" aria-hidden={concealed||undefined} inert={concealed}>{groups.map((tools,index)=><span className="architecture-tool-group" role="group" aria-label={index===0?"Créer des objets":"Opérations sur les objets"} key={index}>{tools.map(([t,Icon])=><button key={t} aria-label={labels[t]} className={tool===t?'active':''} onClick={()=>onTool(t)} title={labels[t]+(shortcut(t)?' — '+shortcut(t):'')}><Icon size={18}/></button>)}</span>)}</nav>;
 }
 export type Settings={length:string;angle:string;distance:string;dx:string;dy:string;rotation:string;ortho:boolean;polar:number;osnap:boolean;segment:'line'|'arc';arcAngle:string;closed:boolean;keepOriginal:boolean;dimensionText:string;annotationScale:string};
 export const initialSettings:Settings={length:'',angle:'',distance:'10 cm',dx:'10 cm',dy:'0',rotation:'90',ortho:false,polar:0,osnap:true,segment:'line',arcAngle:'90',closed:false,keepOriginal:true,dimensionText:'2,5 mm',annotationScale:'50'};

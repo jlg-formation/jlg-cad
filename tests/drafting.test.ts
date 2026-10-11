@@ -83,3 +83,12 @@ test('rayon précis indépendant de la direction, unités et rayons invalides',(
  for(const text of ['0','-2','abc'])expect(()=>radiusEndpoint({x:0,y:0},text,'cm')).toThrow();
  expect(resolveCommand('C')?.id).toBe('circle');
 });
+
+import {lineEndpoint} from '../src/drafting';
+test('ligne : valide une longueur sans mouvement, conserve directions et angles explicites',()=>{
+ const a={x:20,y:30};
+ expect(lineEndpoint(a,a,'2,5','m',false)).toEqual({x:2520,y:30});
+ const vertical=lineEndpoint(a,{x:20,y:50},'10 cm','m',false);expect(vertical.x).toBeCloseTo(20);expect(vertical.y).toBeCloseTo(130);
+ expect(lineEndpoint(a,a,'100','mm',true,0,'90').y).toBeCloseTo(-70);
+ for(const text of ['0','-1','abc'])expect(()=>lineEndpoint(a,a,text,'m',false)).toThrow();
+});

@@ -8,7 +8,7 @@ La polyligne est le premier outil de dessin. L’outil Mur a été retiré.
 - Après le premier point, orienter la souris puis taper une longueur. Le champ apparaît près du tracé, sans clic préalable. Entrée crée le segment. Pour une polyligne, la valeur ne s’applique qu’à ce segment ; Entrée sans valeur termine le chemin.
 - Les chiffres du clavier et du pavé numérique, les virgules et les points sont acceptés. Une longueur invalide est signalée sans créer de segment.
 - ORTHO (F8) contraint la direction. Maj inverse temporairement ORTHO. Une longueur explicite garde sa précision, même près d’un accrochage.
-- Ligne accepte deux clics ou un glissement. Échap annule le tracé en cours.
+- Ligne : **L puis Entrée**, ou bouton Ligne, puis clic du premier point. Le champ Longueur reçoit automatiquement le focus. Orientez la souris, saisissez la distance puis Entrée : une seule ligne est créée et l’outil revient à Sélection, sans Échap. Un second clic peut aussi confirmer le point final. Une saisie invalide garde le champ ouvert pour correction.
 
 Dans **Paramètres** (engrenage), choisir l’unité de saisie et d’affichage : mètres par défaut, centimètres ou millimètres. Le choix est conservé dans ce navigateur. Une valeur sans suffixe utilise cette unité ; un suffixe explicite la remplace pour cette saisie. Changer l’unité ne redimensionne aucun objet. Les fichiers et exports conservent leurs unités internes en millimètres. L’espace papier et les hauteurs de texte imprimées restent en millimètres.
 
@@ -73,3 +73,5 @@ Les onglets du bas conservent le relief, les couleurs et la pente communs, avec 
 C puis Entrée active le cercle. Cliquez le centre, saisissez un rayon puis Entrée, ou cliquez un point de sa circonférence. Le champ dynamique affiche le rayon près du curseur, dans l’unité active ; les suffixes mm, cm et m restent acceptés. Échap annule le cercle en cours.
 
 En sélection, cliquez l’un des quatre grips cardinaux pour ouvrir la même saisie près du grip. Le champ reçoit automatiquement le focus et sélectionne la valeur actuelle. Entrée confirme un rayon strictement positif ; Échap ferme la saisie sans modification. Le centre reste fixe et Ctrl+Z annule le changement. Cliquer la circonférence seule n’ouvre pas cette saisie.
+
+Pour Ligne, si la souris reste sur le premier point, Entrée crée une ligne horizontale vers la droite. Une direction donnée à la souris ou un angle explicite est prioritaire.

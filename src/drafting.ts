@@ -21,6 +21,10 @@ export function exactEndpoint(start:Point,pointer:Point,text:string,unit:LengthU
  if(start.x===pointer.x&&start.y===pointer.y&&!angle.trim())throw new Error('Indiquez la direction avec la souris.');
  return constrainedEnd(start,pointer,`${length} mm`,angle,ortho,ortho?0:polar);
 }
+export function lineEndpoint(start:Point,pointer:Point,text:string,unit:LengthUnit,ortho:boolean,polar=0,angle=''):Point{
+ const direction=start.x===pointer.x&&start.y===pointer.y?{x:start.x+1,y:start.y}:pointer;
+ return exactEndpoint(start,direction,text,unit,ortho,polar,angle);
+}
 export const draftingCommands=[
  {id:'line',name:'LINE',label:'Ligne',aliases:['L','LIGNE']},
  {id:'polyline',name:'PLINE',label:'Polyligne',aliases:['PL','POLYLINE','POLYLIGNE']},

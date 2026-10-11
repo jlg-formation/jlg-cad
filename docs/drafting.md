@@ -16,7 +16,7 @@ Les commandes par lettres demandent maintenant une validation. Les raccourcis de
 
 ## Sélection et poignées
 
-La sélection affiche des poignées bleues de taille constante à l’écran, y compris avec Ctrl+A. Les carrés déplacent les sommets ; les poignées allongées au milieu d’une ligne ou d’un segment de polyligne déplacent ses deux extrémités ensemble. Les rectangles ont des poignées aux coins ; les cercles au centre et aux quatre points cardinaux. Les calques verrouillés ne proposent pas de poignées de modification. ORTHO et les accrochages restent actifs pendant la manipulation. Ctrl+Z annule la modification ; Échap annule une manipulation en cours. Les accrochages aux extrémités et milieux fonctionnent aussi sans sélection.
+La sélection affiche des poignées bleues de taille constante à l’écran, y compris avec Ctrl+A. Les carrés déplacent les sommets ; les poignées allongées au milieu d’une ligne ou d’un segment de polyligne déplacent ses deux extrémités ensemble. Les rectangles ont des poignées aux coins ; les cercles au centre et aux quatre points cardinaux. Les calques verrouillés ne proposent pas de poignées de modification. ORTHO et les accrochages restent actifs pendant la manipulation. Ctrl+Z annule la modification ; Échap conserve une manipulation géométrique valide en cours et revient à la sélection. Les accrochages aux extrémités et milieux fonctionnent aussi sans sélection.
 
 Un réticule de 86 pixels avec carré central remplace le curseur dans la zone de dessin.
 
@@ -32,9 +32,9 @@ Pendant le tracé d’une polyligne, C puis Entrée ferme le contour après au m
 
 ORTHO se bascule avec F8 ou Ctrl+L. Les anciennes préférences conservant uniquement le raccourci standard F8 reçoivent aussi Ctrl+L.
 
-Le curseur affiche son carré central en sélection. Pendant un outil, la croix reste visible sans carré. Échap conserve les segments validés de la polyligne en cours sous forme de chemin ouvert et revient à la sélection, y compris pendant une saisie de longueur ou de commande.
+Le curseur affiche son carré central en sélection. Pendant un outil, la croix reste visible sans carré. Échap conserve les points confirmés de la polyligne ou de la Bézier en cours sous forme de chemin ouvert et revient à la sélection, y compris pendant une saisie de longueur ou de commande.
 
-Échap ignore le segment de prévisualisation et une longueur non confirmée. Un seul sommet ne crée pas d’objet. Les objets existants restent conservés. C prépare la fermeture ; seule Entrée la confirme.
+Échap ignore le segment de prévisualisation et une longueur non confirmée. Un seul sommet ne crée pas d’objet. Les Bézier peuvent aussi se terminer avec Espace. Les transformations sans destination confirmée restent sans effet ; les actions déjà effectuées sont conservées. Les objets existants restent conservés. C prépare la fermeture ; seule Entrée la confirme.
 
 La barre inférieure unique mesure 30 px : onglets Objet et présentations, ajout (+), commande, instruction active, ORTHO et coordonnées fixes. Elle ne se replie pas ; les onglets défilent horizontalement. Les instructions se masquent sous 600 px, les coordonnées sous 400 px.
 
@@ -67,3 +67,9 @@ L’application affiche un seul dessin architectural par fichier, avec son espac
 Les anciens fichiers contenant plusieurs dessins restent lisibles : l’application récupère le dessin indiqué comme actif dans le fichier. Le fichier original reste intact. Les anciennes copies locales de collections sont conservées, et le dernier dessin affiché est repris depuis la copie locale mono-dessin.
 
 Les onglets du bas conservent le relief, les couleurs et la pente communs, avec des hauteurs compactes de 22 px (inactif) et 28 px (actif). La barre d’outils reste masquée et non interactive en espace papier, tout en conservant sa place dans l’en-tête.
+
+## Cercles
+
+C puis Entrée active le cercle. Cliquez le centre, saisissez un rayon puis Entrée, ou cliquez un point de sa circonférence. Le champ dynamique affiche le rayon près du curseur, dans l’unité active ; les suffixes mm, cm et m restent acceptés. Échap annule le cercle en cours.
+
+En sélection, cliquez l’un des quatre grips cardinaux pour ouvrir la même saisie près du grip. Le champ reçoit automatiquement le focus et sélectionne la valeur actuelle. Entrée confirme un rayon strictement positif ; Échap ferme la saisie sans modification. Le centre reste fixe et Ctrl+Z annule le changement. Cliquer la circonférence seule n’ouvre pas cette saisie.

@@ -21,20 +21,27 @@ Le site est publié sur https://jlg-formation.github.io/jlg-cad/ par GitHub Acti
 
 ## Utilisation
 
+- Le titre de l’onglet et l’en-tête affichent le nom réel du fichier ouvert ou enregistré, ou « nouveau fichier ». Un astérisque indique des modifications non enregistrées dans un fichier ; la sauvegarde de session conserve le nom et cet état au rechargement. Le nom est tronqué au besoin dans l’en-tête, visible en entier au survol, et masqué sur petit écran.
 - Le menu **Fichier** regroupe Nouveau, Ouvrir, Sauvegarder et les exports DXF/PDF. Nouveau propose de télécharger une sauvegarde avant de remplacer un dessin non sauvegardé.
 - Le menu **Aide** contient le guide de démarrage, les outils d’architecture, l’espace papier, les formats et **Raccourcis clavier…** (F1).
 - Dans cette fenêtre, cliquer une combinaison puis taper le nouveau raccourci. Les conflits sont signalés ; on peut ajouter ou retirer des combinaisons et rétablir les valeurs par défaut. Les préférences sont enregistrées dans `localStorage`, séparément des dessins, et survivent aux rafraîchissements. Les menus et infobulles reflètent les changements. Certaines combinaisons du navigateur/système sont refusées.
 - **Ctrl+Y** et **Ctrl+Maj+Z** rétablissent une action annulée. Les raccourcis indiqués ci-dessous sont les valeurs par défaut ; les champs texte conservent leurs commandes d’édition habituelles.
 
 - Sélection (V), ligne (L), rectangle (R), cercle (C), déplacement de la vue (H).
-- Glisser pour dessiner. Pour un cercle, partir du centre et glisser jusqu’au rayon.
-- Sélectionner une forme puis glisser pour la déplacer ; Suppr pour l’effacer.
+- Glisser pour dessiner les rectangles. Pour un cercle : **C puis Entrée**, cliquer le centre, saisir le rayon puis **Entrée**, ou cliquer un point sur la circonférence. Le rayon utilise l’unité active et accepte un suffixe explicite.
+- Pour modifier un cercle sélectionné, cliquer l’un des quatre grips de rayon : un champ apparaît près du grip avec la valeur sélectionnée et le focus actif. Taper le nouveau rayon puis **Entrée** ; **Échap** ferme le champ sans modifier le cercle. La poignée centrale déplace le cercle.
+- Sélectionner une forme puis glisser pour la déplacer ; Suppr pour l’effacer. Maj+clic ajoute ou retire un objet de la sélection.
+- Avec l’outil Sélection, glisser depuis une zone vide trace un cadre : gauche vers droite, bleu, sélectionne les objets entièrement contenus ; droite vers gauche, vert pointillé, sélectionne ceux touchés ou contenus. Maj ajoute à la sélection et Échap annule le geste. Les objets masqués sont exclus ; les objets verrouillés restent sélectionnables et protégés.
+- Dans **Paramètres**, les sélections bleue et verte ont chacune un toggle, activé par défaut. **Mode lasso**, désactivé par défaut, remplace le rectangle par un contour libre : sens horaire = bleu, antihoraire = vert. Le contour se ferme au relâchement ; un tracé croisé ou trop petit est refusé. Ces préférences sont mémorisées pour le site.
+- **Ctrl+C / Ctrl+V** copie les objets de l’espace Objet via le presse-papiers système, y compris entre onglets et domaines différents. Après collage, déplacer le pointeur puis cliquer pour placer l’ensemble ; Échap annule et Ctrl+Z annule le collage entier. Le point d’insertion est le coin supérieur gauche de l’enveloppe géométrique. Les champs texte gardent leur copier-coller habituel.
+- Les couleurs, dimensions, arcs, poignées Bézier et cotations sont conservés. Les calques compatibles sont réutilisés ; un conflit de couleur, visibilité ou verrouillage crée un calque distinct, visible et déverrouillé. Les textes papier et fenêtres de vue ne sont pas transférés.
+- Chaque nouvel onglet ouvre un dessin vide et possède sa propre sauvegarde de session. Recharger un onglet restaure son dessin ; les autres onglets restent indépendants, y compris lorsqu’un onglet est dupliqué. Les préférences restent communes au site. Téléchargez un fichier `.jlgcad` pour conserver votre travail après la fermeture de la session.
 - Molette pour zoomer autour du pointeur ; bouton de cadrage pour afficher tout le dessin.
 - Grille et aimantation de 10 mm activables, couleurs, liste et dimensions des objets.
-- Ctrl+Z / Ctrl+Maj+Z pour annuler/rétablir ; Échap pour quitter un outil.
+- Ctrl+Z / Ctrl+Maj+Z pour annuler/rétablir ; Échap pour quitter un outil en conservant le travail construit. Les polylignes et Bézier avec au moins deux points confirmés sont terminées en contours ouverts, sans ajouter le point d’aperçu au pointeur. Une forme valide en cours de glissement est conservée ; les constructions insuffisantes et les transformations sans destination confirmée sont abandonnées. Ctrl+Z annule ensuite l’objet créé.
 - Dans l’espace objet, Ctrl+A sélectionne tous les objets, puis Suppr efface la sélection en une opération annulable. Les objets verrouillés restent protégés. Dans un champ texte, Ctrl+A sélectionne le texte.
 - Sauvegarder (Ctrl+S) télécharge un `.jlgcad` JSON versionné ; Ouvrir recharge ce format.
-- Une copie est automatiquement conservée dans le stockage local du navigateur.
+- Une copie est automatiquement conservée dans le stockage de session de chaque onglet.
 
 ## Formats et limites
 
@@ -75,6 +82,6 @@ Le DWG direct n’est pas implémenté. Autodesk propose [RealDWG](https://forge
 - **Mesurer** affiche distance, écarts X/Y et angle. **Cotation (D)** prend deux points puis la position de la cote ; régler hauteur imprimée et échelle prévue. Les cotes mesurent leurs propres points et ne suivent pas automatiquement les modifications d’un mur.
 - Les **calques** proposent visibilité, verrouillage, couleur, renommage et ajout. Le verrouillage protège les modifications géométriques ; les calques masqués sont exclus des fenêtres et exports PDF/DXF.
 
-Les décalages des lignes et arcs sont géométriques. Un décalage de Bézier produit une polyligne approchée à 0,1 mm ; ses intersections utilisent une approximation de 0,05 mm. Les décalages qui écrasent ou croisent un contour sont refusés. Raccords arrondis, sélection multiple, blocs et cotations associatives restent à développer.
+Les décalages des lignes et arcs sont géométriques. Un décalage de Bézier produit une polyligne approchée à 0,1 mm ; ses intersections utilisent une approximation de 0,05 mm. Les décalages qui écrasent ou croisent un contour sont refusés. Raccords arrondis, blocs et cotations associatives restent à développer.
 
 Voir le [guide des commandes, unités et poignées](docs/drafting.md) pour la saisie dynamique et les modifications par points remarquables.

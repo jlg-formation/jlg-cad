@@ -89,3 +89,10 @@ Le rayon, le centre, les flèches et la valeur restent cohérents. Le texte gard
 Copier le cercle et sa cote ensemble recrée une liaison entre les copies. Copier la cote seule donne une cote indépendante. Les anciennes cotations restent indépendantes ; si un cercle est transformé en un autre type d’objet, ses cotations deviennent indépendantes.
 
 Les fichiers natifs version 4 conservent la liaison ; les anciennes versions restent lisibles. Les exports PDF/DXF conservent le résultat actuel, sans liaison associative.
+# Cotation linéaire
+
+Le bouton Cotation démarre directement la sélection d’un objet : cliquez un côté de rectangle, une ligne ou un segment droit, puis placez la cote sans Entrée. Un cercle déclenche la cotation de diamètre.
+
+`DIMLINEAR` ou `DLI`, puis Entrée, démarre une cotation horizontale ou verticale. Cliquez deux points, déplacez la souris pour choisir l’orientation et la position, puis cliquez pour poser la cote. La commande se termine après ce dernier clic.
+
+Pour coter directement un côté, faites Entrée une seconde fois avant de placer le premier point, cliquez une ligne ou un segment droit de rectangle ou de polyligne, puis placez la cote. La valeur mesure la projection horizontale ou verticale, utilise l’unité du projet et conserve une hauteur de texte fixe selon les réglages de cotation. Les points de cette cotation sont indépendants de l’objet sélectionné.

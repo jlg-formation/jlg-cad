@@ -188,7 +188,7 @@ export function offsetShape(shape:Shape,amount:number,side:Point,tolerance=.1):S
 export function mapItem<T extends PaperItem>(shape:T,fn:(p:Point)=>Point,scale=1,flip=false):T {
  const common={...shape,a:fn(shape.a),b:fn(shape.b)};
  if(shape.type==='polyline'||shape.type==='bezier'){const nodes=shape.nodes.map(n=>({...n,p:fn(n.p),in:n.in?fn(n.in):undefined,out:n.out?fn(n.out):undefined,bulge:n.bulge!==undefined?n.bulge*(flip?-1:1):undefined}));return{...common,a:nodes[0].p,b:nodes[nodes.length-1].p,nodes} as T;}
- if(shape.type==='dimension')return{...common,offset:shape.offset*scale*(flip&&shape.kind!=='diameter'?-1:1),height:shape.height*scale} as T;
+ if(shape.type==='dimension'){const angle=shape.linearAngle,axis=angle===undefined?undefined:sub(fn(add(shape.a,{x:Math.cos(angle),y:Math.sin(angle)})),fn(shape.a));return{...common,...(axis?{linearAngle:Math.atan2(axis.y,axis.x)}:{}),offset:shape.offset*scale*(flip&&shape.kind!=='diameter'?-1:1),height:shape.height*scale} as T;}
  if(shape.type==='text')return{...common,height:shape.height*scale} as T;
  return common;
 }
@@ -208,8 +208,17 @@ export function diameterDimension(circle:Extract<Shape,{type:'circle'}>,pointer:
  const direction=distance(circle.a,pointer)<EPS?{x:-1,y:0}:unit(sub(pointer,circle.a));
  return {...base,type:'dimension',kind:'diameter',a:add(circle.a,mul(direction,radius)),b:sub(circle.a,mul(direction,radius)),offset:Math.max(distance(circle.a,pointer)-radius,height*5),height};
 }
+export function linearDimension(a:Point,b:Point,pointer:Point,base:BaseShape,height:number):Dimension{
+ if(distance(a,b)<.001)throw new Error('Choisissez deux points distincts.');
+ const minX=Math.min(a.x,b.x),maxX=Math.max(a.x,b.x),minY=Math.min(a.y,b.y),maxY=Math.max(a.y,b.y);
+ const outsideX=Math.max(minX-pointer.x,0,pointer.x-maxX),outsideY=Math.max(minY-pointer.y,0,pointer.y-maxY);
+ const horizontal=Math.abs(b.y-a.y)<.001||Math.abs(b.x-a.x)>=.001&&(outsideY>outsideX||outsideY===outsideX&&Math.abs(b.x-a.x)>=Math.abs(b.y-a.y));
+ const linearAngle=horizontal?0:Math.PI/2,n={x:-Math.sin(linearAngle),y:Math.cos(linearAngle)};
+ return {...base,type:'dimension',kind:'linear',a,b,linearAngle,offset:dot(sub(pointer,a),n),height};
+}
 export function dimensionGeometry(s:Dimension,displayUnit:'m'|'cm'|'mm'='mm'){
- const measuredText=displayUnit==='mm'?formatLength(distance(s.a,s.b)):Number((distance(s.a,s.b)/({m:1000,cm:10,mm:1}[displayUnit])).toFixed(4)).toLocaleString('fr-FR',{maximumFractionDigits:4,useGrouping:false})+' '+displayUnit;
+ const axis=s.linearAngle===undefined?unit(sub(s.b,s.a)):{x:Math.cos(s.linearAngle),y:Math.sin(s.linearAngle)},length=s.kind==='diameter'?distance(s.a,s.b):Math.abs(dot(sub(s.b,s.a),axis));
+ const measuredText=displayUnit==='mm'?formatLength(length):Number((length/({m:1000,cm:10,mm:1}[displayUnit])).toFixed(4)).toLocaleString('fr-FR',{maximumFractionDigits:4,useGrouping:false})+' '+displayUnit;
  if(s.kind==='diameter'){
   const u=unit(sub(s.b,s.a)),n=normal(u),text='Ø'+measuredText,extension=Math.max(Math.abs(s.offset),s.height*5),arrowLength=s.height*.8;
   const arrow=(tip:Point,outward:Point):Point[]=>{const base=add(tip,mul(outward,arrowLength)),side=mul(normal(outward),s.height*.16);return[tip,add(base,side),sub(base,side)];};
@@ -218,7 +227,8 @@ export function dimensionGeometry(s:Dimension,displayUnit:'m'|'cm'|'mm'='mm'){
   return {lines:[[sub(s.a,mul(u,extension)),add(s.b,mul(u,arrowLength*2))]] as [Point,Point][],arrows:[arrow(s.a,mul(u,-1)),arrow(s.b,u)],label:add(sub(s.a,mul(u,extension/2)),mul(up,s.height*.5)),text,angle};
  }
 
- const u=unit(sub(s.b,s.a)),n=normal(u),a=add(s.a,mul(n,s.offset)),b=add(s.b,mul(n,s.offset)),tick=mul(add(u,n),s.height*.4);
+ const u=axis,n=normal(u),a=add(s.a,mul(n,s.offset)),b=add(s.b,mul(n,s.offset-dot(sub(s.b,s.a),n))),tick=mul(add(u,n),s.height*.4);
+ if(s.linearAngle!==undefined){const forward=dot(sub(b,a),u)>=0?u:mul(u,-1),arrow=(tip:Point,direction:Point):Point[]=>{const base=add(tip,mul(direction,s.height*.8)),side=mul(n,s.height*.16);return[tip,add(base,side),sub(base,side)];};return{arrows:[arrow(a,forward),arrow(b,mul(forward,-1))],lines:[[s.a,add(a,mul(n,Math.sign(s.offset)*s.height*.3))],[s.b,add(b,mul(n,Math.sign(s.offset-dot(sub(s.b,s.a),n))*s.height*.3))],[a,b]] as [Point,Point][],label:sub(lerp(a,b,.5),mul(n,s.height*.25)),text:measuredText,angle:-Math.atan2(u.y,u.x)*180/Math.PI};}
  return{arrows:[] as Point[][],lines:[[s.a,add(a,mul(n,Math.sign(s.offset)*s.height*.3))],[s.b,add(b,mul(n,Math.sign(s.offset)*s.height*.3))],[a,b],[sub(a,tick),add(a,tick)],[sub(b,tick),add(b,tick)]] as [Point,Point][],label:sub(lerp(a,b,.5),mul(n,s.height*.25)),text:measuredText,angle:-Math.atan2(u.y,u.x)*180/Math.PI};
 }
 export function smoothNodes(nodes:Node[],closed=false):Node[]{return nodes.map((n,i)=>{const prev=nodes[i-1]?.p||(closed?nodes[nodes.length-1].p:n.p),next=nodes[i+1]?.p||(closed?nodes[0].p:n.p),t=mul(sub(next,prev),1/6);return{...n,in:sub(n.p,t),out:add(n.p,t),smooth:true};});}

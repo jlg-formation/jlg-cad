@@ -60,18 +60,10 @@ L’en-tête unique mesure 42 px et accueille les outils d’architecture sous f
 
 Le logo JLG CAD ouvre désormais le menu Fichiers ; le bouton Fichiers séparé est retiré. La poubelle de la barre d’outils est supprimée et Delete conserve la suppression de la sélection.
 
-## Onglets de dessin et fichier multi-dessins
+## Un dessin par fichier
 
-Les dessins sont accessibles dans des onglets à droite de l’en-tête, sans augmenter sa hauteur. Le bouton + et Fichiers > Nouveau dessin créent un modèle indépendant. Chaque onglet conserve ses objets, calques, layouts, cadrage et historiques d’annulation et de zoom pendant la session. Changer de dessin conserve les segments validés d’une polyligne en cours. Les raccourcis concernent uniquement le dessin actif.
+L’application affiche un seul dessin architectural par fichier, avec son espace Objet et tous ses layouts dans la barre du bas. Les onglets de dessins en haut ont été retirés. Ctrl+S télécharge directement le dessin complet et ses layouts au format natif .jlgcad, sans dialogue. Le menu Fichiers > Enregistrer le projet permet de choisir le nom du fichier. Nouveau et Ouvrir remplacent le dessin affiché, avec confirmation en cas de modifications non enregistrées.
 
-Enregistrer / Ctrl+S télécharge un seul fichier `.jlgcad` JSON contenant **tous** les onglets, leurs modèles et leurs layouts, ainsi que l’index du dessin actif. Le format de collection est `jlg-cad-workspace`, version 1, avec `name`, `drawings` et `activeDrawing`. Chaque entrée `drawings` utilise le format de dessin existant version 3. Les anciens fichiers mono-dessin restent lisibles ; les extensions `.jlgcad`, `.jlcad` et `.json` sont acceptées à l’ouverture. Ouvrir ajoute les dessins contenus dans le fichier aux onglets ouverts, sans écraser les dessins existants. Les exports DXF et PDF concernent le dessin actif.
+Les anciens fichiers contenant plusieurs dessins restent lisibles : l’application récupère le dessin indiqué comme actif dans le fichier. Le fichier original reste intact. Les anciennes copies locales de collections sont conservées, et le dernier dessin affiché est repris depuis la copie locale mono-dessin.
 
-Une étoile indique les modifications non enregistrées dans un fichier. La croix de chaque onglet demande confirmation pour tout dessin contenant des objets ou des layouts, même déjà enregistré. Un onglet entièrement vide (aucun objet et aucun layout) est supprimé directement. Le dialogue nomme le dessin et précise que tous ses objets et layouts seront supprimés du projet et exclus des prochaines sauvegardes. Le dialogue propose uniquement Annuler et Supprimer. Annuler (ou Échap) conserve le dessin. Annuler est sélectionné par défaut. Supprimer le dernier onglet crée un dessin vide. Les dessins ouverts et l’onglet actif sont restaurés depuis le stockage local au rechargement ; les historiques d’annulation et les cadrages de navigation sont conservés pendant la session, pas sérialisés dans le fichier.
-
-Double-cliquer le nom d’un onglet de dessin permet de le modifier sur place. Entrée valide le nom (les espaces aux extrémités sont retirés ; un nom vide est refusé). Échap ou sortir du champ annule. Le nouveau nom est conservé localement et inclus dans le fichier multi-dessins à la prochaine sauvegarde.
-
-Les onglets Objet/Layout du footer partagent les couleurs, le relief et la pente des onglets de dessin de l’en-tête, avec des hauteurs plus compactes de 22 px (inactif) et 28 px (actif). La barre d’outils d’architecture conserve sa place dans l’en-tête en espace papier : elle est masquée et non interactive, sans déplacer les onglets.
-
-La commande Enregistrer le projet / Ctrl+S et son dialogue sont globaux au projet. Un seul téléchargement contient tous les onglets, y compris les dessins inactifs. Les étoiles restent propres aux dessins modifiés, mais sont toutes effacées par cette unique sauvegarde globale.
-
-Ctrl+S enregistre directement tous les dessins et layouts dans un seul fichier, sans dialogue, avec le nom actuel du projet (Dessins.jlgcad par défaut). La commande du menu Fichiers conserve le dialogue pour choisir un autre nom. Les segments validés de la polyligne en cours sont inclus avant le téléchargement.
+Les onglets du bas conservent le relief, les couleurs et la pente communs, avec des hauteurs compactes de 22 px (inactif) et 28 px (actif). La barre d’outils reste masquée et non interactive en espace papier, tout en conservant sa place dans l’en-tête.

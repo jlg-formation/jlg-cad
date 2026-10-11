@@ -59,3 +59,15 @@ footer .layout-tab-strip button[aria-label="Ajouter un layout"]{width:28px;min-w
 footer .command-entry{align-self:stretch}
 footer .command-entry input{height:100%}
 .command-help{position:absolute;right:0;bottom:100%;width:max-content;min-width:100%;padding:7px 10px;white-space:normal;overflow-wrap:anywhere;line-height:1.45;text-align:left;background:#1b252ded;color:#dce6eb;border:1px solid #43515c;border-bottom:0;box-shadow:0 -2px 8px #0003;pointer-events:none;z-index:5;font-size:11px}
+
+/* Single compact header with icon-only drafting tools. */
+header{height:42px;min-height:42px;flex:0 0 42px;padding:0 10px;gap:8px}
+header .brand{font-size:16px;flex-shrink:0;margin-right:0}
+header .brand-icon{padding:2px 7px;margin-right:2px}
+header>button{padding:6px;width:30px;height:30px;flex-shrink:0}
+header .header-menus{align-items:center;gap:8px}
+header .header-menus>.menu-anchor{flex-shrink:0}
+header .header-menus>.menu-anchor>button{height:30px;padding:4px 8px}
+header .architecture-toolbar{display:flex;flex:1;min-width:0;height:34px;min-height:0;padding:0 6px;gap:2px;background:transparent;border:0;border-left:1px solid #303b43;overflow-x:auto;overflow-y:hidden}
+header .architecture-toolbar button{width:30px;min-width:30px;height:30px;padding:5px;font-size:12px;border-radius:4px;flex-shrink:0}
+@media(max-width:760px){header{height:42px;padding:0 6px;gap:4px}header .header-menus{gap:4px}header .architecture-toolbar{padding:0 3px}}

@@ -55,3 +55,5 @@ Navigation : Z puis Entrée, puis E (Étendu), W (Fenêtre), P (Précédent), A 
 L’aide contextuelle flotte au-dessus du champ de commande, sans espace vertical, avec le bord droit aligné. Elle ne prend aucune hauteur dans le dessin et laisse passer les clics. La complétion prend sa place pendant la saisie ; l’aide au repos est masquée.
 
 L’en-tête affiche Fichier à gauche, Aide et Paramètres à droite. Le nom du dessin et le bouton de sauvegarde permanent sont retirés. Fichier > Sauvegarder ou Ctrl+S demande le nom du fichier dans une boîte de dialogue avant téléchargement. Annuler conserve le dessin. Sauvegarder puis créer passe par la même saisie.
+
+L’en-tête unique mesure 42 px et accueille les outils d’architecture sous forme d’icônes. Le nom et le raccourci apparaissent au survol, avec un libellé accessible pour chaque bouton. Sur écran étroit, les outils défilent horizontalement ; Fichier, Aide et Paramètres restent accessibles.

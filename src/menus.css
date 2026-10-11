@@ -9,3 +9,6 @@ header .header-menus>.menu-anchor:last-child .dropdown{left:auto;right:0}
 .save-dialog label{display:flex;flex-direction:column;gap:8px;margin-top:20px}
 .save-dialog input{background:#10171d;color:#dce6eb;border:1px solid #43515c;padding:8px;width:100%}
 @media(max-width:760px){header .header-menus button[aria-haspopup="menu"]{font-size:12px}}
+
+header .header-menus>.menu-anchor>button.brand{border:0;padding:0 4px;font-size:16px!important;font-weight:700;gap:4px!important}
+header .header-menus>.menu-anchor>button.brand:hover{background:#25333a}

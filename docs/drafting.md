@@ -29,3 +29,5 @@ Un point et la lettre O identifient l’intersection des axes comme origine.
 Les instructions sont affichées dans la barre de statut, sans texte d’aide superposé à l’indicateur d’origine.
 
 Pendant le tracé d’une polyligne, C ferme immédiatement le contour après au moins trois sommets. Le dernier sommet est relié au premier sans duplication. Cette action est annulable et ne change pas le réglage de fermeture des prochains tracés. Dans le champ de commande, C puis Entrée produit la même fermeture.
+
+ORTHO se bascule avec F8 ou Ctrl+L. Les anciennes préférences conservant uniquement le raccourci standard F8 reçoivent aussi Ctrl+L.

@@ -1,6 +1,14 @@
 import {describe,test,expect} from 'bun:test';
 import {chord,defaults,readBindings,conflict,reserved} from '../src/shortcuts';
 describe('Raccourcis personnalisés',()=>{
+ test('ORTHO accepte F8 et Ctrl+L et migre le raccourci standard existant',()=>{
+  expect(defaults().ortho).toEqual(['F8','Ctrl+L']);
+  expect(reserved('Ctrl+L')).toBe(false);
+  expect(readBindings('{"ortho":["F8"]}').ortho).toEqual(['F8','Ctrl+L']);
+  expect(readBindings('{"ortho":[]}').ortho).toEqual([]);
+  expect(readBindings('{"ortho":["F9"]}').ortho).toEqual(['F9']);
+  expect(chord({key:'l',ctrlKey:true,metaKey:false,shiftKey:false,altKey:false})).toBe('Ctrl+L');
+ });
  test('rétablit avec les deux combinaisons usuelles',()=>{expect(defaults().redo).toEqual(['Ctrl+Y','Ctrl+Shift+Z']);});
  test('normalise la touche et les modificateurs',()=>{expect(chord({key:'z',ctrlKey:true,metaKey:false,shiftKey:true,altKey:false})).toBe('Ctrl+Shift+Z');expect(chord({key:'Control',ctrlKey:true,metaKey:false,shiftKey:false,altKey:false})).toBe('');});
  test('conserve modifications et raccourcis retirés après sérialisation',()=>{const b=defaults();b.line=['Q'];b.redo=[];expect(readBindings(JSON.stringify(b))).toEqual(b);});

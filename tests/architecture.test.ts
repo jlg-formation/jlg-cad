@@ -10,6 +10,16 @@ const poly:PathShape={id:'p',type:'polyline',a:{x:0,y:0},b:{x:1000,y:1000},color
 const boundary=(x:number)=>line({x,y:-2000},{x,y:2000},`boundary-${x}`);
 const bezier:PathShape={...poly,id:'bezier',type:'bezier',a:{x:0,y:0},b:{x:1000,y:0},nodes:[{p:{x:0,y:0},out:{x:300,y:1000}},{p:{x:1000,y:0},in:{x:700,y:1000}}]};
 describe('Précision et murs',()=>{
+ test('ORTHO projette sur les axes et laisse les accrochages et les angles explicites prioritaires',()=>{
+   const a={x:10,y:20},p={x:90,y:45};
+   expect(constrainedEnd(a,p,'','',true,0)).toEqual({x:90,y:20});
+   expect(constrainedEnd(a,{x:-5,y:-80},'','',true,0)).toEqual({x:10,y:-80});
+   expect(constrainedEnd(a,p,'','',true,0,true)).toEqual(p);
+   expect(distance(a,constrainedEnd(a,p,'120','',true,0))).toBeCloseTo(120);
+   const explicit=constrainedEnd(a,p,'120','45',true,0);
+   expect(explicit.x-a.x).toBeCloseTo(a.y-explicit.y);
+   expect(constrainedEnd(a,p,'','',false,0)).toEqual(p);
+ });
  test('accepte unités, décimales françaises et déplacements signés',()=>{expect(parseLength('10 cm')).toBe(100);expect(parseLength('0,1 m')).toBe(100);expect(parseLength('-12.5 mm')).toBe(-12.5);expect(parseLength('100')).toBe(100);for(const value of ['abc','10 km','Infinity','1e12'])expect(()=>parseLength(value)).toThrow();});
  test('crée une parallèle de 100 mm de chaque côté sans modifier l’original',()=>{const below=offsetShape(l,100,{x:500,y:30}),above=offsetShape(l,100,{x:500,y:-30});expect(below.a.y).toBe(100);expect(above.a.y).toBe(-100);expect(l.a.y).toBe(0);expect(distance(below.a,below.b)).toBe(1000);});
  test('respecte la distance perpendiculaire sur une ligne inclinée',()=>{const s=line({x:0,y:0},{x:600,y:800}),d=offsetShape(s,100,{x:-100,y:100});expect(distance(s.a,d.a)).toBeCloseTo(100,9);expect(d.b.x-d.a.x).toBeCloseTo(600,9);expect(d.b.y-d.a.y).toBeCloseTo(800,9);});

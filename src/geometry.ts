@@ -237,7 +237,9 @@ export function snapPoint(p:Point,shapes:Shape[],tolerance:number):Snap|null {
  for(let i=0;i<nearby.length;i++)for(let j=i+1;j<nearby.length;j++)for(const point of intersections(nearby[i],nearby[j]))candidates.push({point,kind:'Intersection'});
  return candidates.filter(c=>distance(c.point,p)<=tolerance).sort((a,b)=>distance(a.point,p)-distance(b.point,p)||(a.kind==='Intersection'?-1:1))[0]||null;
 }
-export function constrainedEnd(start:Point,p:Point,length:string,angle:string,ortho:boolean,polar:number):Point {
+export function constrainedEnd(start:Point,p:Point,length:string,angle:string,ortho:boolean,polar:number,objectSnap=false):Point {
+ if(objectSnap&&!length.trim()&&!angle.trim())return p;
+ if(ortho&&!angle.trim()&&!length.trim())return Math.abs(p.x-start.x)>=Math.abs(p.y-start.y)?{x:p.x,y:start.y}:{x:start.x,y:p.y};
  let a=Math.atan2(-(p.y-start.y),p.x-start.x),r=distance(start,p);
  if(angle.trim())a=parseAngle(angle)*Math.PI/180;
  else if(ortho)a=Math.round(a/(Math.PI/2))*Math.PI/2;

@@ -27,6 +27,11 @@ function App() {
  const [selectedIds,setSelectedIds]=useState<string[]>([]);
  const setSelected=(value:string|null)=>{selectSingle(value);setSelectedIds([]);};
  const [settings,setSettings]=useState(initialSettings),[currentLayer,setCurrentLayer]=useState('0'),[sourceId,setSourceId]=useState<string|null>(null),[commandPoints,setCommandPoints]=useState<Point[]>([]),[pathNodes,setPathNodes]=useState<Node[]>([]),[boundaryIds,setBoundaryIds]=useState<string[]>([]),[choosingBoundaries,setChoosingBoundaries]=useState(false),[commandPreview,setCommandPreview]=useState<Shape[]>([]),[snapHit,setSnapHit]=useState<Snap|null>(null),[nodeIndex,setNodeIndex]=useState(0),[measurement,setMeasurement]=useState('');
+ const [shiftHeld,setShiftHeld]=useState(false);
+ const effectiveOrtho=settings.ortho!==shiftHeld;
+ const pointerSnap=useRef(false),lastPointer=useRef<React.PointerEvent<SVGSVGElement>|null>(null);
+ const constrain=(a:Point,b:Point,length='',angle='')=>constrainedEnd(a,b,length,angle,effectiveOrtho,effectiveOrtho?0:settings.polar,pointerSnap.current);
+ const toggleOrtho=()=>setSettings(s=>({...s,ortho:!s.ortho,polar:0}));
  const svg=useRef<SVGSVGElement>(null),input=useRef<HTMLInputElement>(null),gesture=useRef<Gesture|null>(null),draftRef=useRef<PaperItem|null>(null);
  const layout=doc.layouts.find(l=>l.id===layoutId);
  const viewport=layout?.items.find((s):s is Viewport=>s.type==='viewport'&&s.id===viewportId);
@@ -86,7 +91,7 @@ function App() {
    const hit=findObject(target,p);
    if(choosingBoundaries){if(hit){setBoundaryIds(ids=>ids.includes(hit.id)?ids.filter(i=>i!==hit.id):[...ids,hit.id]);setMessage('Limite ajoutée — Entrée pour commencer les coupes');}return;}
    if(tool==='polyline'||tool==='bezier'){
-     canDraw();const previous=pathNodes[pathNodes.length-1];const nextPoint=previous&&tool==='polyline'?constrainedEnd(previous.p,p,settings.length,settings.angle,settings.ortho,settings.polar):p;
+     canDraw();const previous=pathNodes[pathNodes.length-1];const nextPoint=previous&&tool==='polyline'?constrain(previous.p,p,settings.length,settings.angle):p;
      if(previous&&distance(previous.p,nextPoint)<.001)return;
      const nodes=pathNodes.map(n=>({...n}));if(previous&&tool==='polyline'){const a=settings.segment==='arc'?parseAngle(settings.arcAngle):0;if(Math.abs(a)>=359)throw new Error('L’angle de l’arc doit être inférieur à 359°.');nodes[nodes.length-1].bulge=Math.tan(a*Math.PI/720);}
      setPathNodes([...nodes,{p:nextPoint}]);setMessage('Cliquez le prochain sommet, Entrée pour terminer');return;
@@ -99,7 +104,7 @@ function App() {
    if(lockedShape(doc,source))throw new Error('Le calque est verrouillé.');
    if(tool==='offset'){canDraw();const next=offsetShape(source,parseLength(settings.distance),p);commit({...doc,shapes:[...doc.shapes,{...next,id:id(),layerId:layer.id}]});setCommandPreview([]);setMessage('Décalage créé — cliquez pour répéter de l’autre côté');return;}
    if(!commandPoints.length){setCommandPoints([p]);setMessage(tool==='rotate'?'Choisissez la direction de l’angle':'Cliquez le second point');return;}
-   const base=commandPoints[0],end=constrainedEnd(base,p,'','',settings.ortho,settings.polar);
+   const base=commandPoints[0],end=tool==='rotate'?p:constrain(base,p);
    if(tool==='copy'||tool==='move'){const next=translateItem(source,end.x-base.x,end.y-base.y);if(tool==='copy'){canDraw();commit({...doc,shapes:[...doc.shapes,{...next,id:id(),layerId:layer.id}]});}else replaceModel(source,[next]);}
    if(tool==='rotate')replaceModel(source,[rotateShape(source,base,-Math.atan2(end.y-base.y,end.x-base.x)*180/Math.PI)]);
    if(tool==='mirror'){const next=mirrorShape(source,base,end);if(settings.keepOriginal){canDraw();commit({...doc,shapes:[...doc.shapes,{...next,id:id(),layerId:layer.id}]});}else replaceModel(source,[next]);}
@@ -108,7 +113,7 @@ function App() {
  useEffect(()=>{const key=(e:KeyboardEvent)=>{if(document.querySelector('dialog[open]')||(e.target as HTMLElement).closest('input,textarea,select,[role="menu"],[contenteditable]:not([contenteditable="false"])'))return;
    const action=Object.keys(bindings).find(id=>bindings[id].includes(chord(e)));if(!action)return;
    if(action==='all'){if(paper)return;e.preventDefault();clear();setTool('select');setSelectedIds(items.map(s=>s.id));setMessage(`${items.length} objet(s) sélectionné(s) — ${shortcut('delete')} pour effacer`);return;}
-   if(action==='ortho'){e.preventDefault();setSettings(s=>({...s,ortho:!s.ortho,polar:0}));return;}
+   if(action==='ortho'){e.preventDefault();if(!e.repeat)toggleOrtho();return;}
    if(action==='finish'){if(choosingBoundaries){e.preventDefault();chooseBoundaries('finish');}else if(tool==='polyline'||tool==='bezier'){e.preventDefault();finishPath();}return;}
    if(action==='escape'){e.preventDefault();clear();setViewportId(null);setTool('select');return;}
    if(action==='delete'){e.preventDefault();remove();return;}
@@ -117,7 +122,7 @@ function App() {
  };window.addEventListener('keydown',key);return()=>window.removeEventListener('keydown',key);});
  const screen=(e:{clientX:number;clientY:number})=>{const r=svg.current!.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top};};
  const sheetPoint=(p:Point)=>({x:(p.x-view.x)/view.scale,y:(p.y-view.y)/view.scale});
- const world=(p:Point,magnet=true)=>{const p0=sheetPoint(p),w=viewport?paperToModel(p0,viewport):p0,step=paper?1:10;if(!paper&&settings.osnap&&magnet){const hit=snapPoint(w,visible.filter(s=>s.id!==gesture.current?.original?.id),8/(view.scale/(viewport?.denominator||1)));if(hit)return hit.point;}return snap&&magnet?{x:Math.round(w.x/step)*step,y:Math.round(w.y/step)*step}:w;};
+ const world=(p:Point,magnet=true)=>{pointerSnap.current=false;const p0=sheetPoint(p),w=viewport?paperToModel(p0,viewport):p0,step=paper?1:10;if(!paper&&settings.osnap&&magnet){const hit=snapPoint(w,visible.filter(s=>s.id!==gesture.current?.original?.id),8/(view.scale/(viewport?.denominator||1)));if(hit){pointerSnap.current=true;return hit.point;}}return snap&&magnet?{x:Math.round(w.x/step)*step,y:Math.round(w.y/step)*step}:w;};
  const inViewport=(p:Point)=>{if(!viewport)return true;const r=bounds(viewport),w=sheetPoint(p);return w.x>=r.x&&w.x<=r.x+r.width&&w.y>=r.y&&w.y<=r.y+r.height;};
  const down=(e:React.PointerEvent<SVGSVGElement>)=>{
    if(e.button!==0&&e.button!==1)return;const p=screen(e),w=world(p,!['offset','trim','extend','join'].includes(tool));if(viewport&&!inViewport(p))return;
@@ -128,25 +133,28 @@ function App() {
    if(tool==='select'){const itemId=target.closest('[data-id]')?.getAttribute('data-id')||null;setSelected(itemId);const original=items.find(s=>s.id===itemId);if(original&&!editable(original)){setMessage('Objet sur un calque verrouillé — édition désactivée');gesture.current=null;return;}const node=target.getAttribute('data-node');if(node!==null)setNodeIndex(Number(node));gesture.current=original?{start:w,screen:p,original,resize:target.hasAttribute('data-resize'),node:node!==null?Number(node):undefined,handle:target.getAttribute('data-handle') as Gesture['handle']||'point'}:null;return;}
    if(paper&&tool==='text'){const text:PaperItem={id:id(),type:'text',a:w,b:w,color,text:'Texte',height:3};put([...items,text]);setSelected(text.id);setTool('select');return;}
    if(tool==='text'||(!paper&&tool==='viewport'))return;
-   safe(()=>{canDraw();if(!['line','rect','circle','wall','viewport'].includes(tool))return;const b=!paper&&(tool==='line'||tool==='wall')&&settings.length.trim()?constrainedEnd(w,add(w,{x:1,y:0}),settings.length,settings.angle,settings.ortho||e.shiftKey,settings.polar):w;
+   safe(()=>{canDraw();if(!['line','rect','circle','wall','viewport'].includes(tool))return;const b=!paper&&(tool==='line'||tool==='wall')&&settings.length.trim()?constrain(w,add(w,{x:1,y:0}),settings.length,settings.angle):w;
    const next:PaperItem=tool==='viewport'?{id:id(),type:'viewport',a:w,b:w,color:'#17242a',center:{x:400,y:285},denominator:10,locked:false,printBorder:false}:{id:id(),type:tool==='wall'?'line':tool as 'line'|'rect'|'circle',a:w,b,color,layerId:paper?undefined:layer.id};
    setPreview(next);gesture.current={start:w,screen:p};});
  };
  const move=(e:React.PointerEvent<SVGSVGElement>)=>{
+   lastPointer.current=e;
    const p=screen(e),g=gesture.current,w=world(p,(g?.node===undefined||g.handle==='point')&&!['offset','trim','extend','join'].includes(tool));setCursor(w);
    const raw=viewport?paperToModel(sheetPoint(p),viewport):sheetPoint(p);setSnapHit(!paper&&settings.osnap?snapPoint(raw,visible.filter(s=>s.id!==g?.original?.id),8/(view.scale/(viewport?.denominator||1))):null);
    if(!g){
      if(!paper&&['offset','trim','extend','copy','move','rotate','mirror'].includes(tool)&&!choosingBoundaries){try{
        if(tool==='offset'&&source&&!lockedShape(doc,source))setCommandPreview([offsetShape(source,parseLength(settings.distance),raw)]);
        else if(tool==='trim'||tool==='extend'){const hit=findObject(e.target as Element,raw);setCommandPreview(hit&&!lockedShape(doc,hit)?tool==='trim'?trimShape(hit,boundaries,raw,true):[extendShape(hit,boundaries,raw)]:[]);}
-       else if(source&&commandPoints.length){const base=commandPoints[0],end=constrainedEnd(base,w,'','',settings.ortho,settings.polar);setCommandPreview([tool==='mirror'?mirrorShape(source,base,end):tool==='rotate'?rotateShape(source,base,-Math.atan2(end.y-base.y,end.x-base.x)*180/Math.PI):translateItem(source,end.x-base.x,end.y-base.y)]);}
+       else if(source&&commandPoints.length){const base=commandPoints[0],end=tool==='rotate'?w:constrain(base,w);setCommandPreview([tool==='mirror'?mirrorShape(source,base,end):tool==='rotate'?rotateShape(source,base,-Math.atan2(end.y-base.y,end.x-base.x)*180/Math.PI):translateItem(source,end.x-base.x,end.y-base.y)]);}
      }catch{setCommandPreview([]);}}return;
    }
    if(g.pan)setView({...g.pan,x:g.pan.x+p.x-g.screen.x,y:g.pan.y+p.y-g.screen.y});
    else if(g.viewport)setPreview({...g.viewport,center:{x:g.viewport.center.x-(p.x-g.screen.x)/view.scale*g.viewport.denominator,y:g.viewport.center.y-(p.y-g.screen.y)/view.scale*g.viewport.denominator}});
-   else if(g.original){setPreview(g.node!==undefined&&(g.original.type==='polyline'||g.original.type==='bezier')?moveNode(g.original,g.node,w,g.handle):g.resize?{...g.original,b:w}:translate(g.original,w.x-g.start.x,w.y-g.start.y));}
-   else if(draftRef.current)safe(()=>setPreview({...draftRef.current!,b:!paper&&(tool==='line'||tool==='wall')?constrainedEnd(draftRef.current!.a,w,settings.length,settings.angle,settings.ortho||e.shiftKey,settings.polar):w}));
+   else if(g.original){const origin=g.node!==undefined&&(g.original.type==='polyline'||g.original.type==='bezier')?(g.handle==='in'||g.handle==='out'?g.original.nodes[g.node][g.handle]||g.original.nodes[g.node].p:g.original.nodes[g.node].p):g.resize?g.original.b:g.start;const end=g.resize&&g.original.type!=='line'?w:constrain(origin,w);setPreview(g.node!==undefined&&(g.original.type==='polyline'||g.original.type==='bezier')?moveNode(g.original,g.node,end,g.handle):g.resize?{...g.original,b:end}:translate(g.original,end.x-g.start.x,end.y-g.start.y));}
+   else if(draftRef.current)safe(()=>setPreview({...draftRef.current!,b:(tool==='line'||!paper&&tool==='wall')?constrain(draftRef.current!.a,w,paper?'':settings.length,paper?'':settings.angle):w}));
  };
+ useEffect(()=>{if(lastPointer.current)move(lastPointer.current);},[settings.ortho,settings.polar,shiftHeld]);
+ useEffect(()=>{const down=(e:KeyboardEvent)=>{if(e.key==='Shift'&&!document.querySelector('dialog[open]')&&!(e.target as HTMLElement).closest('input,textarea,select,[contenteditable]'))setShiftHeld(true);};const up=(e:KeyboardEvent)=>{if(e.key==='Shift')setShiftHeld(false);};const blur=()=>{setShiftHeld(false);lastPointer.current=null;};window.addEventListener('keydown',down);window.addEventListener('keyup',up);window.addEventListener('blur',blur);return()=>{window.removeEventListener('keydown',down);window.removeEventListener('keyup',up);window.removeEventListener('blur',blur);};},[]);
  const up=()=>{
    const s=draftRef.current,g=gesture.current;
    if(s&&g?.viewport&&s.type==='viewport')editViewport(s);
@@ -178,7 +186,7 @@ function App() {
  const modelShapes=visible.filter(s=>s.id!==(viewport||!layout?draft?.id:null));
  const extras:Shape[]=[...commandPreview];
  try{
-   if((tool==='polyline'||tool==='bezier')&&pathNodes.length){let nodes=pathNodes.map(n=>({...n}));const last=nodes[nodes.length-1];const end=tool==='polyline'?constrainedEnd(last.p,cursor,settings.length,settings.angle,settings.ortho,settings.polar):cursor;if(distance(last.p,end)>.001){if(tool==='polyline')last.bulge=settings.segment==='arc'?Math.tan(parseAngle(settings.arcAngle)*Math.PI/720):0;nodes.push({p:end});}if(nodes.length>=2){if(tool==='bezier')nodes=smoothNodes(nodes);extras.push({...baseShape(),id:'construction',type:tool,nodes,a:nodes[0].p,b:nodes[nodes.length-1].p,closed:false});}}
+   if((tool==='polyline'||tool==='bezier')&&pathNodes.length){let nodes=pathNodes.map(n=>({...n}));const last=nodes[nodes.length-1];const end=tool==='polyline'?constrain(last.p,cursor,settings.length,settings.angle):cursor;if(distance(last.p,end)>.001){if(tool==='polyline')last.bulge=settings.segment==='arc'?Math.tan(parseAngle(settings.arcAngle)*Math.PI/720):0;nodes.push({p:end});}if(nodes.length>=2){if(tool==='bezier')nodes=smoothNodes(nodes);extras.push({...baseShape(),id:'construction',type:tool,nodes,a:nodes[0].p,b:nodes[nodes.length-1].p,closed:false});}}
    if((tool==='measure'||tool==='dimension')&&commandPoints.length){const a=commandPoints[0],b=commandPoints[1]||cursor;if(tool==='dimension'&&commandPoints.length===2&&distance(a,b)>.001){extras.push({...baseShape(),id:'construction',type:'dimension',a,b,offset:cross(sub(b,a),sub(cursor,a))/distance(a,b),height:parseLength(settings.dimensionText)*Number(settings.annotationScale)});}else extras.push({...baseShape(),id:'construction',type:'line',a,b});}
    if(tool==='wall'&&draft?.type==='line'&&distance(draft.a,draft.b)>.001){const v=sub(draft.b,draft.a);extras.push({...offsetShape(draft,parseLength(settings.distance),add(draft.a,mul({x:-v.y,y:v.x},-settings.wallSide))),id:'wall-preview'});}
  }catch{/* Invalid partial input is reported when the operation is confirmed. */}
@@ -215,6 +223,6 @@ function App() {
  <div className="section-label">AIDES AU DESSIN</div><button className={`toggle ${grid?'enabled':''}`} onClick={()=>setGrid(!grid)}><Grid2X2 size={16}/> Grille <span>{grid?'ON':'OFF'}</span></button><button className={`toggle ${snap?'enabled':''}`} onClick={()=>setSnap(!snap)}><Magnet size={16}/> Aimantation <span>{snap?`${paper?1:10} mm`:'OFF'}</span></button>
  <div className="objects"><div className="panel-heading"><span><Layers size={15}/> {paper?'Objets papier':'Objets du dessin'}</span><span>{items.length}</span></div><div className="object-list">{items.length===0?<p>{paper?'Feuille vide : ajoutez du texte, des formes ou des fenêtres.':'Aucun objet.'}</p>:items.map((s,i)=><button key={s.id} className={selected===s.id||selectedIds.includes(s.id)?'chosen':''} onClick={()=>{setSelected(s.id);chooseTool('select');}}><span style={{color:s.color}}>{s.type==='text'?'T':s.type==='viewport'?'▣':s.type==='circle'?'○':s.type==='rect'?'□':'╱'}</span>{labels[s.type]}<small>{String(i+1).padStart(2,'0')}</small></button>)}</div></div></aside></div>
  <nav className="layout-tabs" aria-label="Espaces du projet"><button className={!layout?'current':''} onClick={()=>switchSpace(null)}>Objet</button>{doc.layouts.map(l=><button key={l.id} className={layout?.id===l.id?'current':''} onClick={()=>switchSpace(l.id)}>{l.name}</button>)}<button aria-label="Ajouter une présentation" title="Ajouter une présentation" onClick={addLayout}><Plus size={16}/> Présentation</button>{viewport&&<button className="return-paper" onClick={()=>{clear();setViewportId(null);setTool('select');}}>Revenir au papier</button>}</nav>
- <footer role="status" aria-live="polite"><span><span className="live-dot"/> {message}</span><span className="coordinates">X {cursor.x.toFixed(1)} / Y {(paper?cursor.y:-cursor.y).toFixed(1)} mm</span><span>{paper?'PAPIER':viewport?'OBJET · FENÊTRE':'OBJET'}</span></footer></div>;
+ <footer role="status" aria-live="polite"><span><span className="live-dot"/> {message}</span><button className={`status-mode ${effectiveOrtho?'enabled':''}`} aria-label="Mode orthogonal" aria-pressed={effectiveOrtho} title={title('ortho','Orthogonal')+' · Maj : inverser temporairement'} onClick={toggleOrtho}>ORTHO <span>{effectiveOrtho?'ON':'OFF'}</span>{shiftHeld&&<small> temporaire</small>}</button><span className="coordinates">X {cursor.x.toFixed(1)} / Y {(paper?cursor.y:-cursor.y).toFixed(1)} mm</span><span>{paper?'PAPIER':viewport?'OBJET · FENÊTRE':'OBJET'}</span></footer></div>;
 }
 createRoot(document.getElementById('root')!).render(<React.StrictMode><App/></React.StrictMode>);

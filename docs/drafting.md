@@ -35,3 +35,5 @@ ORTHO se bascule avec F8 ou Ctrl+L. Les anciennes préférences conservant uniqu
 Le curseur affiche son carré central en sélection. Pendant un outil, la croix reste visible sans carré. Échap conserve les segments validés de la polyligne en cours sous forme de chemin ouvert et revient à la sélection, y compris pendant une saisie de longueur ou de commande.
 
 Échap ignore le segment de prévisualisation et une longueur non confirmée. Un seul sommet ne crée pas d’objet. Les objets existants restent conservés. C prépare la fermeture ; seule Entrée la confirme.
+
+La barre inférieure unique mesure 30 px : onglets Objet et présentations, ajout (+), commande, instruction active, ORTHO et coordonnées fixes. Elle ne se replie pas ; les onglets défilent horizontalement. Les instructions se masquent sous 600 px, les coordonnées sous 400 px.

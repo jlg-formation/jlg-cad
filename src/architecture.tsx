@@ -23,9 +23,9 @@ export const tips:Partial<Record<Tool,string>>={
  measure:'Cliquez deux points pour mesurer la distance, les écarts et l’angle.',
  dimension:'Cliquez les deux points à coter, puis un troisième point pour placer la ligne de cote.',
 };
-export function ArchitectureToolbar({tool,onTool,shortcut}:{tool:Tool;onTool:(t:Tool)=>void;shortcut:(id:string)=>string}) {
+export function ArchitectureToolbar({tool,onTool,shortcut,concealed=false}:{tool:Tool;onTool:(t:Tool)=>void;shortcut:(id:string)=>string;concealed?:boolean}) {
  const tools=[['polyline',Waypoints],['bezier',Spline],['offset',ArrowRightLeft],['trim',Scissors],['extend',MoveRight],['join',CornerDownRight],['copy',Copy],['move',Move],['rotate',RotateCw],['mirror',FlipHorizontal],['measure',Ruler],['dimension',PenLine]] as const;
- return <nav className="architecture-toolbar" aria-label="Outils d’architecture">{tools.map(([t,Icon])=><button key={t} aria-label={labels[t]} className={tool===t?'active':''} onClick={()=>onTool(t)} title={labels[t]+(shortcut(t)?' — '+shortcut(t):'')}><Icon size={18}/></button>)}</nav>;
+ return <nav className={"architecture-toolbar"+(concealed?" concealed":"")} aria-label="Outils d’architecture" aria-hidden={concealed||undefined} inert={concealed}>{tools.map(([t,Icon])=><button key={t} aria-label={labels[t]} className={tool===t?'active':''} onClick={()=>onTool(t)} title={labels[t]+(shortcut(t)?' — '+shortcut(t):'')}><Icon size={18}/></button>)}</nav>;
 }
 export type Settings={length:string;angle:string;distance:string;dx:string;dy:string;rotation:string;ortho:boolean;polar:number;osnap:boolean;segment:'line'|'arc';arcAngle:string;closed:boolean;keepOriginal:boolean;dimensionText:string;annotationScale:string};
 export const initialSettings:Settings={length:'',angle:'',distance:'10 cm',dx:'10 cm',dy:'0',rotation:'90',ortho:false,polar:0,osnap:true,segment:'line',arcAngle:'90',closed:false,keepOriginal:true,dimensionText:'2,5 mm',annotationScale:'50'};

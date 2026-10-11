@@ -5,12 +5,12 @@ footer .status-mode{width:32px;height:28px;padding:2px;border:1px solid #43515c;
 .dynamic-length{position:absolute;z-index:4;background:#1b252d;color:#c4cdd3;border:1px solid #52616d;box-shadow:0 2px 8px #0005;padding:5px 7px;width:145px;max-width:calc(100% - 16px)}.dynamic-length label{display:flex;align-items:center;gap:5px;font-size:10px;flex-wrap:nowrap;white-space:nowrap}.dynamic-length input{width:6ch;min-width:0;flex:1;text-align:right;color:#edf4f8;background:#354653;border:1px solid #6799c5;padding:3px 5px;font-size:16px;font-variant-numeric:tabular-nums}.dynamic-length label>span{font-size:11px;flex-shrink:0}.command-entry{position:relative;display:flex;align-items:center;gap:12px;flex-shrink:0;min-height:34px;padding:4px 20px;background:#1b252d;border-top:1px solid #35414a;font-size:11px}.command-entry input{width:260px;max-width:70%;background:#10171d;border:1px solid #43515c;color:#dce6eb;padding:4px 8px}.command-suggestions{position:absolute;bottom:100%;left:100px;width:300px;max-height:240px;overflow:auto;background:#24313b;border:1px solid #627889;z-index:6;padding:4px}.command-suggestions button{display:flex;justify-content:flex-start;width:100%;border:0;border-radius:0;padding:7px}.command-suggestions button[aria-selected=true]{background:#426885;color:#fff}.command-suggestions strong{min-width:90px}.settings-backdrop{position:fixed;inset:0;z-index:20;background:#0009;display:flex;align-items:center;justify-content:center}.app-settings{width:min(440px,90vw);background:#1b252d;border:1px solid #627889;border-radius:8px;padding:24px}.app-settings label{display:flex;flex-direction:column;gap:12px;margin-top:24px}.app-settings select{padding:8px;background:#10171d;color:#dce6eb}.app-settings p{font-size:12px;line-height:1.6;color:#9fb1bc}.app-settings button{margin-top:12px}
 
 /* One compact row for layouts, commands and drafting status. */
-footer{height:30px;min-height:30px;flex:0 0 30px;display:grid;grid-template-columns:400px minmax(130px,210px) minmax(0,1fr) 26px 230px;gap:10px;padding:0 8px;white-space:nowrap}
+footer{height:30px;min-height:30px;flex:0 0 30px;display:grid;grid-template-columns:434px minmax(130px,210px) minmax(0,1fr) 26px 230px;gap:10px;padding:0 8px;white-space:nowrap}
 footer .layout-tabs{min-width:0;min-height:0;height:28px;padding:0;gap:2px;background:transparent;border:0;overflow:hidden}
 footer .layout-tab-strip{display:flex;gap:2px;min-width:0;flex:1;height:28px;align-items:center;overflow-x:auto;overflow-y:hidden}
 footer .layout-tab-strip button{width:72px;min-width:72px;max-width:72px;overflow:hidden;text-overflow:ellipsis;display:block;white-space:nowrap}
 footer .layout-tabs button{height:24px;flex-shrink:0;padding:2px 8px;border-radius:3px;font-size:11px}
-footer .layout-tabs button[aria-label="Ajouter un layout"]{width:24px;min-width:24px;padding:0}
+footer .layout-tabs button[aria-label="Ajouter un layout"]{width:24px;min-width:24px;max-width:24px;display:inline-flex;padding:0}
 footer .layout-tabs .return-paper{margin-left:0}
 footer .command-entry{min-width:0;min-height:0;padding:0;border:0;background:transparent;gap:0}
 footer .command-entry input{flex:1;min-width:0;width:100%;max-width:none;height:23px;padding:2px 6px;font-size:11px}
@@ -41,3 +41,7 @@ footer .coordinates>span{min-width:0;overflow:hidden;text-overflow:ellipsis;text
 *::-webkit-scrollbar-thumb:hover{background:#738e98}
 *::-webkit-scrollbar-button{display:none;width:0;height:0}
 @supports selector(::-webkit-scrollbar){*{scrollbar-width:auto;scrollbar-color:auto}}
+
+footer .layout-tabs .tab-scroll{width:15px;min-width:15px;padding:0;border:0;color:#9fb6bf;background:transparent}
+footer .layout-tabs .tab-scroll:hover:not(:disabled){background:#25333a;color:#a6e0cf}
+footer .layout-tabs .tab-scroll:disabled{opacity:.2}

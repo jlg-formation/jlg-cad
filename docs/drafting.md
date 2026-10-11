@@ -75,3 +75,17 @@ C puis Entrée active le cercle. Cliquez le centre, saisissez un rayon puis Entr
 En sélection, cliquez l’un des quatre grips cardinaux pour ouvrir la même saisie près du grip. Le champ reçoit automatiquement le focus et sélectionne la valeur actuelle. Entrée confirme un rayon strictement positif ; Échap ferme la saisie sans modification. Le centre reste fixe et Ctrl+Z annule le changement. Cliquer la circonférence seule n’ouvre pas cette saisie.
 
 Pour Ligne, si la souris reste sur le premier point, Entrée crée une ligne horizontale vers la droite. Une direction donnée à la souris ou un angle explicite est prioritaire.
+
+## Cotation de diamètre
+
+Activez Cotation (D puis Entrée), cliquez la circonférence d’un cercle puis cliquez à l’extérieur pour placer la cote. L’aperçu suit le pointeur : la ligne traverse le centre, deux flèches pleines pointent vers le cercle et la valeur est précédée de Ø. Le texte reste lisible à la création et sa taille est modifiable dans les propriétés. Les nouvelles cotations de diamètre sont liées au cercle et suivent ses modifications. Les anciennes cotations restent indépendantes. La liaison est conservée dans les fichiers JLG CAD ; les PDF/DXF exportent la géométrie et la valeur à jour.
+
+## Cotations de diamètre liées
+
+**DIAMÈTRE**, **DIAMETRE**, **DIMDIAMETER** ou **DDI**, puis Entrée, lance la commande réservée aux cercles. D puis Entrée conserve la cotation générale, qui reconnaît aussi les cercles.
+
+Le rayon, le centre, les flèches et la valeur restent cohérents. Le texte garde son orientation et son écart avec le cercle. La poignée de placement permet de repositionner la cote sans changer le diamètre. Supprimer le cercle supprime ses cotations liées ; Ctrl+Z restaure tout en une action. Une cote liée sur un calque verrouillé empêche la suppression du cercle ; modifier le cercle actualise toujours la mesure.
+
+Copier le cercle et sa cote ensemble recrée une liaison entre les copies. Copier la cote seule donne une cote indépendante. Les anciennes cotations restent indépendantes ; si un cercle est transformé en un autre type d’objet, ses cotations deviennent indépendantes.
+
+Les fichiers natifs version 4 conservent la liaison ; les anciennes versions restent lisibles. Les exports PDF/DXF conservent le résultat actuel, sans liaison associative.

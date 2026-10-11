@@ -85,3 +85,5 @@ Le DWG direct n’est pas implémenté. Autodesk propose [RealDWG](https://forge
 Les décalages des lignes et arcs sont géométriques. Un décalage de Bézier produit une polyligne approchée à 0,1 mm ; ses intersections utilisent une approximation de 0,05 mm. Les décalages qui écrasent ou croisent un contour sont refusés. Raccords arrondis, blocs et cotations associatives restent à développer.
 
 Voir le [guide des commandes, unités et poignées](docs/drafting.md) pour la saisie dynamique et les modifications par points remarquables.
+
+Les nouvelles cotations de diamètre (DIAMÈTRE / DDI puis Entrée) suivent le rayon et le centre du cercle. Le fichier natif version 4 conserve cette liaison ; copier le cercle et sa cote ensemble la recrée pour les copies, et supprimer le cercle retire ses cotations liées en une action annulable. Les anciennes cotations restent indépendantes.

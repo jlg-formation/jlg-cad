@@ -6,7 +6,10 @@ test('la vue initiale contient 50 m dans les deux directions, sans déformation'
   expect((width-48)/v.scale).toBeGreaterThanOrEqual(50000);
   expect((height-48)/v.scale).toBeGreaterThanOrEqual(50000);
   expect(5000*v.scale).toBeLessThanOrEqual(Math.min(width,height)/10);
-  expect(v.x).toBe(24);expect(v.y).toBe(height-24);
+  expect(v.x-2500*v.scale).toBeCloseTo(24);
+  expect(v.y+2500*v.scale).toBeCloseTo(height-24);
+  expect((width-v.x-24)/v.scale).toBeGreaterThanOrEqual(49999.999);
+  expect((v.y-24)/v.scale).toBeGreaterThanOrEqual(49999.999);
  }
 });
 test('la grille conserve un espacement lisible à toutes les échelles',()=>{

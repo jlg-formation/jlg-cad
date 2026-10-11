@@ -1,7 +1,8 @@
 export function initialModelView(width:number,height:number){
  const padding=24;
- const scale=Math.max(.0001,Math.min(Math.max(1,width-padding*2)/50000,Math.max(1,height-padding*2)/50000));
- return {x:padding,y:Math.max(padding,height-padding),scale};
+ const scale=Math.max(.0001,Math.min(Math.max(1,width-padding*2)/52500,Math.max(1,height-padding*2)/52500));
+ const negativeArm=2500*scale;
+ return {x:padding+negativeArm,y:Math.max(padding,height-padding-negativeArm),scale};
 }
 export function modelGridStep(scale:number){
  const target=40/scale,power=10**Math.floor(Math.log10(target));

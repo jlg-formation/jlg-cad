@@ -71,3 +71,5 @@ Une étoile indique les modifications non enregistrées dans un fichier. La croi
 Double-cliquer le nom d’un onglet de dessin permet de le modifier sur place. Entrée valide le nom (les espaces aux extrémités sont retirés ; un nom vide est refusé). Échap ou sortir du champ annule. Le nouveau nom est conservé localement et inclus dans le fichier multi-dessins à la prochaine sauvegarde.
 
 Les onglets Objet/Layout du footer partagent les couleurs, le relief et la pente des onglets de dessin de l’en-tête, avec des hauteurs plus compactes de 22 px (inactif) et 28 px (actif). La barre d’outils d’architecture conserve sa place dans l’en-tête en espace papier : elle est masquée et non interactive, sans déplacer les onglets.
+
+La commande Enregistrer le projet / Ctrl+S et son dialogue sont globaux au projet. Un seul téléchargement contient tous les onglets, y compris les dessins inactifs. Les étoiles restent propres aux dessins modifiés, mais sont toutes effacées par cette unique sauvegarde globale.

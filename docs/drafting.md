@@ -25,3 +25,4 @@ Au démarrage et au retour dans Objet, la vue affiche au moins 50 m dans chaque 
 L’indicateur d’origine suit les dimensions du dessin : 5 m vers la droite et le haut, 2,5 m vers la gauche et le bas. Son épaisseur reste constante à l’écran.
 
 La vue initiale réserve une marge autour des branches négatives pour afficher toute la croix. Les branches positives portent une pointe de flèche et les lettres X et Y, de taille constante à l’écran.
+Un point et la lettre O identifient l’intersection des axes comme origine.

@@ -21,3 +21,5 @@ La sélection affiche des poignées bleues de taille constante à l’écran, y 
 Un réticule de 86 pixels avec carré central remplace le curseur dans la zone de dessin.
 
 Au démarrage et au retour dans Objet, la vue affiche au moins 50 m dans chaque direction. Sur un écran rectangulaire, la direction la plus longue montre davantage de terrain pour conserver les proportions. Un segment de 5 m représente moins d’un dixième du petit côté. La grille adapte son espacement au zoom.
+
+L’indicateur d’origine suit les dimensions du dessin : 1 m vers les axes X et Y positifs, 50 cm dans les directions opposées. Son épaisseur reste constante à l’écran.

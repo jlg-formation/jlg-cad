@@ -17,6 +17,11 @@ Le site est publié sur https://jlg-formation.github.io/jlg-cad/ par GitHub Acti
 
 ## Utilisation
 
+- Le menu **Fichier** regroupe Nouveau, Ouvrir, Sauvegarder et les exports DXF/PDF. Nouveau propose de télécharger une sauvegarde avant de remplacer un dessin non sauvegardé.
+- Le menu **Aide** contient le guide de démarrage, les outils d’architecture, l’espace papier, les formats et **Raccourcis clavier…** (F1).
+- Dans cette fenêtre, cliquer une combinaison puis taper le nouveau raccourci. Les conflits sont signalés ; on peut ajouter ou retirer des combinaisons et rétablir les valeurs par défaut. Les préférences sont enregistrées dans `localStorage`, séparément des dessins, et survivent aux rafraîchissements. Les menus et infobulles reflètent les changements. Certaines combinaisons du navigateur/système sont refusées.
+- **Ctrl+Y** et **Ctrl+Maj+Z** rétablissent une action annulée. Les raccourcis indiqués ci-dessous sont les valeurs par défaut ; les champs texte conservent leurs commandes d’édition habituelles.
+
 - Sélection (V), ligne (L), rectangle (R), cercle (C), déplacement de la vue (H).
 - Glisser pour dessiner. Pour un cercle, partir du centre et glisser jusqu’au rayon.
 - Sélectionner une forme puis glisser pour la déplacer ; Suppr pour l’effacer.

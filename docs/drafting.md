@@ -47,3 +47,5 @@ Les onglets gardent une largeur minimale de 72 px et s’élargissent pour affic
 La zone des onglets s’élargit désormais avec l’écran, jusqu’à 1 250 px : sur un grand desktop, Objets et quinze layouts aux noms standard tiennent simultanément. Sur écran plus étroit ou avec des noms longs, les flèches et le défilement restent disponibles.
 
 En layout, le fond autour de la feuille est gris moyen et la feuille blanc cassé pour réduire la rupture visuelle avec les panneaux sombres. Le curseur et les indications deviennent foncés pour rester lisibles. Ces couleurs d’écran ne modifient pas l’export PDF.
+
+Les onglets sont regroupés par leur contour incliné et leur fond, sans espacement entre eux. Leur hauteur est de 22 px et leur largeur minimale de 64 px ; le nom complet reste affiché. L’onglet actif a un fond plus clair et un texte renforcé.

@@ -45,3 +45,11 @@ footer .coordinates>span{min-width:0;overflow:hidden;text-overflow:ellipsis;text
 footer .layout-tabs .tab-scroll{width:15px;min-width:15px;padding:0;border:0;color:#9fb6bf;background:transparent}
 footer .layout-tabs .tab-scroll:hover:not(:disabled){background:#25333a;color:#a6e0cf}
 footer .layout-tabs .tab-scroll:disabled{opacity:.2}
+
+/* Contoured tabs form a compact ribbon without spacing-based grouping. */
+footer .layout-tab-strip{gap:0}
+footer .layout-tab-strip button{min-width:64px;height:22px;padding:2px 12px;border:0;border-radius:0;background:#29343e;color:#b8c5ce;clip-path:polygon(0 0,calc(100% - 9px) 0,100% 100%,9px 100%);box-shadow:inset 0 1px #46525c,inset 0 -1px #1b252d}
+footer .layout-tab-strip button:hover{background:#35434f;color:#edf3f6}
+footer .layout-tab-strip button.current{background:#465562;color:#f1f5f7;font-weight:600;box-shadow:inset 0 2px #8194a3,inset 0 -1px #617380}
+footer .layout-tab-strip button:focus-visible{outline-offset:-3px}
+footer .layout-tab-strip button[aria-label="Ajouter un layout"]{width:28px;min-width:28px;max-width:28px;padding:0;margin-left:2px}

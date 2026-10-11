@@ -48,7 +48,7 @@ footer .layout-tabs .tab-scroll:disabled{opacity:.2}
 
 /* Contoured tabs form a compact ribbon without spacing-based grouping. */
 footer .layout-tab-strip{gap:0}
-footer .layout-tab-strip button{min-width:64px;height:22px;padding:2px 12px;border:0;border-radius:0;background:#29343e;color:#b8c5ce;clip-path:polygon(0 0,calc(100% - 9px) 0,100% 100%,9px 100%);box-shadow:inset 0 1px #46525c,inset 0 -1px #1b252d}
+footer .layout-tab-strip button{min-width:64px;height:22px;padding:2px 12px;border:0;border-radius:0;background:#29343e;color:#b8c5ce;clip-path:polygon(9px 0,100% 0,calc(100% - 9px) 100%,0 100%);box-shadow:inset 0 1px #46525c,inset 0 -1px #1b252d}
 footer .layout-tab-strip button:hover{background:#35434f;color:#edf3f6}
 footer .layout-tab-strip button.current{background:#465562;color:#f1f5f7;font-weight:600;box-shadow:inset 0 2px #8194a3,inset 0 -1px #617380}
 footer .layout-tab-strip button:focus-visible{outline-offset:-3px}

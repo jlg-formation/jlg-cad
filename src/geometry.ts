@@ -14,10 +14,10 @@ const clamp=(n:number)=>Math.max(0,Math.min(1,n));
 const tau=Math.PI*2;
 const angleDelta=(a:number,b:number,sign:number)=>sign>=0?((b-a)%tau+tau)%tau:-((a-b)%tau+tau)%tau;
 
-export function parseLength(value:string):number {
+export function parseLength(value:string,defaultUnit:'mm'|'cm'|'m'='mm'):number {
  const match=value.trim().toLowerCase().replace(',','.').match(/^([+-]?(?:\d+(?:\.\d*)?|\.\d+))\s*(mm|cm|m)?$/);
  if(!match)throw new Error('Saisissez une distance, par exemple 100 mm, 10 cm ou 0,1 m.');
- const n=Number(match[1])*({mm:1,cm:10,m:1000}[match[2]||'mm']!);
+ const n=Number(match[1])*({mm:1,cm:10,m:1000}[match[2]||defaultUnit]!);
  if(!Number.isFinite(n)||Math.abs(n)>1e7)throw new Error('Distance trop grande.');return n;
 }
 export function parseAngle(value:string):number {

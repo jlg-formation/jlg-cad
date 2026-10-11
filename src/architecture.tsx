@@ -1,11 +1,13 @@
-import { useEffect, useRef, useState } from 'react';
-import { ArrowRightLeft, Scissors, MoveRight, CornerDownRight, Copy, Move, RotateCw, FlipHorizontal, Ruler, Spline, Waypoints, BrickWall, PenLine, Eye, EyeOff, Lock, Unlock, Plus, Trash2 } from 'lucide-react';
+import { useContext, useEffect, useRef, useState } from 'react';
+import { ArrowRightLeft, Scissors, MoveRight, CornerDownRight, Copy, Move, RotateCw, FlipHorizontal, Ruler, Spline, Waypoints, PenLine, Eye, EyeOff, Lock, Unlock, Plus, Trash2 } from 'lucide-react';
 import { type Drawing, type PathShape, type Shape, type Point, lockedShape } from './model';
-import { parseLength, parseAngle, formatLength, moveNode, insertNode, deleteNode, smoothNodes, syncPath, distance, constrainedEnd } from './geometry';
+import { parseLength, parseAngle, moveNode, insertNode, deleteNode, smoothNodes, syncPath, distance, constrainedEnd } from './geometry';
 import './architecture.css';
+import {UnitContext} from './units';
+import {displayDistance} from './drafting';
 
-export type Tool = Shape['type'] | 'select' | 'pan' | 'text' | 'viewport' | 'offset' | 'trim' | 'extend' | 'join' | 'copy' | 'move' | 'rotate' | 'mirror' | 'wall' | 'measure';
-export const labels:Record<Tool,string>={select:'Sélection',line:'Ligne',rect:'Rectangle',circle:'Cercle',pan:'Déplacement de vue',text:'Texte',viewport:'Fenêtre de vue',polyline:'Polyligne',bezier:'Bézier',dimension:'Cotation',offset:'Décalage',trim:'Ajuster',extend:'Prolonger',join:'Raccorder',copy:'Copier',move:'Déplacer',rotate:'Rotation',mirror:'Miroir',wall:'Mur',measure:'Mesurer'};
+export type Tool = Shape['type'] | 'select' | 'pan' | 'text' | 'viewport' | 'offset' | 'trim' | 'extend' | 'join' | 'copy' | 'move' | 'rotate' | 'mirror' | 'measure';
+export const labels:Record<Tool,string>={select:'Sélection',line:'Ligne',rect:'Rectangle',circle:'Cercle',pan:'Déplacement de vue',text:'Texte',viewport:'Fenêtre de vue',polyline:'Polyligne',bezier:'Bézier',dimension:'Cotation',offset:'Décalage',trim:'Ajuster',extend:'Prolonger',join:'Raccorder',copy:'Copier',move:'Déplacer',rotate:'Rotation',mirror:'Miroir',measure:'Mesurer'};
 export const commandTools:Tool[]=['offset','trim','extend','join','copy','move','rotate','mirror','measure','dimension','polyline','bezier'];
 export const tips:Partial<Record<Tool,string>>={
  offset:'Sélectionnez un objet, saisissez la distance, puis cliquez du côté voulu. L’original est conservé.',
@@ -18,23 +20,21 @@ export const tips:Partial<Record<Tool,string>>={
  mirror:'Sélectionnez un objet puis deux points pour l’axe du miroir. La copie peut conserver l’original.',
  polyline:'Cliquez les sommets successifs. Choisissez Ligne ou Arc avant le prochain point. Entrée termine ; Échap annule.',
  bezier:'Cliquez les points de passage. Entrée termine. Sélectionnez ensuite la courbe pour éditer ses poignées.',
- wall:'Glissez l’axe de la première face : la seconde face est créée à l’épaisseur saisie, du côté choisi.',
  measure:'Cliquez deux points pour mesurer la distance, les écarts et l’angle.',
  dimension:'Cliquez les deux points à coter, puis un troisième point pour placer la ligne de cote.',
 };
 export function ArchitectureToolbar({tool,onTool,shortcut}:{tool:Tool;onTool:(t:Tool)=>void;shortcut:(id:string)=>string}) {
- const tools=[[ 'wall',BrickWall],['polyline',Waypoints],['bezier',Spline],['offset',ArrowRightLeft],['trim',Scissors],['extend',MoveRight],['join',CornerDownRight],['copy',Copy],['move',Move],['rotate',RotateCw],['mirror',FlipHorizontal],['measure',Ruler],['dimension',PenLine]] as const;
+ const tools=[['polyline',Waypoints],['bezier',Spline],['offset',ArrowRightLeft],['trim',Scissors],['extend',MoveRight],['join',CornerDownRight],['copy',Copy],['move',Move],['rotate',RotateCw],['mirror',FlipHorizontal],['measure',Ruler],['dimension',PenLine]] as const;
  return <nav className="architecture-toolbar" aria-label="Outils d’architecture">{tools.map(([t,Icon])=><button key={t} className={tool===t?'active':''} onClick={()=>onTool(t)} title={labels[t]+(shortcut(t)?' — '+shortcut(t):'')}><Icon size={15}/>{labels[t]}</button>)}</nav>;
 }
-export type Settings={length:string;angle:string;distance:string;dx:string;dy:string;rotation:string;ortho:boolean;polar:number;osnap:boolean;segment:'line'|'arc';arcAngle:string;closed:boolean;wallSide:number;keepOriginal:boolean;dimensionText:string;annotationScale:string};
-export const initialSettings:Settings={length:'',angle:'',distance:'10 cm',dx:'10 cm',dy:'0',rotation:'90',ortho:false,polar:0,osnap:true,segment:'line',arcAngle:'90',closed:false,wallSide:1,keepOriginal:true,dimensionText:'2,5 mm',annotationScale:'50'};
+export type Settings={length:string;angle:string;distance:string;dx:string;dy:string;rotation:string;ortho:boolean;polar:number;osnap:boolean;segment:'line'|'arc';arcAngle:string;closed:boolean;keepOriginal:boolean;dimensionText:string;annotationScale:string};
+export const initialSettings:Settings={length:'',angle:'',distance:'10 cm',dx:'10 cm',dy:'0',rotation:'90',ortho:false,polar:0,osnap:true,segment:'line',arcAngle:'90',closed:false,keepOriginal:true,dimensionText:'2,5 mm',annotationScale:'50'};
 export function CommandPanel({tool,settings,setSettings,shortcut,onApply,onFinish,points,measurement,boundaries,choosing,onBoundaries}:{tool:Tool;settings:Settings;setSettings:(s:Settings)=>void;shortcut:(id:string)=>string;onApply:()=>void;onFinish:()=>void;points:number;measurement:string;boundaries:number;choosing:boolean;onBoundaries:(mode:'choose'|'finish'|'all')=>void}) {
  const field=(name:keyof Settings,label:string,placeholder?:string)=><label className="unit-row">{label}<input aria-label={label} type="text" value={String(settings[name])} placeholder={placeholder} onChange={e=>setSettings({...settings,[name]:e.target.value})}/></label>;
  const tip=tips[tool]?.replaceAll('Entrée',shortcut('finish')||'Terminer').replaceAll('Échap',shortcut('escape')||'Sélection');
  return <section className="command-panel"><div className="section-label">{labels[tool].toUpperCase()}</div>{tip&&<p>{tip}</p>}
- {['line','wall','polyline'].includes(tool)&&<>{field('length','Longueur précise','Libre, ou 4 m')}{field('angle','Angle précis','Libre, ou 90°')}</>}
- {['offset','wall'].includes(tool)&&field('distance',tool==='wall'?'Épaisseur du mur':'Distance du décalage','10 cm')}
- {tool==='wall'&&<label className="property-row">Côté<select aria-label="Côté du mur" value={settings.wallSide} onChange={e=>setSettings({...settings,wallSide:Number(e.target.value)})}><option value="1">Gauche du tracé</option><option value="-1">Droite du tracé</option></select></label>}
+ {['line','polyline'].includes(tool)&&<>{field('length','Longueur précise','Libre')}{field('angle','Angle précis','Libre, ou 90°')}</>}
+ {tool==='offset'&&field('distance','Distance du décalage')}
  {['copy','move'].includes(tool)&&<>{field('dx','Déplacement X','10 cm')}{field('dy','Déplacement Y','0 cm')}<button className="wide" onClick={onApply}>Appliquer à la sélection</button></>}
  {tool==='rotate'&&<>{field('rotation','Angle de rotation','90°')}<button className="wide" onClick={onApply}>Appliquer autour du point de base</button></>}
  {tool==='mirror'&&<label className="property-row">Conserver l’original<input type="checkbox" checked={settings.keepOriginal} onChange={e=>setSettings({...settings,keepOriginal:e.target.checked})}/></label>}
@@ -46,8 +46,9 @@ export function CommandPanel({tool,settings,setSettings,shortcut,onApply,onFinis
  </section>;
 }
 export function UnitInput({label,value,onValue,onError,angle=false}:{label:string;value:number;onValue:(n:number)=>void;onError:(s:string)=>void;angle?:boolean}) {
- const [text,setText]=useState(String(Number(value.toFixed(3)))),cancel=useRef(false);useEffect(()=>setText(String(Number(value.toFixed(3)))),[value]);
- const apply=()=>{if(!cancel.current){try{const n=angle?parseAngle(text):parseLength(text);if(Math.abs(n-value)>1e-8)onValue(n);}catch(e){onError((e as Error).message);}}cancel.current=false;setText(String(Number(value.toFixed(3))));};
+ const unit=useContext(UnitContext),formatted=angle?String(Number(value.toFixed(3))):displayDistance(value,unit);
+ const [text,setText]=useState(formatted),cancel=useRef(false);useEffect(()=>setText(formatted),[formatted]);
+ const apply=()=>{if(!cancel.current){try{const n=angle?parseAngle(text):parseLength(text,unit);if(Math.abs(n-value)>1e-8)onValue(n);}catch(e){onError((e as Error).message);}}cancel.current=false;setText(formatted);};
  return <label className="unit-row">{label}<input aria-label={label} value={text} onChange={e=>setText(e.target.value)} onBlur={apply} onKeyDown={e=>{if(e.key==='Enter')e.currentTarget.blur();if(e.key==='Escape'){cancel.current=true;e.currentTarget.blur();}}}/></label>;
 }
 export function PathEditor({shape,index,setIndex,onChange,onError}:{shape:PathShape;index:number;setIndex:(n:number)=>void;onChange:(s:Shape)=>void;onError:(s:string)=>void}) {

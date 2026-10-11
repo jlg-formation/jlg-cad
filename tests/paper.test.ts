@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { documentOf, parseDrawing, newLayout, paperSize, bounds, modelToPaper, paperToModel, fitViewport, type Viewport, type Shape } from '../src/model';
+import { documentOf, parseDrawing, newLayout, nextLayoutName, layoutDisplayName, paperSize, bounds, modelToPaper, paperToModel, fitViewport, type Viewport, type Shape } from '../src/model';
 import { createPdf } from '../src/pdf';
 import { inflateSync } from 'node:zlib';
 const viewport:Viewport={id:'v',type:'viewport',a:{x:10,y:20},b:{x:110,y:80},color:'#17242a',center:{x:1000,y:2000},denominator:50,locked:true,printBorder:false};
@@ -16,3 +16,5 @@ describe('Espace papier',()=>{
  test('le cadre de fenêtre n’est imprimé que sur demande',()=>{const stream=(border:boolean)=>{const text=createPdf(documentOf('Plan',[]),[{...newLayout('l','Plan'),items:[{...viewport,printBorder:border}]}]).output();return inflateSync(Buffer.from(text.match(/stream\n([\s\S]*?)\nendstream/)![1],'latin1')).toString();};expect(stream(false)).not.toContain('\nS\n');expect(stream(true)).toContain('\nS\n');});
  test('exige au moins une présentation',()=>{expect(()=>createPdf(documentOf('Plan',[]),[])).toThrow();});
 });
+
+test('nomme les layouts sans collision après suppression et conserve les noms personnalisés',()=>{expect(nextLayoutName([])).toBe('Layout 1');expect(nextLayoutName([{name:'Layout 1'},{name:'Layout 4'},{name:'Plan toiture'}])).toBe('Layout 5');expect(nextLayoutName([{name:'Présentation 3'}])).toBe('Layout 4');expect(layoutDisplayName('Présentation 2')).toBe('Layout 2');expect(layoutDisplayName('Plan toiture')).toBe('Plan toiture');});

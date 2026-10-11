@@ -79,3 +79,6 @@ export function toDxf(shapes: Shape[], layers: Layer[] = defaultLayers()) {
   pairs.push(0,'ENDSEC',0,'EOF');
   return pairs.join('\r\n')+'\r\n';
 }
+
+export function layoutDisplayName(name:string){return name.replace(/^Présentation (\d+)$/,'Layout $1');}
+export function nextLayoutName(layouts:Pick<Layout,'name'>[]){const numbers=layouts.map(l=>/^(?:Layout|Présentation) (\d+)$/i.exec(l.name)).filter(m=>m!==null).map(m=>Number(m![1]));return 'Layout '+(Math.max(0,...numbers)+1);}

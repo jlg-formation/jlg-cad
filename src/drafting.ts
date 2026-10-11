@@ -1,5 +1,9 @@
 import {constrainedEnd,parseLength} from './geometry';
-import type {Point} from './model';
+import type {Point,Node} from './model';
+export function closedPolylineNodes(nodes:Node[]):Node[]{
+ if(nodes.length<3)throw new Error('Placez au moins trois points pour fermer le contour.');
+ return nodes.map(n=>({...n,p:{...n.p}}));
+}
 
 export type LengthUnit='m'|'cm'|'mm';
 export const unitFactor:Record<LengthUnit,number>={m:1000,cm:10,mm:1};

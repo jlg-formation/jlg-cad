@@ -1,5 +1,14 @@
 import {describe,test,expect} from 'bun:test';
-import {readUnit,displayDistance,lengthInMillimeters,exactEndpoint,resolveCommand,commandSuggestions,dynamicFieldPosition} from '../src/drafting';
+import {readUnit,displayDistance,lengthInMillimeters,exactEndpoint,resolveCommand,commandSuggestions,dynamicFieldPosition,closedPolylineNodes} from '../src/drafting';
+import {segments} from '../src/geometry';
+test('ferme une polyligne sans dupliquer le premier sommet',()=>{
+ const input=[{p:{x:0,y:0}},{p:{x:100,y:0}},{p:{x:100,y:80}}];
+ const nodes=closedPolylineNodes(input);
+ const edges=segments({id:'closed',type:'polyline',color:'#fff',a:nodes[0].p,b:nodes[2].p,nodes,closed:true});
+ expect(nodes.length).toBe(3);expect(edges.length).toBe(3);expect(edges[2].b).toEqual(input[0].p);
+ nodes[0].p.x=10;expect(input[0].p.x).toBe(0);
+ expect(()=>closedPolylineNodes(input.slice(0,2))).toThrow();
+});
 import {parseLength,distance} from '../src/geometry';
 
 describe('Commandes de dessin',()=>{

@@ -18,7 +18,7 @@ export const tips:Partial<Record<Tool,string>>={
  move:'Sélectionnez un objet, puis cliquez le point de base et sa destination, ou saisissez X/Y ci-dessous.',
  rotate:'Sélectionnez un objet, cliquez le centre puis la direction de l’angle, ou appliquez un angle saisi.',
  mirror:'Sélectionnez un objet puis deux points pour l’axe du miroir. La copie peut conserver l’original.',
- polyline:'Cliquez les sommets successifs. Choisissez Ligne ou Arc avant le prochain point. Entrée termine ; Échap annule.',
+ polyline:'Cliquez les sommets successifs. Choisissez Ligne ou Arc avant le prochain point. C ferme le contour ; Entrée termine ; Échap annule.',
  bezier:'Cliquez les points de passage. Entrée termine. Sélectionnez ensuite la courbe pour éditer ses poignées.',
  measure:'Cliquez deux points pour mesurer la distance, les écarts et l’angle.',
  dimension:'Cliquez les deux points à coter, puis un troisième point pour placer la ligne de cote.',

@@ -84,3 +84,4 @@ header .drawing-tab button:last-child{flex-shrink:0;width:20px;padding:0}
 header .drawing-tabs .new-drawing{height:28px;width:28px;min-width:28px;border:0;padding:0}
 header .architecture-toolbar{flex:1 1 460px}
 @media(max-width:760px){header .drawing-tabs{flex-basis:40%;min-width:100px}}
+header .drawing-tab input{width:130px;min-width:60px;height:24px;align-self:center;padding:2px 5px;background:#17242a;color:#f1f5f7;border:1px solid #8194a3;border-radius:2px;font-size:12px}

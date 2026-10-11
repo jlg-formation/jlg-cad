@@ -2,6 +2,10 @@
 
 Prototype de dessin 2D local, en Bun + TypeScript + React. Aucun serveur de données.
 
+Les [personas et principes UX](docs/personas.md) décrivent les utilisateurs de référence, avec l’architecte et architecte du patrimoine comme destinataire prioritaire.
+
+L’objectif produit principal est de remplacer AutoCAD dans son travail quotidien pour supprimer le coût de ses licences, tout en permettant de recevoir et d’envoyer des fichiers AutoCAD : **DWG en priorité, DXF à défaut**. Cet objectif dépasse les capacités actuelles du prototype ; voir la documentation UX pour distinguer les besoins des fonctions disponibles.
+
 ## Démarrer
 
 ```sh
@@ -60,7 +64,7 @@ Le DWG direct n’est pas implémenté. Autodesk propose [RealDWG](https://forge
 
 ## Outils d’architecture
 
-- **Décalage (O)** : sélectionner une ligne ou un contour, saisir par exemple `10 cm`, puis cliquer du côté voulu. L’original reste en place. **Mur (W)** crée directement deux faces à l’épaisseur saisie.
+- **Décalage (O)** : sélectionner une ligne ou un contour, saisir par exemple `10 cm`, puis cliquer du côté voulu. L’original reste en place.
 - **Ajuster (X)** : cliquer le morceau à supprimer entre les intersections. La prévisualisation indique la partie retirée. Les formes visibles servent de limites ; on peut aussi choisir les limites puis valider avec Entrée. Répéter les clics pour nettoyer le plan.
 - **Prolonger (E)** atteint la première limite du côté de l’extrémité choisie. **Raccorder** ajuste deux lignes droites à leur intersection, avec un rayon nul.
 - **Copier**, **Déplacer (M)**, **Rotation** et **Miroir** utilisent un objet sélectionné et des points de référence. Copier/déplacer disposent aussi de déplacements X/Y saisis ; une rotation saisie utilise le centre choisi ou le premier point de l’objet.
@@ -72,3 +76,5 @@ Le DWG direct n’est pas implémenté. Autodesk propose [RealDWG](https://forge
 - Les **calques** proposent visibilité, verrouillage, couleur, renommage et ajout. Le verrouillage protège les modifications géométriques ; les calques masqués sont exclus des fenêtres et exports PDF/DXF.
 
 Les décalages des lignes et arcs sont géométriques. Un décalage de Bézier produit une polyligne approchée à 0,1 mm ; ses intersections utilisent une approximation de 0,05 mm. Les décalages qui écrasent ou croisent un contour sont refusés. Raccords arrondis, sélection multiple, blocs et cotations associatives restent à développer.
+
+Voir le [guide des commandes, unités et poignées](docs/drafting.md) pour la saisie dynamique et les modifications par points remarquables.

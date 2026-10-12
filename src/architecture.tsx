@@ -10,7 +10,7 @@ export type Tool = Shape['type'] | 'select' | 'pan' | 'text' | 'viewport' | 'off
 export const labels:Record<Tool,string>={select:'Sélection',line:'Ligne',rect:'Rectangle',circle:'Cercle',pan:'Déplacement de vue',text:'Texte',viewport:'Fenêtre de vue',polyline:'Polyligne',bezier:'Bézier',dimension:'Cotation',diameter:'Diamètre',linearDimension:'Cotation linéaire',offset:'Décalage',trim:'Ajuster',extend:'Prolonger',join:'Raccorder',copy:'Copier',move:'Déplacer',rotate:'Rotation',mirror:'Miroir',measure:'Mesurer'};
 export const commandTools:Tool[]=['offset','trim','extend','join','copy','move','rotate','mirror','measure','dimension','diameter','linearDimension','polyline','bezier'];
 export const tips:Partial<Record<Tool,string>>={
- offset:'Sélectionnez un objet, saisissez la distance, puis cliquez du côté voulu. L’original est conservé.',
+ offset:'Saisissez la distance puis Entrée, sélectionnez un objet et cliquez du côté voulu. Entrée ou Échap quitte sans créer l’aperçu.',
  trim:'Cliquez sur le morceau à enlever. Les intersections délimitent la coupe. Répétez les clics pour nettoyer le plan.',
  extend:'Cliquez près de l’extrémité à prolonger jusqu’à une limite. Une Bézier se prolonge par sa tangente.',
  join:'Cliquez près des deux extrémités à raccorder. Les deux lignes sont ajustées à leur intersection (rayon 0).',
@@ -37,7 +37,6 @@ export function CommandPanel({tool,settings,setSettings,shortcut,onApply,onFinis
  const tip=tips[tool]?.replaceAll('Entrée',shortcut('finish')||'Terminer').replaceAll('Échap',shortcut('escape')||'Sélection');
  return <section className="command-panel"><div className="section-label">{labels[tool].toUpperCase()}</div>{tip&&<p>{tip}</p>}
  {['line','polyline'].includes(tool)&&<>{field('length','Longueur précise','Libre')}{field('angle','Angle précis','Libre, ou 90°')}</>}
- {tool==='offset'&&field('distance','Distance du décalage')}
  {['copy','move'].includes(tool)&&<>{field('dx','Déplacement X','10 cm')}{field('dy','Déplacement Y','0 cm')}<button className="wide" onClick={onApply}>Appliquer à la sélection</button></>}
  {tool==='rotate'&&<>{field('rotation','Angle de rotation','90°')}<button className="wide" onClick={onApply}>Appliquer autour du point de base</button></>}
  {tool==='mirror'&&<label className="property-row">Conserver l’original<input type="checkbox" checked={settings.keepOriginal} onChange={e=>setSettings({...settings,keepOriginal:e.target.checked})}/></label>}

@@ -1,0 +1,44 @@
+import {draftingCommands} from './drafting';
+import {commands, type Bindings} from './shortcuts';
+
+export type PaletteCommand={id:string;name:string;label:string;aliases:readonly string[]};
+export const paletteCommands:PaletteCommand[]=[
+ ...commands.map(([id,label])=>draftingCommands.find(c=>c.id===id)||{id,name:id.toUpperCase(),label,aliases:[]}),
+ {id:'zoom',name:'ZOOM',label:'Navigation du dessin',aliases:['Z']},
+ {id:'settings',name:'PARAMETRES',label:'Paramètres de l’application',aliases:['CONFIGURATION']},
+ {id:'properties',name:'PROPRIETES',label:'Afficher / masquer les propriétés',aliases:[]},
+ {id:'addLayout',name:'PRESENTATION',label:'Ajouter une présentation',aliases:['LAYOUT']},
+ ...Object.entries({start:'Guide de démarrage',draw:'Dessiner et modifier un plan',grid:'Grille et accrochage',paper:'Espace papier et PDF',formats:'Formats et limites',about:'À propos de JLG CAD'}).map(([id,label])=>({id:'help:'+id,name:'AIDE '+id.toUpperCase(),label,aliases:[]})),
+];
+const normalize=(value:string)=>value.trim().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase();
+const names=(c:PaletteCommand,bindings:Bindings)=>[c.name,...c.aliases,...(bindings[c.id]||[]).filter(k=>/^[A-Z]+$/.test(k)),c.label].map(normalize);
+
+// Ordered subsequence matching: exact aliases and prefixes always win.
+export function fuzzyScore(query:string,value:string):number{
+ const q=normalize(query),text=normalize(value);
+ if(!q)return 0;
+ if(text===q)return 10000;
+ if(text.startsWith(q))return 8000-text.length;
+ let cursor=0,first=-1,last=-1,bonus=0;
+ for(const char of q){const index=text.indexOf(char,cursor);if(index<0)return -1;if(first<0)first=index;if(index===0||text[index-1]===' ')bonus+=30;if(index===last+1)bonus+=10;last=index;cursor=index+1;}
+ return 1000+bonus-(last-first-q.length+1)*5-first-text.length;
+}
+export function paletteSuggestions(text:string,bindings:Bindings={},showAll=false){
+ if(!text.trim()&&!showAll)return [];
+ return paletteCommands.map(command=>({command,score:Math.max(...names(command,bindings).map(value=>fuzzyScore(text,value)))})).filter(c=>c.score>=0).sort((a,b)=>b.score-a.score).map(c=>c.command);
+}
+export function resolvePaletteCommand(text:string,bindings:Bindings={}){
+ const q=normalize(text);return q?paletteCommands.find(c=>names(c,bindings).includes(q)):undefined;
+}
+
+export function rememberCommand(history:readonly string[],id:string){
+ return [id,...history.filter(previous=>previous!==id)].slice(0,2);
+}
+
+export function groupPaletteCommands<T extends {id:string;name:string}>(matches:T[],history:readonly string[],query:string){
+ const recent=[...new Set(history)].slice(0,2).flatMap(id=>{const command=matches.find(c=>c.id===id);return command?[command]:[];});
+ const others=matches.filter(c=>!recent.some(r=>r.id===c.id));
+ // Keep relevance ordering while searching; the full catalogue is alphabetical.
+ if(!query.trim())others.sort((a,b)=>a.name.localeCompare(b.name,'fr'));
+ return {commands:[...recent,...others],separatorIndex:recent.length&&others.length?recent.length:-1};
+}

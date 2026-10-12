@@ -29,7 +29,7 @@ export const draftingCommands=[
  {id:'arc',name:'ARC',label:'Arc par 3 points',aliases:['A']},
  {id:'line',name:'LINE',label:'Ligne',aliases:['L','LIGNE']},
  {id:'polyline',name:'PLINE',label:'Polyligne',aliases:['PL','POLYLINE','POLYLIGNE']},
- {id:'rect',name:'RECTANG',label:'Rectangle',aliases:['R','RECTANGLE']},
+ {id:'rect',name:'RECTANG',label:'Rectangle',aliases:['R','REC','RECTANGLE']},
  {id:'circle',name:'CIRCLE',label:'Cercle',aliases:['C','CERCLE']},
  {id:'select',name:'SELECT',label:'Sélection',aliases:['V','SELECTION']},
  {id:'pan',name:'PAN',label:'Déplacement de vue',aliases:['H']},
@@ -54,3 +54,17 @@ const names=(c:typeof draftingCommands[number],bindings:Record<string,string[]>)
 export function commandSuggestions(text:string,bindings:Record<string,string[]>={}){const q=normalize(text);if(!q)return [];return draftingCommands.filter(c=>names(c,bindings).some(a=>a.startsWith(q))).sort((a,b)=>Number(names(b,bindings).some(x=>x===q))-Number(names(a,bindings).some(x=>x===q)));}
 export function resolveCommand(text:string,bindings:Record<string,string[]>={}){const q=normalize(text);return draftingCommands.find(c=>names(c,bindings).some(a=>a===q));}
 export function dynamicFieldPosition(point:Point,width:number,height:number){return{x:Math.max(8,Math.min(point.x+22,width-153)),y:Math.max(8,Math.min(point.y-52,height-62))};}
+export function rectangleEndpoint(start:Point,pointer:Point,width:string,height:string,unit:LengthUnit):Point{
+ const x=width.trim()?parseLength(width,unit):Math.abs(pointer.x-start.x);
+ const y=height.trim()?parseLength(height,unit):Math.abs(pointer.y-start.y);
+ if(x<=0||y<=0)throw new Error('La largeur et la hauteur doivent être positives.');
+ return {x:start.x+(pointer.x<start.x?-x:x),y:start.y+(pointer.y>start.y?y:-y)};
+}
+export function relativeRectangleEndpoint(start:Point,text:string,unit:LengthUnit,paper=false):Point{
+ const raw=text.trim().replace(/^@/,'');
+ const parts=raw.split(raw.includes(';')?';':',');
+ if(parts.length!==2)throw new Error('Saisissez @120,80 ou 120;80.');
+ const x=parseLength(parts[0],unit),y=parseLength(parts[1],unit);
+ if(!x||!y)throw new Error('La largeur et la hauteur doivent être non nulles.');
+ return {x:start.x+x,y:start.y+(paper?y:-y)};
+}

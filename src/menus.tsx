@@ -14,6 +14,7 @@ export function Menus({active=true,bindings,onBindings,onAction,canPdf,canPdfAll
  const [menu,setMenu]=useState(''),[page,setPage]=useState(''),[capture,setCapture]=useState<{id:string;index:number}|null>(null),[error,setError]=useState('');const root=useRef<HTMLDivElement>(null),dialog=useRef<HTMLDialogElement>(null),returnFocus=useRef<HTMLElement|null>(null);
  useEffect(()=>{const close=(e:PointerEvent)=>{if(!root.current?.contains(e.target as Node))setMenu('');};document.addEventListener('pointerdown',close);return()=>document.removeEventListener('pointerdown',close);},[]);
  useEffect(()=>{const open=()=>{if(!active)return;setMenu('');setPage('shortcuts');};window.addEventListener('cad-shortcuts',open);return()=>window.removeEventListener('cad-shortcuts',open);},[active]);
+ useEffect(()=>{const open=(e:Event)=>{const id=(e as CustomEvent<string>).detail;if(active&&pages[id]){setMenu('');setPage(id);}};window.addEventListener('cad-help',open);return()=>window.removeEventListener('cad-help',open);},[active]);
  useEffect(()=>{if(page){returnFocus.current=document.activeElement as HTMLElement;dialog.current?.showModal();}else{dialog.current?.close();returnFocus.current?.focus();}setCapture(null);setError('');},[page]);
  useEffect(()=>{if(!active){setMenu('');setPage('');}},[active]);
  const close=()=>{setPage('');setCapture(null);};

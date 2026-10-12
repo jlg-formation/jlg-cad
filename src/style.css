@@ -104,3 +104,11 @@ footer .status-drafting{display:flex;gap:2px;align-items:center}footer .status-d
 .grid-dimension .dimension-arrows{fill:#4c6472;stroke:none}
 .grid-dimension .dimension-label-background{fill:#10171dcc;stroke:none}
 .grid-dimension.on-paper{stroke:#8faaa3}.grid-dimension.on-paper text,.grid-dimension.on-paper .dimension-arrows{fill:#8faaa3}.grid-dimension.on-paper .dimension-label-background{fill:#eeeee9e6}
+
+.workspace{position:relative}
+.properties[hidden]{display:none!important}
+.properties{flex-shrink:0}
+@media(max-width:760px){.properties:not([hidden]){display:flex;position:absolute;right:0;top:0;bottom:0;z-index:6;width:min(260px,calc(100% - 60px));box-shadow:-6px 0 18px #0005}}
+
+.properties-toggle{position:absolute;right:8px;top:12px;z-index:7;width:28px;height:32px;padding:4px;background:#171e24;border-color:#35434a;border-radius:4px;color:#9fb1bc}
+.properties>.panel-heading{min-height:32px;padding-right:26px}

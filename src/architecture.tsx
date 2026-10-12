@@ -6,10 +6,11 @@ import './architecture.css';
 import {UnitContext} from './units';
 import {displayDistance} from './drafting';
 
-export type Tool = Shape['type'] | 'select' | 'pan' | 'text' | 'viewport' | 'offset' | 'trim' | 'extend' | 'join' | 'copy' | 'move' | 'rotate' | 'mirror' | 'measure' | 'diameter' | 'linearDimension';
-export const labels:Record<Tool,string>={select:'Sélection',line:'Ligne',rect:'Rectangle',circle:'Cercle',pan:'Déplacement de vue',text:'Texte',viewport:'Fenêtre de vue',polyline:'Polyligne',bezier:'Bézier',dimension:'Cotation',diameter:'Diamètre',linearDimension:'Cotation linéaire',offset:'Décalage',trim:'Ajuster',extend:'Prolonger',join:'Raccorder',copy:'Copier',move:'Déplacer',rotate:'Rotation',mirror:'Miroir',measure:'Mesurer'};
-export const commandTools:Tool[]=['offset','trim','extend','join','copy','move','rotate','mirror','measure','dimension','diameter','linearDimension','polyline','bezier'];
+export type Tool = Shape['type'] | 'arc' | 'select' | 'pan' | 'text' | 'viewport' | 'offset' | 'trim' | 'extend' | 'join' | 'copy' | 'move' | 'rotate' | 'mirror' | 'measure' | 'diameter' | 'linearDimension';
+export const labels:Record<Tool,string>={arc:'Arc par 3 points',select:'Sélection',line:'Ligne',rect:'Rectangle',circle:'Cercle',pan:'Déplacement de vue',text:'Texte',viewport:'Fenêtre de vue',polyline:'Polyligne',bezier:'Bézier',dimension:'Cotation',diameter:'Diamètre',linearDimension:'Cotation linéaire',offset:'Décalage',trim:'Ajuster',extend:'Prolonger',join:'Raccorder',copy:'Copier',move:'Déplacer',rotate:'Rotation',mirror:'Miroir',measure:'Mesurer'};
+export const commandTools:Tool[]=['arc','offset','trim','extend','join','copy','move','rotate','mirror','measure','dimension','diameter','linearDimension','polyline','bezier'];
 export const tips:Partial<Record<Tool,string>>={
+ arc:'Indiquez le point de départ, un point sur l’arc, puis le point final. Échap annule.',
  offset:'Saisissez la distance puis Entrée, sélectionnez un objet et cliquez du côté voulu. Entrée ou Échap quitte sans créer l’aperçu.',
  trim:'Cliquez sur le morceau à enlever. Les intersections délimitent la coupe. Répétez les clics pour nettoyer le plan.',
  extend:'Cliquez près de l’extrémité à prolonger jusqu’à une limite. Une Bézier se prolonge par sa tangente.',
@@ -26,8 +27,9 @@ export const tips:Partial<Record<Tool,string>>={
  diameter:'Cliquez un cercle puis placez sa cote de diamètre (Ø). La cote suit les modifications du cercle.',
  dimension:'Cliquez un cercle puis placez sa cote de diamètre (Ø). Pour une cote linéaire, cliquez deux points puis placez la ligne de cote.',
 };
+function ArcIcon({size=18}:{size?:number}){return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true"><path d="M4 19A9 9 0 0 1 20 19"/><rect x="3" y="18" width="2" height="2"/><rect x="11" y="5" width="2" height="2"/><rect x="19" y="18" width="2" height="2"/></svg>;}
 export function ArchitectureToolbar({tool,onTool,shortcut,concealed=false}:{tool:Tool;onTool:(t:Tool)=>void;shortcut:(id:string)=>string;concealed?:boolean}) {
- const groups=[[['polyline',Waypoints],['circle',Circle],['line',Minus],['bezier',Spline],['dimension',PenLine]],[['offset',ArrowRightLeft],['trim',Scissors],['extend',MoveRight],['join',CornerDownRight],['copy',Copy],['move',Move],['rotate',RotateCw],['mirror',FlipHorizontal],['measure',Ruler]]] as const;
+ const groups=[[['polyline',Waypoints],['circle',Circle],['line',Minus],['bezier',Spline],['dimension',PenLine],['arc',ArcIcon]],[['offset',ArrowRightLeft],['trim',Scissors],['extend',MoveRight],['join',CornerDownRight],['copy',Copy],['move',Move],['rotate',RotateCw],['mirror',FlipHorizontal],['measure',Ruler]]] as const;
  return <nav className={"architecture-toolbar"+(concealed?" concealed":"")} aria-label="Outils d’architecture" aria-hidden={concealed||undefined} inert={concealed}>{groups.map((tools,index)=><span className="architecture-tool-group" role="group" aria-label={index===0?"Créer des objets":"Opérations sur les objets"} key={index}>{tools.map(([t,Icon])=><button key={t} aria-label={labels[t]} className={tool===t||t==='dimension'&&tool==='linearDimension'?'active':''} onClick={()=>onTool(t)} title={labels[t]+(shortcut(t)?' — '+shortcut(t):'')}><Icon size={18}/></button>)}</span>)}</nav>;
 }
 export type Settings={length:string;angle:string;distance:string;dx:string;dy:string;rotation:string;ortho:boolean;polar:number;osnap:boolean;segment:'line'|'arc';arcAngle:string;closed:boolean;keepOriginal:boolean;dimensionText:string;annotationScale:string};

@@ -32,6 +32,17 @@ export function arcSegment(a:Point,b:Point,bulge:number):Segment {
  const d=sub(b,a),center=add(lerp(a,b,.5),mul(normal(d),(1-bulge*bulge)/(4*bulge)));
  return{kind:'arc',a,b,center,radius:distance(a,center),start:Math.atan2(a.y-center.y,a.x-center.x),sweep:4*Math.atan(bulge)};
 }
+// One exact circular segment, oriented through the intermediate point.
+export function threePointArc(a:Point,through:Point,b:Point,base:BaseShape):PathShape {
+ const u=sub(through,a),v=sub(b,a),det=cross(u,v),scale=Math.max(dot(u,u),dot(v,v),distance(through,b)**2);
+ if(!scale||Math.min(distance(a,through),distance(a,b),distance(through,b))<.001)throw new Error('Choisissez trois points distincts.');
+ if(Math.abs(det)<=scale*1e-10)throw new Error('Les trois points sont alignés : choisissez un autre point.');
+ const center=add(a,{x:(dot(u,u)*v.y-dot(v,v)*u.y)/(2*det),y:(u.x*dot(v,v)-v.x*dot(u,u))/(2*det)});
+ const start=Math.atan2(a.y-center.y,a.x-center.x),end=Math.atan2(b.y-center.y,b.x-center.x);
+ const sweep=angleDelta(start,end,det),bulge=Math.tan(sweep/4);
+ if(!Number.isFinite(bulge)||Math.abs(bulge)>=1e4)throw new Error('Arc trop proche d’un cercle complet.');
+ return {...base,type:'polyline',a,b,closed:false,nodes:[{p:a,bulge},{p:b}]};
+}
 export function segments(shape:Shape):Segment[] {
  if(shape.type==='line')return[{kind:'line',a:shape.a,b:shape.b}];
  if(shape.type==='rect'){const {a,b}=shape,c={x:b.x,y:a.y},d={x:a.x,y:b.y};return[{kind:'line',a,b:c},{kind:'line',a:c,b},{kind:'line',a:b,b:d},{kind:'line',a:d,b:a}];}

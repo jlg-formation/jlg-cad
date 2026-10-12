@@ -1,10 +1,10 @@
-import {readGrid,gridSnap,displayedGrid,type GridSettings} from './grid';
+import {readGrid,gridSnap,type GridSettings} from './grid';
 import {GridPattern,GridConfiguration,GridDimension} from './grid-ui';
 import {cursorMode} from './cursor';
 import {synchronizeDrawing,detachDimension} from './associations';
 import React, { useEffect, useRef, useState, useId } from 'react';
 import { createRoot } from 'react-dom/client';
-import { MousePointer2, ChevronLeft, ChevronRight, Minus, Square, Circle, Hand, Magnet, Grid2X2, FolderOpen, Download, Trash2, Maximize, Plus, Layers, Type, PanelsTopLeft, FileText, Waypoints, Settings as SettingsIcon } from 'lucide-react';
+import { MousePointer2, ChevronLeft, ChevronRight, Minus, Square, Circle, Hand, FolderOpen, Download, Trash2, Maximize, Plus, Layers, Type, PanelsTopLeft, FileText, Waypoints, Settings as SettingsIcon } from 'lucide-react';
 import { documentOf, toDxf, bounds, modelToPaper, paperToModel, paperSize, newLayout, nextLayoutName, layoutDisplayName, fitViewport, visibleShapes, lockedShape, type Drawing, type Layout, type Point, type Shape, type PaperItem, type Viewport, type Node, type PathShape } from './model';
 import { ArchitectureToolbar, CommandPanel, PathEditor, LayerPanel, LineEditor, UnitInput, labels, initialSettings, commandTools, tips, type Tool } from './architecture';
 import { threePointArc, parseLength as parseDistance, parseAngle, distance, sub, dot, cross, add, mul, constrainedEnd, snapPoint, nearestPart, trimShape, extendShape, offsetShape, joinCorner, translateItem, rotateShape, mirrorShape, svgPath, mapItem, moveNode, smoothNodes, diameterDimension, linearDimension, dimensionGeometry, type Snap } from './geometry';
@@ -422,7 +422,6 @@ function App() {
  {active.type==='viewport'&&viewportProperties(active)}<button className="delete" onClick={remove}><Trash2 size={14}/> Supprimer l’objet</button></>}
  {viewport&&viewportProperties(viewport)}
  {!paper&&<LayerPanel doc={doc} current={layer.id} selected={active as Shape|undefined} onCurrent={layerId=>{setCurrentLayer(layerId);const next=doc.layers.find(l=>l.id===layerId);if(next)setColor(next.color);}} onChange={commit}/>}
- <div className="section-label">AIDES AU DESSIN</div><button className={`toggle ${grid?'enabled':''}`} onClick={toggleGrid}><Grid2X2 size={16}/> Grille <span>{grid?'ON':'OFF'}</span></button><button className={`toggle ${snap?'enabled':''}`} onClick={toggleGridSnap}><Magnet size={16}/> Résolution <span>{snap?`${displayDistance(displayedGrid(activeGrid,gridScale).x,paper?'mm':unit)} ${paper?'mm':unit}`:'OFF'}</span></button>
  <div className="objects"><div className="panel-heading"><span><Layers size={15}/> {paper?'Objets papier':'Objets du dessin'}</span><span>{items.length}</span></div><div className="object-list">{items.length===0?<p>{paper?'Feuille vide : ajoutez du texte, des formes ou des fenêtres.':'Aucun objet.'}</p>:items.map((s,i)=><button key={s.id} className={selected===s.id||selectedIds.includes(s.id)?'chosen':''} onClick={e=>{if(e.shiftKey){const ids=selectedIds.length?selectedIds:selected?[selected]:[];setSelectedIds(ids.includes(s.id)?ids.filter(i=>i!==s.id):[...ids,s.id]);selectSingle(null);setTool('select');return;}setSelected(s.id);chooseTool('select');}}><span style={{color:s.color}}>{s.type==='text'?'T':s.type==='viewport'?'▣':s.type==='circle'?'○':s.type==='rect'?'□':'╱'}</span>{labels[s.type]}<small>{String(i+1).padStart(2,'0')}</small></button>)}</div></div></aside></div>
 
  {configuration&&<div className="settings-backdrop" onClick={()=>setConfiguration(false)}><section role="dialog" aria-modal="true" aria-label="Configuration" className="app-settings settings-with-menu" onClick={e=>e.stopPropagation()} onKeyDown={e=>{if(e.key==='Escape')setConfiguration(false);if(e.key==='Tab'){const controls=Array.from(e.currentTarget.querySelectorAll<HTMLElement>('button:not([disabled]),input,select,[tabindex="0"]'));const first=controls[0],last=controls.at(-1);if(e.shiftKey&&document.activeElement===first){e.preventDefault();last?.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first?.focus();}}}}>

@@ -1,3 +1,4 @@
+import {defaultGrid,readGrid,type DrawingGrid} from './grid';
 import {synchronizeDrawing} from './associations';
 import { segments, flatten, dimensionGeometry } from './geometry';
 export type Point = { x: number; y: number };
@@ -13,8 +14,8 @@ export type PaperItem = Shape | TextItem | Viewport;
 export type Layout = { id: string; name: string; format: 'A4' | 'A3'; orientation: 'portrait' | 'landscape'; monochrome: boolean; items: PaperItem[] };
 export type Layer = { id: string; name: string; color: string; visible: boolean; locked: boolean };
 export const defaultLayers = (): Layer[] => [{id:'0',name:'Dessin',color:'#b5ddd6',visible:true,locked:false},{id:'murs',name:'Murs',color:'#a6e0cf',visible:true,locked:false},{id:'ouvertures',name:'Ouvertures',color:'#e6b776',visible:true,locked:false},{id:'cotes',name:'Cotations',color:'#94bfea',visible:true,locked:false}];
-export type Drawing = { format: 'jlg-cad'; version: 4; name: string; units: 'mm'; shapes: Shape[]; layouts: Layout[]; layers: Layer[] };
-export const documentOf = (name: string, shapes: Shape[], layouts: Layout[] = [], layers: Layer[] = defaultLayers()): Drawing => ({ format: 'jlg-cad', version: 4, name, units: 'mm', shapes, layouts, layers });
+export type Drawing = { format: 'jlg-cad'; version: 4; name: string; units: 'mm'; shapes: Shape[]; layouts: Layout[]; layers: Layer[]; grid?:DrawingGrid };
+export const documentOf = (name: string, shapes: Shape[], layouts: Layout[] = [], layers: Layer[] = defaultLayers()): Drawing => ({ format: 'jlg-cad', version: 4, name, units: 'mm', shapes, layouts, layers, grid:defaultGrid() });
 export const visibleShapes = (doc: Drawing) => doc.shapes.filter(s=>doc.layers.find(l=>l.id===(s.layerId||'0'))?.visible!==false);
 export const lockedShape = (doc: Drawing, s: Shape) => !!doc.layers.find(l=>l.id===(s.layerId||'0'))?.locked;
 export const newLayout = (id: string, name: string): Layout => ({ id, name, format: 'A4', orientation: 'landscape', monochrome: true, items: [] });
@@ -61,7 +62,7 @@ export function parseDrawing(text: string): Drawing {
   if(d.version>=3&&(!Array.isArray(d.layers)||!d.layers.length||d.layers.length>200||!unique(d.layers)||!d.layers.some((l:Layer)=>l.id==='0')||!d.layers.every((l:Layer)=>typeof l.name==='string'&&/^#[0-9a-f]{6}$/i.test(l.color)&&typeof l.visible==='boolean'&&typeof l.locked==='boolean')||d.shapes.some((s:Shape)=>s.layerId&&!d.layers.some((l:Layer)=>l.id===s.layerId))))throw new Error('Les calques du fichier sont invalides.');
   const validateLinks=(items:PaperItem[])=>{const byId=new Map(items.map(s=>[s.id,s]));return items.every(s=>s.type!=='dimension'||!s.circleId||d.version===4&&byId.get(s.circleId)?.type==='circle');};
   if(!validateLinks(d.shapes)||!d.layouts.every((l:Layout)=>validateLinks(l.items)))throw new Error('La liaison d’une cotation à son cercle est invalide.');
-  return synchronizeDrawing(documentOf(d.name,d.shapes,d.layouts,d.version>=3?d.layers:defaultLayers()));
+  return synchronizeDrawing({...documentOf(d.name,d.shapes,d.layouts,d.version>=3?d.layers:defaultLayers()),grid:readGrid(d.grid)});
 }
 export function toDxf(shapes: Shape[], layers: Layer[] = defaultLayers(),displayUnit:'m'|'cm'|'mm'='mm') {
   const names=new Map(layers.map((l,i)=>[l.id,l.id==='0'?'0':`${l.name.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9_-]/g,'_').slice(0,80)}_${i}`]));

@@ -39,6 +39,7 @@ function App() {
  const title=(id:string,label:string)=>label+(shortcut(id)?' — '+shortcut(id):'');
  const changeBindings=(next:Bindings)=>{setBindings(next);try{localStorage.setItem(storageKey,JSON.stringify(next));}catch{setMessage('Préférences non enregistrées : stockage local indisponible.');}};
  const [doc,setDoc]=useState<Drawing>(initialDocument.drawing),[layoutId,setLayoutId]=useState<string|null>(null),[viewportId,setViewportId]=useState<string|null>(null);
+ const currentDoc=useRef(doc);currentDoc.current=doc;
  const [tool,setTool]=useState<Tool>('select'),[selected,selectSingle]=useState<string|null>(null),[draft,setDraft]=useState<PaperItem|null>(null),[snap,setSnap]=useState(true),[grid,setGrid]=useState(true),[color,setColor]=useState('#b5ddd6'),[view,setView]=useState<View>(initialModelView(1000,700)),[cursor,setCursor]=useState<Point>({x:0,y:0}),[message,setMessage]=useState('Prêt à dessiner'),[past,setPast]=useState<Drawing[]>([]),[future,setFuture]=useState<Drawing[]>([]);
  const radiusInput=useRef<HTMLInputElement>(null),lengthInput=useRef<HTMLInputElement>(null);
  const [radiusEditor,setRadiusEditor]=useState<{id:string;point:Point;text:string;unit:LengthUnit}|null>(null);
@@ -51,6 +52,7 @@ function App() {
  const [selectionOutline,setSelectionOutline]=useState<Point[]>([]);
  const updateSelectionPreferences=(patch:Partial<SelectionPreferences>)=>{const next={...selectionPreferences,...patch};setSelectionPreferences(next);try{localStorage.setItem(selectionStorageKey,JSON.stringify(next));}catch{setMessage('Préférences de sélection non enregistrées.');}};
  const [pendingPaste,setPendingPaste]=useState<CadClipboard|null>(null);
+ const [pendingCopyBase,setPendingCopyBase]=useState<{drawing:Drawing;shapes:Shape[]}|null>(null);
  const setSelected=(value:string|null)=>{selectSingle(value);setSelectedIds([]);};
  const [linearSelectObject,setLinearSelectObject]=useState(false);
  const [offsetReady,setOffsetReady]=useState(false),[offsetText,setOffsetText]=useState('');
@@ -88,7 +90,7 @@ function App() {
  const safe=(fn:()=>void)=>{try{fn();}catch(e){setMessage((e as Error).message);}};
  const setPreview=(s:PaperItem|null)=>{draftRef.current=s;setDraft(s);};
  const commit=(next:Drawing)=>{setPast(p=>[...p.slice(-99),doc]);setFuture([]);setDoc(synchronizeDrawing(next,doc));};
- const clear=()=>{setOffsetReady(false);setOffsetText('');setLinearSelectObject(false);setRadiusEditor(null);selectionDrag.current=null;setSelectionOutline([]);setPendingPaste(null);setLengthText('');setCommandText('');lastPointer.current=null;setSelected(null);setPreview(null);gesture.current=null;setSourceId(null);setCommandPoints([]);setPathNodes([]);setCommandPreview([]);setSnapHit(null);setChoosingBoundaries(false);setBoundaryIds([]);setNodeIndex(0);};
+ const clear=()=>{setOffsetReady(false);setOffsetText('');setLinearSelectObject(false);setRadiusEditor(null);selectionDrag.current=null;setSelectionOutline([]);setPendingPaste(null);setPendingCopyBase(null);setLengthText('');setCommandText('');lastPointer.current=null;setSelected(null);setPreview(null);gesture.current=null;setSourceId(null);setCommandPoints([]);setPathNodes([]);setCommandPreview([]);setSnapHit(null);setChoosingBoundaries(false);setBoundaryIds([]);setNodeIndex(0);};
  const updateLayout=(patch:Partial<Layout>)=>{if(layout)commit({...doc,layouts:doc.layouts.map(l=>l.id===layout.id?{...l,...patch}:l)});};
  const put=(next:PaperItem[])=>{if(paper)updateLayout({items:next});else commit({...doc,shapes:next as Shape[]});};
  const edit=(s:PaperItem)=>{if(!editable(s)){setMessage('Le calque est verrouillé.');return;}put(items.map(i=>i.id===s.id?s:i));};
@@ -156,9 +158,9 @@ function App() {
  };
  const confirmOffsetDistance=()=>safe(()=>{if(!offsetText.trim()){cancelTool();return;}const amount=parseLength(offsetText);if(!Number.isFinite(amount)||amount<=0)throw new Error('La distance doit être positive.');setSettings(s=>({...s,distance:amount+' mm'}));setOffsetReady(true);setSourceId(null);setCommandPreview([]);offsetInput.current?.blur();setMessage('Sélectionnez l’objet à décaler.');});
  const commandClick=(target:Element,p:Point)=>safe(()=>{
+   if(tool==='arc'){canDraw();if(commandPoints.length<2){if(commandPoints.length&&distance(commandPoints[0],p)<.001)throw new Error('Choisissez deux points distincts.');setCommandPoints([...commandPoints,p]);setMessage(commandPoints.length?'ARC · Indiquez le point final de l’arc.':'ARC · Indiquez le deuxième point sur l’arc.');setCommandPreview([]);return;}const arc=threePointArc(commandPoints[0],commandPoints[1],p,baseShape());put([...items,arc]);chooseTool('select');setMessage('Arc créé.');return;}
    if(tool==='offset'&&!offsetReady)return;
    const hit=findObject(target,p);
-   if(tool==='arc'){canDraw();if(commandPoints.length<2){if(commandPoints.length&&distance(commandPoints[0],p)<.001)throw new Error('Choisissez deux points distincts.');setCommandPoints([...commandPoints,p]);setMessage(commandPoints.length?'ARC · Indiquez le point final de l’arc.':'ARC · Indiquez le deuxième point sur l’arc.');setCommandPreview([]);return;}const arc=threePointArc(commandPoints[0],commandPoints[1],p,baseShape());put([...items,arc]);chooseTool('select');setMessage('Arc créé.');return;}
    if(choosingBoundaries){if(hit){setBoundaryIds(ids=>ids.includes(hit.id)?ids.filter(i=>i!==hit.id):[...ids,hit.id]);setMessage('Limite ajoutée — Entrée pour commencer les coupes');}return;}
    if(tool==='polyline'||tool==='bezier'){
      canDraw();const previous=pathNodes[pathNodes.length-1];const nextPoint=previous&&tool==='polyline'?(lengthText?exactEndpoint(previous.p,p,lengthText,unit,effectiveOrtho,settings.polar,settings.angle):constrain(previous.p,p,settings.length,settings.angle)):p;
@@ -189,7 +191,13 @@ function App() {
      if(e.key==='Escape'){e.preventDefault();if(!e.repeat)cancelTool();(e.target as HTMLElement).blur();}return;
    }
    if((e.target as HTMLElement).closest('[role="menu"]'))return;
-   if((e.ctrlKey||e.metaKey)&&!e.altKey&&['c','v'].includes(e.key.toLowerCase()))return;
+   const clipAction=Object.keys(bindings).find(id=>bindings[id].includes(chord(e)));
+   if(['copyClip','cutClip','pasteClip','copyBase'].includes(clipAction||'')){
+     const native:Record<string,string>={copyClip:'Ctrl+C',cutClip:'Ctrl+X',pasteClip:'Ctrl+V'};
+     if(chord(e)===native[clipAction!])return;
+     e.preventDefault();if(!e.repeat)void runClipboardAction(clipAction!);return;
+   }
+   if(pendingCopyBase&&e.key!=='Escape'){e.preventDefault();return;}
    if(zoomMode&&!e.ctrlKey&&!e.metaKey&&!e.altKey){if(e.key==='Escape'){e.preventDefault();cancelTool();return;}if(e.key==='Enter'){e.preventDefault();executeCommand();return;}if(e.key==='Backspace'){e.preventDefault();setCommandText(t=>t.slice(0,-1));return;}if(/^[a-zA-Z0-9.,+\-]$/.test(e.key)){e.preventDefault();setCommandText(t=>t+e.key.toUpperCase());return;}}
 
    if(!e.ctrlKey&&!e.metaKey&&!e.altKey){
@@ -219,18 +227,23 @@ function App() {
    if(['undo','redo','new','open','save','dxf','pdf','pdfAll','help'].includes(action)){e.preventDefault();runAction(action==='save'?'quickSave':action);return;}
    const t=action as Tool;if(paper?!commandTools.includes(t):!['text','viewport'].includes(t)){e.preventDefault();chooseTool(t);}
  };window.addEventListener('keydown',key);return()=>window.removeEventListener('keydown',key);});
+ const clipboardSelection=()=>doc.shapes.filter(s=>(selectedIds.length?selectedIds:selected?[selected]:[]).includes(s.id));
+ const preparePaste=(text:string)=>{if(paper)throw new Error('Activez l’espace Objet pour coller.');const data=decodeClipboard(text);clear();setTool('select');setPendingPaste(data);setMessage(data.drawing.shapes.length+' objet(s) à coller — cliquez le point d’insertion · Échap pour annuler');};
+ const copyText=(cut=false)=>{if(paper)throw new Error('Activez l’espace Objet pour copier ou couper.');const shapes=clipboardSelection();if(cut&&shapes.some(s=>lockedShape(doc,s)))throw new Error('Impossible de couper des objets sur un calque verrouillé.');return {shapes,text:encodeClipboard(doc,shapes)};};
+ const finishCopy=(shapes:Shape[],cut=false)=>{if(cut){const ids=new Set(shapes.map(s=>s.id));commit({...doc,shapes:doc.shapes.filter(s=>!ids.has(s.id))});clear();}setMessage(shapes.length+' objet(s) '+(cut?'coupé(s)':'copié(s)')+' — '+shortcut('pasteClip')+' pour coller');};
+ const runClipboardAction=async(action:string)=>{try{if(action==='copyBase'){const {shapes}=copyText();clear();setTool('select');setPendingCopyBase({drawing:doc,shapes});setMessage('Copier avec point de base — cliquez le point de référence · Échap pour annuler');return;}if(action==='pasteClip'){preparePaste(await navigator.clipboard.readText());return;}const cut=action==='cutClip',{shapes,text}=copyText(cut);await navigator.clipboard.writeText(text);if(cut&&currentDoc.current!==doc)throw new Error("Objets copiés ; coupe annulée car le dessin a changé.");finishCopy(shapes,cut);}catch(err){setMessage((err as Error).message);}};
  useEffect(()=>{
  const blocked=(e:ClipboardEvent)=>configuration||!!document.querySelector('dialog[open]')||!!(e.target as HTMLElement)?.closest('input,textarea,select,[contenteditable]:not([contenteditable="false"])');
- const copy=(e:ClipboardEvent)=>{if(blocked(e))return;if(paper){setMessage('Copier des objets : activez l’espace Objet.');return;}const ids=new Set(selectedIds.length?selectedIds:selected?[selected]:[]);const shapes=doc.shapes.filter(s=>ids.has(s.id));if(!shapes.length)return;try{if(!e.clipboardData)throw new Error('Presse-papiers indisponible.');e.clipboardData.setData('text/plain',encodeClipboard(doc,shapes));e.preventDefault();setMessage(shapes.length+' objet(s) copié(s) — Ctrl+V dans un autre dessin');}catch(err){setMessage((err as Error).message);}};
- const paste=(e:ClipboardEvent)=>{if(blocked(e))return;const text=e.clipboardData?.getData('text/plain')||'';if(!text.includes('jlg-cad-clipboard'))return;e.preventDefault();if(paper){setMessage('Collez ces objets dans l’espace Objet ou dans une fenêtre active.');return;}try{const data=decodeClipboard(text);clear();setTool('select');setPendingPaste(data);setMessage(data.drawing.shapes.length+' objet(s) à coller — cliquez le point d’insertion · Échap pour annuler');}catch(err){setMessage((err as Error).message);}};
- window.addEventListener('copy',copy);window.addEventListener('paste',paste);return()=>{window.removeEventListener('copy',copy);window.removeEventListener('paste',paste);};
- });
- const screen=(e:{clientX:number;clientY:number})=>{const r=svg.current!.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top};};
+ const copy=(e:ClipboardEvent)=>{if(blocked(e))return;try{const cut=e.type==='cut',{shapes,text}=copyText(cut);if(!e.clipboardData)throw new Error('Presse-papiers indisponible.');e.clipboardData.setData('text/plain',text);e.preventDefault();finishCopy(shapes,cut);}catch(err){e.preventDefault();setMessage((err as Error).message);}};
+ const paste=(e:ClipboardEvent)=>{if(blocked(e))return;const text=e.clipboardData?.getData('text/plain')||'';if(!text.includes('jlg-cad-clipboard'))return;e.preventDefault();safe(()=>preparePaste(text));};
+ window.addEventListener('copy',copy);window.addEventListener('cut',copy);window.addEventListener('paste',paste);return()=>{window.removeEventListener('copy',copy);window.removeEventListener('cut',copy);window.removeEventListener('paste',paste);};
+ }); const screen=(e:{clientX:number;clientY:number})=>{const r=svg.current!.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top};};
  const sheetPoint=(p:Point)=>({x:(p.x-view.x)/view.scale,y:(p.y-view.y)/view.scale});
  const world=(p:Point,magnet=true)=>{pointerSnap.current=false;const p0=sheetPoint(p),w=viewport?paperToModel(p0,viewport):p0,step=paper?1:10;if(!paper&&settings.osnap&&magnet){const hit=snapPoint(w,visible.filter(s=>s.id!==gesture.current?.original?.id),8/(view.scale/(viewport?.denominator||1)));if(hit){pointerSnap.current=true;return hit.point;}}return snap&&magnet?{x:Math.round(w.x/step)*step,y:Math.round(w.y/step)*step}:w;};
  const inViewport=(p:Point)=>{if(!viewport)return true;const r=bounds(viewport),w=sheetPoint(p);return w.x>=r.x&&w.x<=r.x+r.width&&w.y>=r.y&&w.y<=r.y+r.height;};
  const down=(e:React.PointerEvent<SVGSVGElement>)=>{
    if(e.button!==0&&e.button!==1)return;setRadiusEditor(null);const p=screen(e),w=world(p,!['offset','trim','extend','join'].includes(tool));if(viewport&&!inViewport(p))return;
+   if(pendingCopyBase&&e.button===0){const data=pendingCopyBase;setPendingCopyBase(null);void navigator.clipboard.writeText(encodeClipboard(data.drawing,data.shapes,w)).then(()=>setMessage(data.shapes.length+' objet(s) copié(s) avec point de base')).catch(err=>setMessage(err.message));return;}
    if(pendingPaste&&e.button===0){safe(()=>{const next=pasteClipboard(doc,pendingPaste,w,id);const ids=next.shapes.slice(doc.shapes.length).map(s=>s.id);commit(next);clear();setSelectedIds(ids);setMessage(ids.length+' objet(s) collé(s)');});return;}
    if(e.button===1){e.preventDefault();const previous=middleClick.current;middleClick.current={time:performance.now(),point:p};if(previous&&performance.now()-previous.time<350&&distance(previous.point,p)<6){middleClick.current=null;gesture.current=null;navigationPointer.current=true;fit();return;}}
    if(zoomMode&&e.button===0){navigationPointer.current=true;if(zoomMode==='window'){const f=navigationFrame(),v=navigationView(),point={x:(p.x-f.x-v.x)/v.scale,y:(p.y-f.y-v.y)/v.scale};if(!zoomStart){setZoomStart(point);setZoomPointer(point);}else{const box=windowBox(zoomStart,point);if(box.width<.001||box.height<.001){setMessage('Choisissez une fenêtre de largeur et hauteur non nulles.');return;}applyNavigation(fitBoxes([box],f.width,f.height));setZoomMode(null);setZoomStart(null);setZoomPointer(null);}}return;}
@@ -257,6 +270,7 @@ function App() {
    const raw=viewport?paperToModel(sheetPoint(p),viewport):sheetPoint(p);setSnapHit(!paper&&tool!=='trim'&&settings.osnap?snapPoint(raw,visible.filter(s=>s.id!==g?.original?.id),8/(view.scale/(viewport?.denominator||1))):null);
    if(zoomMode&&!g){if(zoomMode==='window'&&zoomStart){const f=navigationFrame(),v=navigationView();setZoomPointer({x:(p.x-f.x-v.x)/v.scale,y:(p.y-f.y-v.y)/v.scale});}return;}
    if(!g){
+     if(tool==='arc'){if(commandPoints.length===1)setCommandPreview([{...baseShape(),type:'line',a:commandPoints[0],b:w}]);else if(commandPoints.length===2){try{setCommandPreview([threePointArc(commandPoints[0],commandPoints[1],w,baseShape())]);}catch{setCommandPreview([]);}}}
      if(tool==='circle'&&draftRef.current?.type==='circle')safe(()=>setPreview({...draftRef.current!,b:lengthText?radiusEndpoint(draftRef.current!.a,lengthText,paper?'mm':unit):w}));
      if(tool==='line'&&draftRef.current?.type==='line')safe(()=>setPreview({...draftRef.current!,b:lengthText?lineEndpoint(draftRef.current!.a,w,lengthText,paper?'mm':unit,effectiveOrtho,settings.polar,settings.angle):constrain(draftRef.current!.a,w,paper?'':settings.length,paper?'':settings.angle)}));
      if(!paper&&['offset','trim','extend','copy','move','rotate','mirror'].includes(tool)&&!choosingBoundaries){try{
@@ -270,7 +284,6 @@ function App() {
    else if(g.original){const original=g.original;safe(()=>{const origin=g.grip?objectGrips(original).find(h=>h.key===g.grip)!.point:g.node!==undefined&&(original.type==='polyline'||original.type==='bezier')?(g.handle==='in'||g.handle==='out'?original.nodes[g.node][g.handle]||original.nodes[g.node].p:original.nodes[g.node].p):g.resize?original.b:g.start;const end=g.resize&&original.type!=='line'?w:constrain(origin,w);setPreview(g.grip?moveGrip(original,g.grip,end):g.node!==undefined&&(original.type==='polyline'||original.type==='bezier')?moveNode(original,g.node,end,g.handle):g.resize?{...original,b:end}:translate(original,end.x-g.start.x,end.y-g.start.y));});}
    else if(draftRef.current)safe(()=>setPreview({...draftRef.current!,b:tool==='line'?(lengthText?exactEndpoint(draftRef.current!.a,w,lengthText,paper?'mm':unit,effectiveOrtho,settings.polar,settings.angle):constrain(draftRef.current!.a,w,paper?'':settings.length,paper?'':settings.angle)):w}));
  };
-     if(tool==='arc'){if(commandPoints.length===1)setCommandPreview([{...baseShape(),type:'line',a:commandPoints[0],b:w}]);else if(commandPoints.length===2){try{setCommandPreview([threePointArc(commandPoints[0],commandPoints[1],w,baseShape())]);}catch{setCommandPreview([]);}}}
  useEffect(()=>{if(lastPointer.current)move(lastPointer.current);},[settings.ortho,settings.polar,shiftHeld,lengthText,unit]);
  useEffect(()=>{const down=(e:KeyboardEvent)=>{if(e.key==='Shift'&&!document.querySelector('dialog[open]')&&!(e.target as HTMLElement).closest('input,textarea,select,[contenteditable]'))setShiftHeld(true);};const up=(e:KeyboardEvent)=>{if(e.key==='Shift')setShiftHeld(false);};const blur=()=>{setShiftHeld(false);lastPointer.current=null;};window.addEventListener('keydown',down);window.addEventListener('keyup',up);window.addEventListener('blur',blur);return()=>{window.removeEventListener('keydown',down);window.removeEventListener('keyup',up);window.removeEventListener('blur',blur);};},[]);
  const up=(e:React.PointerEvent<SVGSVGElement>)=>{
@@ -368,7 +381,7 @@ function App() {
  const applyRadiusEdit=()=>safe(()=>{if(!radiusEditor)return;const circle=items.find(s=>s.id===radiusEditor.id);if(circle?.type!=='circle'){setRadiusEditor(null);return;}if(!editable(circle))throw new Error('Le calque est verrouillé.');const b=radiusEndpoint(circle.a,radiusEditor.text,radiusEditor.unit);if(distance(circle.a,circle.b)!==distance(circle.a,b))edit({...circle,b});setRadiusEditor(null);setMessage('Rayon du cercle modifié.');});
  const radiusPosition=radiusEditor?dynamicFieldPosition(radiusEditor.point,svg.current?.clientWidth||800,svg.current?.clientHeight||600):null;
  const dynamicPosition=dynamicFieldPosition(pointerScreen,svg.current?.clientWidth||800,svg.current?.clientHeight||600);
- const drawingCursor=cursorMode({tool,hasSource:!!source,selectingDimension:linearSelectObject,choosingBoundaries,positioning:!!pendingPaste||!!zoomMode||!!selectionDrag.current||!!gesture.current?.original,editingText:false});
+ const drawingCursor=cursorMode({tool,hasSource:!!source,selectingDimension:linearSelectObject,choosingBoundaries,positioning:!!pendingCopyBase||!!pendingPaste||!!zoomMode||!!selectionDrag.current||!!gesture.current?.original,editingText:false});
  const cursorBadge=tool==='move'?'M116 66h28m-14-14v28m-14-14l5-5m-5 5l5 5m23-5l-5-5m5 5l-5 5m-9-14l-5 5m5-5l5 5m-5 23l-5-5m5 5l5-5':tool==='copy'?'M115 53h19v19h-19zM122 60h19v19h-19':tool==='rotate'?'M117 70a12 12 0 1 1 20-9m0-8v9h-9':null;
  const statusText=message==='Prêt à dessiner'?'Sélectionnez et déplacez une forme':message;
  const size=layout?paperSize(layout):null;

@@ -19,3 +19,10 @@ test('refuse les versions inconnues, copies invalides et coordonnées hors limit
  expect(()=>decodeClipboard('{}')).toThrow();expect(()=>encodeClipboard(doc,[])).toThrow();
  let n=0;expect(()=>pasteClipboard(doc,decodeClipboard(text),{x:1e8,y:0},()=>`id-${++n}`)).toThrow();
 });
+
+test('copie avec point de base explicite conserve le décalage des objets',()=>{
+ const data=decodeClipboard(encodeClipboard(documentOf('A',[shape]),[shape],{x:0,y:0}));
+ expect(data.base).toEqual({x:0,y:0});let n=0;
+ const pasted=pasteClipboard(documentOf('B',[]),data,{x:100,y:200},()=>`base-${++n}`).shapes[0];
+ expect(pasted.a).toEqual({x:110,y:220});
+});

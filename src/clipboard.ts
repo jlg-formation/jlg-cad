@@ -3,12 +3,12 @@ import {bounds, documentOf, parseDrawing, type Drawing, type Point, type Shape} 
 import {translateItem} from './geometry';
 
 export type CadClipboard = {format:'jlg-cad-clipboard';version:1;units:'mm';base:Point;drawing:Drawing};
-export function encodeClipboard(doc:Drawing, shapes:Shape[]):string {
+export function encodeClipboard(doc:Drawing, shapes:Shape[], base?:Point):string {
  if(!shapes.length)throw new Error('Sélectionnez des objets à copier.');
  const selected=new Set(shapes.map(s=>s.id));shapes=synchronizeDimensions(doc.shapes).filter(s=>selected.has(s.id)).map(s=>s.type==='dimension'&&s.circleId&&!selected.has(s.circleId)?detachDimension(s):s);
  const used=new Set(shapes.map(s=>s.layerId||'0'));
  const boxes=shapes.map(bounds);
- const data:CadClipboard={format:'jlg-cad-clipboard',version:1,units:'mm',base:{x:Math.min(...boxes.map(b=>b.x)),y:Math.min(...boxes.map(b=>b.y))},drawing:documentOf('Copie',shapes,[],doc.layers.filter(l=>l.id==='0'||used.has(l.id)))};
+ const data:CadClipboard={format:'jlg-cad-clipboard',version:1,units:'mm',base:base??{x:Math.min(...boxes.map(b=>b.x)),y:Math.min(...boxes.map(b=>b.y))},drawing:documentOf('Copie',shapes,[],doc.layers.filter(l=>l.id==='0'||used.has(l.id)))};
  return JSON.stringify(data);
 }
 export function decodeClipboard(text:string):CadClipboard {

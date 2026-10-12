@@ -15,3 +15,10 @@ describe('Raccourcis personnalisés',()=>{
  test('détecte un conflit et les combinaisons réservées',()=>{expect(conflict(defaults(),'line','V')?.[0]).toBe('select');expect(reserved('Ctrl+W')).toBe(true);expect(reserved('Ctrl+Shift+Z')).toBe(false);});
  test('tolère des préférences corrompues et ignore des entrées invalides',()=>{expect(readBindings('oops')).toEqual(defaults());expect(readBindings('{"line":[null]}').line).toEqual(['L']);expect(readBindings('{"line":["Ctrl+W"]}').line).toEqual(['L']);});
 });
+
+test('raccourcis presse-papiers AutoCAD disponibles et personnalisables',()=>{
+ const b=defaults();expect(b.copyClip).toEqual(['Ctrl+C']);expect(b.cutClip).toEqual(['Ctrl+X']);expect(b.pasteClip).toEqual(['Ctrl+V']);expect(b.copyBase).toEqual(['Ctrl+Shift+C']);
+ expect(readBindings('{"line":["L"]}').copyBase).toEqual(['Ctrl+Shift+C']);
+ expect(readBindings(JSON.stringify(b))).toEqual(b);
+ b.copyClip=['Ctrl+Shift+J'];expect(readBindings(JSON.stringify(b)).copyClip).toEqual(['Ctrl+Shift+J']);
+});

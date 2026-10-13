@@ -208,7 +208,15 @@ function App() {
      if(e.key==='Escape'){e.preventDefault();if(!e.repeat)cancelTool();(e.target as HTMLElement).blur();}return;
    }
    if((e.target as HTMLElement).closest('[role="menu"]'))return;
-   if(e.key==='Tab'&&!e.shiftKey&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&(e.target===document.body||svg.current?.contains(e.target as Element))){e.preventDefault();if(tool==='rect'&&draft?.type==='rect')rectWidthInput.current?.focus();else commandAnchor.current?.querySelector('input')?.focus();return;}
+   if(e.key==='Tab'&&!e.shiftKey&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&(e.target===document.body||svg.current?.contains(e.target as Element))){
+     e.preventDefault();
+     if(tool==='offset'&&!offsetReady)offsetInput.current?.focus();
+     else if(tool==='rect'&&draft?.type==='rect')rectWidthInput.current?.focus();
+     else if(dynamicStart)lengthInput.current?.focus();
+     else if(radiusEditor)radiusInput.current?.focus();
+     else if(tool==='select'&&!zoomMode&&!pendingPaste&&!pendingCopyBase&&!gesture.current&&!selectionDrag.current)commandAnchor.current?.querySelector('input')?.focus();
+     return;
+   }
    const clipAction=Object.keys(bindings).find(id=>bindings[id].includes(chord(e)));
    if(['copyClip','cutClip','pasteClip','copyBase'].includes(clipAction||'')){
      const native:Record<string,string>={copyClip:'Ctrl+C',cutClip:'Ctrl+X',pasteClip:'Ctrl+V'};
@@ -269,6 +277,7 @@ function App() {
    if(e.button!==0&&e.button!==1)return;e.currentTarget.focus({preventScroll:true});setRadiusEditor(null);const p=screen(e),w=world(p,!['offset','trim','extend','join'].includes(tool));if(viewport&&!inViewport(p))return;
    if(pendingCopyBase&&e.button===0){const data=pendingCopyBase;setPendingCopyBase(null);void navigator.clipboard.writeText(encodeClipboard(data.drawing,data.shapes,w)).then(()=>setMessage(data.shapes.length+' objet(s) copié(s) avec point de base')).catch(err=>setMessage(err.message));return;}
    if(pendingPaste&&e.button===0){safe(()=>{const next=pasteClipboard(doc,pendingPaste,w,id);const ids=next.shapes.slice(doc.shapes.length).map(s=>s.id);commit(next);clear();setSelectedIds(ids);setMessage(ids.length+' objet(s) collé(s)');});return;}
+   if(e.button===0&&tool==='offset'&&!offsetReady){e.preventDefault();offsetInput.current?.focus({preventScroll:true});return;}
    if(e.button===1){e.preventDefault();const previous=middleClick.current;middleClick.current={time:performance.now(),point:p};if(previous&&performance.now()-previous.time<350&&distance(previous.point,p)<6){middleClick.current=null;gesture.current=null;navigationPointer.current=true;fit();return;}}
    if(zoomMode&&e.button===0){navigationPointer.current=true;if(zoomMode==='window'){const f=navigationFrame(),v=navigationView(),point={x:(p.x-f.x-v.x)/v.scale,y:(p.y-f.y-v.y)/v.scale};if(!zoomStart){setZoomStart(point);setZoomPointer(point);}else{const box=windowBox(zoomStart,point);if(box.width<.001||box.height<.001){setMessage('Choisissez une fenêtre de largeur et hauteur non nulles.');return;}applyNavigation(fitBoxes([box],f.width,f.height));setZoomMode(null);setZoomStart(null);setZoomPointer(null);}}return;}
    lastPointer.current=e;setCursor(w);setPointerScreen(p);

@@ -123,3 +123,5 @@ footer .status-drafting{display:flex;gap:2px;align-items:center}footer .status-d
 .dynamic-length.rectangle-dimensions label>span{font-size:11px;color:#90a6b6;text-align:left}
 .rectangle-dimensions-hint{display:flex;flex-direction:column;gap:3px;padding-bottom:8px;border-bottom:1px solid #354550;font-size:11px;color:#d1dde5}
 .rectangle-dimensions-hint small{font-size:10px;color:#90a6b6}
+/* The drawing surface keeps keyboard focus without a browser focus frame. */
+svg[aria-label="Zone de dessin"]:focus{outline:none}

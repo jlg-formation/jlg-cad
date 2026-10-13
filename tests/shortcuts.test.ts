@@ -1,6 +1,16 @@
 import {describe,test,expect} from 'bun:test';
-import {chord,defaults,readBindings,conflict,reserved} from '../src/shortcuts';
+import {chord,defaults,readBindings,conflict,reserved,statusTooltip} from '../src/shortcuts';
 describe('Raccourcis personnalisés',()=>{
+ test('status tooltips follow configured shortcuts and activation state',()=>{
+  const b=defaults();
+  expect(statusTooltip(b,'osnap','Accrochage objet',true)).toBe('Accrochage objet — F3 · Activé');
+  expect(statusTooltip(b,'polar','Guidage polaire',false)).toBe('Guidage polaire — F10 · Désactivé');
+  b.osnap=['Ctrl+J','Shift+F3'];b.polar=[];
+  const configured=readBindings(JSON.stringify(b));
+  expect(statusTooltip(configured,'osnap','Accrochage objet',false)).toBe('Accrochage objet — Ctrl+J / Shift+F3 · Désactivé');
+  expect(statusTooltip(configured,'polar','Guidage polaire',true)).toBe('Guidage polaire · Activé');
+  expect(statusTooltip(configured,'grid','Grille',true,true)).toBe('Grille — F7 / Ctrl+G · Activée');
+ });
  test('ORTHO accepte F8 et Ctrl+L et migre le raccourci standard existant',()=>{
   expect(defaults().ortho).toEqual(['F8','Ctrl+L']);
   expect(reserved('Ctrl+L')).toBe(false);

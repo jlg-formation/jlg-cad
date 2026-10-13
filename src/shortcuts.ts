@@ -1,9 +1,13 @@
 export const commands = [
- ['new','Nouveau dessin',[]],['open','Ouvrir',['Ctrl+O']],['save','Sauvegarder',['Ctrl+S']],['undo','Annuler',['Ctrl+Z']],['redo','Rétablir',['Ctrl+Y','Ctrl+Shift+Z']],['all','Tout sélectionner',['Ctrl+A']],['delete','Supprimer la sélection',['Delete','Backspace']],['escape','Quitter / conserver le travail',['Escape']],['finish','Terminer le chemin / les limites',['Enter']],['ortho','Orthogonal',['F8','Ctrl+L']],['grid','Afficher la grille',['F7','Ctrl+G']],['gridSnap','Résolution / accrochage à la grille',['F9']],
+ ['new','Nouveau dessin',[]],['open','Ouvrir',['Ctrl+O']],['save','Sauvegarder',['Ctrl+S']],['undo','Annuler',['Ctrl+Z']],['redo','Rétablir',['Ctrl+Y','Ctrl+Shift+Z']],['all','Tout sélectionner',['Ctrl+A']],['delete','Supprimer la sélection',['Delete','Backspace']],['escape','Quitter / conserver le travail',['Escape']],['finish','Terminer le chemin / les limites',['Enter']],['ortho','Orthogonal',['F8','Ctrl+L']],['grid','Afficher la grille',['F7','Ctrl+G']],['gridSnap','Résolution / accrochage à la grille',['F9']],['osnap','Accrochage objet',['F3']],['polar','Guidage polaire',['F10']],
  ['copyClip','Copier dans le presse-papiers',['Ctrl+C']],['cutClip','Couper dans le presse-papiers',['Ctrl+X']],['pasteClip','Coller depuis le presse-papiers',['Ctrl+V']],['copyBase','Copier avec un point de base',['Ctrl+Shift+C']],
  ['select','Sélection',['V']],['line','Ligne',['L']],['rect','Rectangle',['R']],['circle','Cercle',['C']],['arc','Arc par 3 points',['A']],['pan','Déplacement de vue',['H']],['text','Texte papier',['T']],['viewport','Fenêtre de vue',['F']],['offset','Décalage',['O']],['trim','Ajuster',['X']],['extend','Prolonger',['E']],['polyline','Polyligne',['P']],['bezier','Bézier',['B']],['dimension','Cotation',['D']],['linearDimension','Cotation linéaire',['DLI']],['diameter','Diamètre',['DDI']],['move','Déplacer',['M']],['join','Raccorder',[]],['copy','Copier',[]],['rotate','Rotation',[]],['mirror','Miroir',[]],['measure','Mesurer',[]],['dxf','Exporter DXF',[]],['pdf','Exporter le PDF actif',[]],['pdfAll','Exporter toutes les présentations',[]],['help','Raccourcis clavier',['F1']],
 ] as const;
 export type Bindings=Record<string,string[]>;
+export function statusTooltip(bindings:Bindings,id:string,label:string,enabled:boolean,feminine=false){
+ const keys=bindings[id]||[];
+ return label+(keys.length?' — '+keys.join(' / '):'')+' · '+(enabled?(feminine?'Activée':'Activé'):(feminine?'Désactivée':'Désactivé'));
+}
 export const defaults=():Bindings=>Object.fromEntries(commands.map(([id,,keys])=>[id,[...keys]]));
 export const storageKey='jlg-cad-shortcuts';
 export function chord(e:Pick<KeyboardEvent,'key'|'ctrlKey'|'metaKey'|'shiftKey'|'altKey'>){if(['Control','Meta','Shift','Alt'].includes(e.key))return '';const key=e.key.length===1?e.key.toUpperCase():e.key;return [e.ctrlKey||e.metaKey?'Ctrl':'',e.altKey?'Alt':'',e.shiftKey?'Shift':'',key].filter(Boolean).join('+');}

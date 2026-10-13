@@ -123,7 +123,19 @@ export function trimShape(shape:Shape,boundaries:Shape[],click:Point,preview=fal
  const all=segments(shape),hit=nearestPart(shape,click);if(!hit)throw new Error('Aucun segment à ajuster.');
  const closed=shape.type==='circle'||shape.type==='rect'||('closed'in shape&&shape.closed);
  const limiting=boundaries.filter(s=>s.id!==shape.id&&s.type!=='dimension').flatMap(segments),count=all.length;
- const raw=all.flatMap((s,i)=>limiting.flatMap(b=>intersections(s,b)).map(p=>i+closestSegment(p,s).t)).map(t=>closed&&Math.abs(t-count)<EPS?0:t).sort((a,b)=>a-b);
+ const external=all.flatMap((s,i)=>limiting.flatMap(b=>intersections(s,b)).map(p=>i+closestSegment(p,s).t));
+ const internal:number[]=[];
+ if(shape.type==='polyline')for(let i=0;i<count;i++)for(let j=i+1;j<count;j++){
+   for(const p of intersections(all[i],all[j])){
+     // Ordinary shared vertices are not cutting boundaries. Endpoint-to-interior
+     // contacts still count, including the contact left after trimming one tail.
+     const a=closestSegment(p,all[i]).t,b=closestSegment(p,all[j]).t;
+     const endA=a<EPS||a>1-EPS,endB=b<EPS||b>1-EPS;
+     if(endA&&endB)continue;
+     internal.push(i+a,j+b);
+   }
+ }
+ const raw=[...external,...internal].map(t=>closed&&Math.abs(t-count)<EPS?0:t).sort((a,b)=>a-b);
  const cuts=raw.filter((t,i)=>!i||Math.abs(t-raw[i-1])>1e-6);
  if(!cuts.length)throw new Error('Aucune intersection : choisissez une limite de coupe.');
  if(closed&&cuts.length<2)throw new Error('Deux intersections sont nécessaires pour découper ce contour fermé.');

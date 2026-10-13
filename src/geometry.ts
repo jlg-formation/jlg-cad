@@ -1,3 +1,4 @@
+import {hatchBounds} from './hatch';
 import { type Point, type Shape, type PathShape, type Node, type PaperItem, type Dimension, type BaseShape } from './model';
 
 const EPS=1e-8;
@@ -44,6 +45,7 @@ export function threePointArc(a:Point,through:Point,b:Point,base:BaseShape):Path
  return {...base,type:'polyline',a,b,closed:false,nodes:[{p:a,bulge},{p:b}]};
 }
 export function segments(shape:Shape):Segment[] {
+ if(shape.type==='hatch')return shape.regions.flatMap(r=>r.loops.flatMap(loop=>loop.map((a,i):Segment=>({kind:'line',a,b:loop[(i+1)%loop.length]}))));
  if(shape.type==='line')return[{kind:'line',a:shape.a,b:shape.b}];
  if(shape.type==='rect'){const {a,b}=shape,c={x:b.x,y:a.y},d={x:a.x,y:b.y};return[{kind:'line',a,b:c},{kind:'line',a:c,b},{kind:'line',a:b,b:d},{kind:'line',a:d,b:a}];}
  if(shape.type==='circle'){const r=distance(shape.a,shape.b),a={x:shape.a.x+r,y:shape.a.y},b={x:shape.a.x-r,y:shape.a.y};return[arcSegment(a,b,1),arcSegment(b,a,1)];}
@@ -119,10 +121,11 @@ export function shapeFromSegments(source:Shape,segs:Segment[],closed=false):Shap
  return{id:source.id,type:cubic?'bezier':'polyline',a:nodes[0].p,b:nodes[nodes.length-1].p,color:source.color,layerId:source.layerId,nodes,closed};
 }
 export function trimShape(shape:Shape,boundaries:Shape[],click:Point,preview=false):Shape[]{
+ if(shape.type==='hatch')throw new Error('Cette opération ne s’applique pas aux hachures. Modifiez leur contour.');
  if(shape.type==='dimension')throw new Error('Les cotations ne se découpent pas.');
  const all=segments(shape),hit=nearestPart(shape,click);if(!hit)throw new Error('Aucun segment à ajuster.');
  const closed=shape.type==='circle'||shape.type==='rect'||('closed'in shape&&shape.closed);
- const limiting=boundaries.filter(s=>s.id!==shape.id&&s.type!=='dimension').flatMap(segments),count=all.length;
+ const limiting=boundaries.filter(s=>s.id!==shape.id&&s.type!=='dimension'&&s.type!=='hatch').flatMap(segments),count=all.length;
  const external=all.flatMap((s,i)=>limiting.flatMap(b=>intersections(s,b)).map(p=>i+closestSegment(p,s).t));
  const internal:number[]=[];
  if(shape.type==='polyline')for(let i=0;i<count;i++)for(let j=i+1;j<count;j++){
@@ -148,9 +151,10 @@ export function trimShape(shape:Shape,boundaries:Shape[],click:Point,preview=fal
  return parts.filter(ss=>ss.length&&ss.some(s=>distance(s.a,s.b)>EPS||s.kind!=='line')).map((ss,i)=>({...shapeFromSegments(shape,ss),id:i?crypto.randomUUID():shape.id}));
 }
 export function extendShape(shape:Shape,boundaries:Shape[],click:Point):Shape {
+ if(shape.type==='hatch')throw new Error('Cette opération ne s’applique pas aux hachures. Modifiez leur contour.');
  if(shape.type==='dimension'||shape.type==='circle'||shape.type==='rect'||('closed'in shape&&shape.closed))throw new Error('Prolonger exige une ligne ou un chemin ouvert.');
  const all=segments(shape),first=distance(click,all[0].a)<distance(click,all[all.length-1].b),index=first?0:all.length-1,s=all[index],end=first?s.a:s.b;
- const candidates=boundaries.filter(b=>b.id!==shape.id&&b.type!=='dimension').flatMap(b=>segments(b));
+ const candidates=boundaries.filter(b=>b.id!==shape.id&&b.type!=='dimension'&&b.type!=='hatch').flatMap(b=>segments(b));
  let replacement:Segment;
  if(s.kind==='arc'){
    const points=uniquePoints(candidates.flatMap(b=>intersections(s,b,true))).filter(p=>candidates.some(b=>onSegment(p,b))&&distance(p,end)>.001);
@@ -177,6 +181,7 @@ export function joinCorner(a:Shape,b:Shape,clickA:Point,clickB:Point):[Shape,Sha
 }
 
 export function offsetShape(shape:Shape,amount:number,side:Point,tolerance=.1):Shape {
+ if(shape.type==='hatch')throw new Error('Cette opération ne s’applique pas aux hachures. Modifiez leur contour.');
  if(amount<=0||!Number.isFinite(amount))throw new Error('Le décalage doit être positif.');
  if(shape.type==='dimension')throw new Error('Décalez une ligne ou un contour.');
  if(shape.type==='circle'){const radius=distance(shape.a,shape.b)+(distance(side,shape.a)<distance(shape.a,shape.b)?-amount:amount);if(radius<=EPS)throw new Error('Le décalage supprimerait le cercle.');return{...shape,b:add(shape.a,{x:radius,y:0})};}
@@ -211,6 +216,12 @@ export function offsetShape(shape:Shape,amount:number,side:Point,tolerance=.1):S
 
 export function mapItem<T extends PaperItem>(shape:T,fn:(p:Point)=>Point,scale=1,flip=false):T {
  const common={...shape,a:fn(shape.a),b:fn(shape.b)};
+ if(shape.type==='hatch'){
+  const origin=fn(shape.origin),angle=-shape.angle*Math.PI/180,axis=fn({x:shape.origin.x+Math.cos(angle),y:shape.origin.y+Math.sin(angle)}),mappedAngle=-Math.atan2(axis.y-origin.y,axis.x-origin.x)*180/Math.PI;
+  const regions=shape.regions.map(r=>({...r,seed:fn(r.seed),boundaryLoops:r.boundaryLoops?.map(loop=>loop.map(fn)),loops:r.loops.map(loop=>loop.map(fn))}));
+  return {...common,...hatchBounds(regions),origin,angle:mappedAngle,mirrored:flip?!shape.mirrored:shape.mirrored,scale:shape.scale*scale,regions} as T;
+ }
+
  if(shape.type==='polyline'||shape.type==='bezier'){const nodes=shape.nodes.map(n=>({...n,p:fn(n.p),in:n.in?fn(n.in):undefined,out:n.out?fn(n.out):undefined,bulge:n.bulge!==undefined?n.bulge*(flip?-1:1):undefined}));return{...common,a:nodes[0].p,b:nodes[nodes.length-1].p,nodes} as T;}
  if(shape.type==='dimension'){const angle=shape.linearAngle,axis=angle===undefined?undefined:sub(fn(add(shape.a,{x:Math.cos(angle),y:Math.sin(angle)})),fn(shape.a));return{...common,...(axis?{linearAngle:Math.atan2(axis.y,axis.x)}:{}),offset:shape.offset*scale*(flip&&shape.kind!=='diameter'?-1:1),height:shape.height*scale} as T;}
  if(shape.type==='text')return{...common,height:shape.height*scale} as T;
@@ -280,7 +291,7 @@ export function arcCubics(s:Extract<Segment,{kind:'arc'}>):Extract<Segment,{kind
 export type Snap = {point:Point;kind:'Extrémité'|'Milieu'|'Centre'|'Intersection'};
 export function snapPoint(p:Point,shapes:Shape[],tolerance:number,kinds:readonly Snap['kind'][]=['Extrémité','Milieu','Centre','Intersection']):Snap|null {
  const candidates:Snap[]=[],nearby:Segment[]=[];
- for(const shape of shapes){if(shape.type==='dimension')continue;if(shape.type==='circle')candidates.push({point:shape.a,kind:'Centre'});
+ for(const shape of shapes){if(shape.type==='dimension'||shape.type==='hatch')continue;if(shape.type==='circle')candidates.push({point:shape.a,kind:'Centre'});
    for(const s of segments(shape)){candidates.push({point:s.a,kind:'Extrémité'},{point:s.b,kind:'Extrémité'},{point:at(s,.5),kind:'Milieu'});if(s.kind==='arc')candidates.push({point:s.center,kind:'Centre'});if(distance(closestSegment(p,s).point,p)<=tolerance*2)nearby.push(s);}
  }
  for(let i=0;i<nearby.length;i++)for(let j=i+1;j<nearby.length;j++)for(const point of intersections(nearby[i],nearby[j]))candidates.push({point,kind:'Intersection'});

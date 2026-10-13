@@ -1,3 +1,4 @@
+import {synchronizeHatches} from './hatch';
 import type {Drawing,PaperItem,Shape} from './model';
 import {add,sub,mul,distance,diameterDimension} from './geometry';
 
@@ -25,9 +26,9 @@ export function synchronizeDimensions(shapes:Shape[],previous:Shape[]=[]):Shape[
  });
 }
 export function synchronizeDrawing(next:Drawing,previous?:Drawing):Drawing {
- return {...next,shapes:synchronizeDimensions(next.shapes,previous?.shapes),layouts:next.layouts.map(l=>{
+ return {...next,shapes:synchronizeHatches(synchronizeDimensions(next.shapes,previous?.shapes),previous?.shapes),layouts:next.layouts.map(l=>{
   const onlyShapes=(items:PaperItem[])=>items.filter((s):s is Shape=>s.type!=='text'&&s.type!=='viewport');
-  const resolved=new Map(synchronizeDimensions(onlyShapes(l.items),onlyShapes(previous?.layouts.find(p=>p.id===l.id)?.items||[])).map(s=>[s.id,s]));
+  const resolved=new Map(synchronizeHatches(synchronizeDimensions(onlyShapes(l.items),onlyShapes(previous?.layouts.find(p=>p.id===l.id)?.items||[])),onlyShapes(previous?.layouts.find(p=>p.id===l.id)?.items||[])).map(s=>[s.id,s]));
   return {...l,items:l.items.flatMap<PaperItem>(s=>s.type==='text'||s.type==='viewport'?[s]:resolved.has(s.id)?[resolved.get(s.id)!]:[])};
  })};
 }

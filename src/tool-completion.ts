@@ -11,6 +11,7 @@ export function completedPath(type:'polyline'|'bezier',base:BaseShape,nodes:Node
 }
 
 export function constructedItem(item:PaperItem):boolean {
+ if(item.type==='hatch')return item.regions.length>0;
  if(item.type==='text'||item.type==='polyline'||item.type==='bezier')return true;
  if(item.type==='viewport'){const box=bounds(item);return box.width>=1&&box.height>=1;}
  if(item.type==='rect')return Math.abs(item.b.x-item.a.x)>.01&&Math.abs(item.b.y-item.a.y)>.01;

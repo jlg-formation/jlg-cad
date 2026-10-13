@@ -22,8 +22,8 @@ test('deleting a circle cascades to all linked dimensions; undo snapshot restore
  expect(synchronizeDrawing({...saved,shapes:[circle]},saved).shapes).toEqual([circle]);
 });
 test('native v4 preserves and resolves links, refuses dangling links, reads independent v3',()=>{
- const stale={...dim,a:{x:0,y:0},b:{x:1,y:0}};const loaded=parseDrawing(JSON.stringify({...original,shapes:[circle,stale]}));
- expect(loaded.version).toBe(4);expect((loaded.shapes[1] as Dimension).circleId).toBe('c');expect(distance(loaded.shapes[1].a,loaded.shapes[1].b)).toBeCloseTo(100);
+ const stale={...dim,a:{x:0,y:0},b:{x:1,y:0}};const loaded=parseDrawing(JSON.stringify({...original,version:4,shapes:[circle,stale]}));
+ expect(loaded.version).toBe(5);expect((loaded.shapes[1] as Dimension).circleId).toBe('c');expect(distance(loaded.shapes[1].a,loaded.shapes[1].b)).toBeCloseTo(100);
  expect(()=>parseDrawing(JSON.stringify({...original,shapes:[dim]}))).toThrow();
  expect(()=>parseDrawing(JSON.stringify({...original,shapes:[{...circle,type:'line'},dim]}))).toThrow();
  const {circleId,...independent}=dim;const old=parseDrawing(JSON.stringify({...original,version:3,shapes:[circle,independent]}));expect((old.shapes[1] as Dimension).circleId).toBeUndefined();

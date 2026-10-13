@@ -1,3 +1,4 @@
+import {hatchLines} from './hatch';
 import { jsPDF } from 'jspdf';
 import { bounds, modelToPaper, paperSize, visibleShapes, type Drawing, type Layout, type Shape, type TextItem } from './model';
 import { mapItem, segments, arcCubics, dimensionGeometry } from './geometry';
@@ -16,6 +17,10 @@ export function createPdf(drawing: Drawing, layouts: Layout[],displayUnit:'m'|'c
       const color=layout.monochrome?'#17242a':s.color;
       pdf.setDrawColor(color);pdf.setTextColor(color);pdf.setLineWidth(.25);
       if(s.type==='text'){pdf.setFont('helvetica');pdf.setFontSize(s.height*72/25.4);pdf.text(s.text,s.a.x,s.a.y,{baseline:'top',lineHeightFactor:1.2});}
+      else if(s.type==='hatch'){
+        if(s.pattern==='SOLID'){pdf.setFillColor(color);for(const r of s.regions){pdf.path(r.loops.flatMap(loop=>[{op:'m',c:[loop[0].x,loop[0].y]},...loop.slice(1).map(p=>({op:'l',c:[p.x,p.y]})),{op:'h',c:[]}]));pdf.fillEvenOdd();}}
+        else hatchLines(s).forEach(([a,b])=>pdf.line(a.x,a.y,b.x,b.y));
+      }
       else if(s.type==='line')pdf.line(s.a.x,s.a.y,s.b.x,s.b.y);
       else if(s.type==='circle')pdf.circle(s.a.x,s.a.y,Math.hypot(s.b.x-s.a.x,s.b.y-s.a.y),'S');
       else if(s.type==='dimension'){const d=dimensionGeometry(s,displayUnit);d.lines.forEach(([a,b])=>pdf.line(a.x,a.y,b.x,b.y));pdf.setFillColor(color);d.arrows.forEach(ps=>pdf.triangle(ps[0].x,ps[0].y,ps[1].x,ps[1].y,ps[2].x,ps[2].y,'F'));pdf.setFontSize(s.height*72/25.4);pdf.text(dimensionLabel||d.text,d.label.x,d.label.y,{align:'center',angle:d.angle});}
@@ -26,12 +31,12 @@ export function createPdf(drawing: Drawing, layouts: Layout[],displayUnit:'m'|'c
       else {const r=bounds(s);pdf.rect(r.x,r.y,r.width,r.height,'S');}
     };
     // Match the editor: model windows are behind paper annotations.
-    const ordered=[...layout.items.filter(s=>s.type==='viewport'),...layout.items.filter(s=>s.type!=='viewport')];
+    const ordered=[...layout.items.filter(s=>s.type==='viewport'),...layout.items.filter(s=>s.type==='hatch'),...layout.items.filter(s=>s.type!=='viewport'&&s.type!=='hatch')];
     for(const item of ordered) {
       if(item.type!=='viewport'){draw(item);continue;}
       const r=bounds(item);
       pdf.saveGraphicsState();pdf.rect(r.x,r.y,r.width,r.height,null);pdf.clip();pdf.discardPath();
-      for(const s of visibleShapes(drawing)){draw(mapItem(s,p=>modelToPaper(p,item),1/item.denominator),s.type==='dimension'?dimensionGeometry(s,displayUnit).text:undefined);}
+      for(const s of [...visibleShapes(drawing).filter(s=>s.type==='hatch'),...visibleShapes(drawing).filter(s=>s.type!=='hatch')]){draw(mapItem(s,p=>modelToPaper(p,item),1/item.denominator),s.type==='dimension'?dimensionGeometry(s,displayUnit).text:undefined);}
       pdf.restoreGraphicsState();
       if(item.printBorder){pdf.setDrawColor(layout.monochrome?'#17242a':item.color);pdf.setLineWidth(.25);pdf.rect(r.x,r.y,r.width,r.height,'S');}
     }

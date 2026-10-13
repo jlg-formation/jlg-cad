@@ -1,3 +1,4 @@
+import {hatchContains} from './hatch';
 import {type PaperItem,type Point} from './model';
 import {at,closestSegment,distance,intersections,segments,type Segment} from './geometry';
 
@@ -44,6 +45,7 @@ export function selectionSegments(item:PaperItem):Segment[]{
 export function itemInSelection(item:PaperItem,polygon:Point[],crossing:boolean,measuredGeometry?:Segment[]):boolean {
  if(polygon.length<3)return false;
  const border=edges(polygon),geometry=measuredGeometry||selectionSegments(item);
+ if(crossing&&item.type==='hatch'&&polygon.some(p=>hatchContains(item,p)))return true;
  if(crossing)return geometry.some(s=>pointInSelection(s.a,polygon)||pointInSelection(s.b,polygon)||border.some(e=>touches(s,e)));
  return geometry.every(s=>{
   // Split at every boundary intersection: endpoints alone are insufficient in a concave lasso.

@@ -26,6 +26,7 @@ export function lineEndpoint(start:Point,pointer:Point,text:string,unit:LengthUn
  return exactEndpoint(start,direction,text,unit,ortho,polar,angle);
 }
 export const draftingCommands=[
+ {id:'hatch',name:'HATCH',label:'Hachures',aliases:['HACHURES','HACHURE','HA']},
  {id:'arc',name:'ARC',label:'Arc par 3 points',aliases:['A']},
  {id:'line',name:'LINE',label:'Ligne',aliases:['L','LIGNE']},
  {id:'polyline',name:'PLINE',label:'Polyligne',aliases:['PL','POLYLINE','POLYLIGNE']},

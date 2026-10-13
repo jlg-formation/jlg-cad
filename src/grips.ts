@@ -8,6 +8,7 @@ export function objectGrips(s:PaperItem):Grip[]{
   const mids=s.type==='polyline'?segments(s).map((seg,index):Grip=>({key:`segment-${index}`,point:at(seg,.5),kind:'segment',index})):[];
   return [...mids,...vertices];
  }
+ if(s.type==='hatch')return [{key:'center-0',kind:'center',index:0,point:{x:(s.a.x+s.b.x)/2,y:(s.a.y+s.b.y)/2}}];
  if(s.type==='line')return [{key:'segment-0',kind:'segment',index:0,point:{x:(s.a.x+s.b.x)/2,y:(s.a.y+s.b.y)/2}},{key:'vertex-0',kind:'vertex',index:0,point:s.a},{key:'vertex-1',kind:'vertex',index:1,point:s.b}];
  if(s.type==='rect')return [s.a,{x:s.b.x,y:s.a.y},s.b,{x:s.a.x,y:s.b.y}].map((point,index)=>({key:`vertex-${index}`,kind:'vertex',index,point}));
  if(s.type==='circle'){const r=distance(s.a,s.b);return [{key:'center-0',kind:'center',index:0,point:s.a},...[{x:r,y:0},{x:0,y:r},{x:-r,y:0},{x:0,y:-r}].map((v,index):Grip=>({key:`radius-${index}`,kind:'radius',index,point:add(s.a,v)}))];}

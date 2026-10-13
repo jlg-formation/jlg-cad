@@ -8,7 +8,7 @@ export const paletteCommands:PaletteCommand[]=[
  {id:'settings',name:'PARAMETRES',label:'Paramètres de l’application',aliases:['CONFIGURATION']},
  {id:'properties',name:'PROPRIETES',label:'Afficher / masquer les propriétés',aliases:[]},
  {id:'addLayout',name:'PRESENTATION',label:'Ajouter une présentation',aliases:['LAYOUT']},
- ...Object.entries({start:'Guide de démarrage',draw:'Dessiner et modifier un plan',grid:'Grille et accrochage',paper:'Espace papier et PDF',formats:'Formats et limites',about:'À propos de JLG CAD'}).map(([id,label])=>({id:'help:'+id,name:'AIDE '+id.toUpperCase(),label,aliases:[]})),
+ ...Object.entries({start:'Guide de démarrage',hatch:'Hachures — guide en 2 minutes',draw:'Dessiner et modifier un plan',grid:'Grille et accrochage',paper:'Espace papier et PDF',formats:'Formats et limites',about:'À propos de JLG CAD'}).map(([id,label])=>({id:'help:'+id,name:'AIDE '+id.toUpperCase(),label,aliases:[]})),
 ];
 const normalize=(value:string)=>value.trim().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase();
 const names=(c:PaletteCommand,bindings:Bindings)=>[c.name,...c.aliases,...(bindings[c.id]||[]).filter(k=>/^[A-Z]+$/.test(k)),c.label].map(normalize);

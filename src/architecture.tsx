@@ -1,5 +1,5 @@
 import { useContext, useEffect, useRef, useState } from 'react';
-import { MousePointer2, Hand, ArrowRightLeft, Scissors, MoveRight, CornerDownRight, Copy, Move, RotateCw, FlipHorizontal, Ruler, Circle, Square, Type, PanelsTopLeft, Minus, Spline, Waypoints, PenLine, Eye, EyeOff, Lock, Unlock, Plus, Trash2 } from 'lucide-react';
+import { MousePointer2, Hand, ArrowRightLeft, Scissors, MoveRight, CornerDownRight, Copy, Move, RotateCw, FlipHorizontal, Ruler, Circle, Square, Type, PanelsTopLeft, Minus, Spline, Waypoints, PenLine, Eye, EyeOff, Lock, Unlock, Plus, Trash2, PaintBucket } from 'lucide-react';
 import { type Drawing, type PathShape, type Shape, type Point, lockedShape } from './model';
 import { parseLength, parseAngle, moveNode, insertNode, deleteNode, smoothNodes, syncPath, distance, constrainedEnd } from './geometry';
 import './architecture.css';
@@ -7,7 +7,7 @@ import {UnitContext} from './units';
 import {displayDistance} from './drafting';
 
 export type Tool = Shape['type'] | 'arc' | 'select' | 'pan' | 'text' | 'viewport' | 'offset' | 'trim' | 'extend' | 'join' | 'copy' | 'move' | 'rotate' | 'mirror' | 'measure' | 'diameter' | 'linearDimension';
-export const labels:Record<Tool,string>={arc:'Arc par 3 points',select:'Sélection',line:'Ligne',rect:'Rectangle',circle:'Cercle',pan:'Déplacement de vue',text:'Texte',viewport:'Fenêtre de vue',polyline:'Polyligne',bezier:'Bézier',dimension:'Cotation',diameter:'Diamètre',linearDimension:'Cotation linéaire',offset:'Décalage',trim:'Ajuster',extend:'Prolonger',join:'Raccorder',copy:'Copier',move:'Déplacer',rotate:'Rotation',mirror:'Miroir',measure:'Mesurer'};
+export const labels:Record<Tool,string>={hatch:'Hachures',arc:'Arc par 3 points',select:'Sélection',line:'Ligne',rect:'Rectangle',circle:'Cercle',pan:'Déplacement de vue',text:'Texte',viewport:'Fenêtre de vue',polyline:'Polyligne',bezier:'Bézier',dimension:'Cotation',diameter:'Diamètre',linearDimension:'Cotation linéaire',offset:'Décalage',trim:'Ajuster',extend:'Prolonger',join:'Raccorder',copy:'Copier',move:'Déplacer',rotate:'Rotation',mirror:'Miroir',measure:'Mesurer'};
 export const commandTools:Tool[]=['arc','offset','trim','extend','join','copy','move','rotate','mirror','measure','dimension','diameter','linearDimension','polyline','bezier'];
 export const tips:Partial<Record<Tool,string>>={
  arc:'Indiquez le point de départ, un point sur l’arc, puis le point final. Échap annule.',
@@ -29,7 +29,7 @@ export const tips:Partial<Record<Tool,string>>={
 };
 function ArcIcon({size=18}:{size?:number}){return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true"><path d="M4 19A9 9 0 0 1 20 19"/><rect x="3" y="18" width="2" height="2"/><rect x="11" y="5" width="2" height="2"/><rect x="19" y="18" width="2" height="2"/></svg>;}
 export function ArchitectureToolbar({tool,onTool,shortcut,paper=false}:{tool:Tool;onTool:(t:Tool)=>void;shortcut:(id:string)=>string;paper?:boolean}) {
- const groups=paper?[[['line',Minus],['rect',Square],['circle',Circle],['text',Type],['viewport',PanelsTopLeft]],[['select',MousePointer2],['pan',Hand]]] as const:[[['polyline',Waypoints],['circle',Circle],['line',Minus],['bezier',Spline],['dimension',PenLine],['arc',ArcIcon],['rect',Square]],[['offset',ArrowRightLeft],['trim',Scissors],['extend',MoveRight],['join',CornerDownRight],['copy',Copy],['move',Move],['rotate',RotateCw],['mirror',FlipHorizontal],['measure',Ruler]],[['select',MousePointer2],['pan',Hand]]] as const;
+ const groups=paper?[[['line',Minus],['rect',Square],['circle',Circle],['text',Type],['viewport',PanelsTopLeft],['hatch',PaintBucket]],[['select',MousePointer2],['pan',Hand]]] as const:[[['polyline',Waypoints],['circle',Circle],['line',Minus],['bezier',Spline],['dimension',PenLine],['arc',ArcIcon],['rect',Square],['hatch',PaintBucket]],[['offset',ArrowRightLeft],['trim',Scissors],['extend',MoveRight],['join',CornerDownRight],['copy',Copy],['move',Move],['rotate',RotateCw],['mirror',FlipHorizontal],['measure',Ruler]],[['select',MousePointer2],['pan',Hand]]] as const;
  return <nav className="architecture-toolbar" aria-label="Outils d’architecture">{groups.map((tools,index)=><span className="architecture-tool-group" role="group" aria-label={index===0?"Créer des objets":index===groups.length-1?"Sélection et navigation":"Opérations sur les objets"} key={index}>{tools.map(([t,Icon])=><button key={t} aria-label={labels[t]} className={tool===t||t==='dimension'&&tool==='linearDimension'?'active':''} onClick={()=>onTool(t)} title={labels[t]+(shortcut(t)?' — '+shortcut(t):'')}><Icon size={18}/></button>)}</span>)}</nav>;
 }
 export type Settings={length:string;angle:string;distance:string;dx:string;dy:string;rotation:string;ortho:boolean;polarEnabled:boolean;polarAngle:number;osnap:boolean;segment:'line'|'arc';arcAngle:string;closed:boolean;keepOriginal:boolean;dimensionText:string;annotationScale:string};

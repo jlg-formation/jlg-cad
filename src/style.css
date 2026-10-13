@@ -131,6 +131,8 @@ footer .status-precision .status-menu-arrow{width:16px;padding:0;font-size:10px}
 footer .status-split{display:flex;gap:0;flex-shrink:0}
 footer .status-split>.status-mode:first-child{border-right:0}
 footer .status-split>.status-menu-arrow{position:relative;border-left:0}
+footer .status-split>.status-mode:first-child:hover,footer .status-split>.status-mode:first-child:focus-visible{border-right:1px solid #a6c7e2}
+footer .status-split>.status-menu-arrow:hover,footer .status-split>.status-menu-arrow:focus-visible{border-left:1px solid #a6c7e2}
 .status-caret{font-size:10px}
 footer .status-precision-menu{position:absolute;bottom:36px;right:0;min-width:210px;padding:12px;background:#202b35;border:1px solid #536675;box-shadow:0 5px 18px #0008;z-index:30;color:#d6e0e4;font-size:12px}
 .status-precision-menu strong{display:block;margin-bottom:10px}

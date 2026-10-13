@@ -278,13 +278,13 @@ export function arcCubics(s:Extract<Segment,{kind:'arc'}>):Extract<Segment,{kind
 }
 
 export type Snap = {point:Point;kind:'Extrémité'|'Milieu'|'Centre'|'Intersection'};
-export function snapPoint(p:Point,shapes:Shape[],tolerance:number):Snap|null {
+export function snapPoint(p:Point,shapes:Shape[],tolerance:number,kinds:readonly Snap['kind'][]=['Extrémité','Milieu','Centre','Intersection']):Snap|null {
  const candidates:Snap[]=[],nearby:Segment[]=[];
  for(const shape of shapes){if(shape.type==='dimension')continue;if(shape.type==='circle')candidates.push({point:shape.a,kind:'Centre'});
    for(const s of segments(shape)){candidates.push({point:s.a,kind:'Extrémité'},{point:s.b,kind:'Extrémité'},{point:at(s,.5),kind:'Milieu'});if(s.kind==='arc')candidates.push({point:s.center,kind:'Centre'});if(distance(closestSegment(p,s).point,p)<=tolerance*2)nearby.push(s);}
  }
  for(let i=0;i<nearby.length;i++)for(let j=i+1;j<nearby.length;j++)for(const point of intersections(nearby[i],nearby[j]))candidates.push({point,kind:'Intersection'});
- return candidates.filter(c=>distance(c.point,p)<=tolerance).sort((a,b)=>distance(a.point,p)-distance(b.point,p)||(a.kind==='Intersection'?-1:1))[0]||null;
+ return candidates.filter(c=>kinds.includes(c.kind)&&distance(c.point,p)<=tolerance).sort((a,b)=>distance(a.point,p)-distance(b.point,p)||(a.kind==='Intersection'?-1:1))[0]||null;
 }
 export function constrainedEnd(start:Point,p:Point,length:string,angle:string,ortho:boolean,polar:number,objectSnap=false):Point {
  if(objectSnap&&!length.trim()&&!angle.trim())return p;

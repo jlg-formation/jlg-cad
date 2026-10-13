@@ -169,7 +169,8 @@ export function offsetShape(shape:Shape,amount:number,side:Point,tolerance=.1):S
  if(shape.type==='dimension')throw new Error('Décalez une ligne ou un contour.');
  if(shape.type==='circle'){const radius=distance(shape.a,shape.b)+(distance(side,shape.a)<distance(shape.a,shape.b)?-amount:amount);if(radius<=EPS)throw new Error('Le décalage supprimerait le cercle.');return{...shape,b:add(shape.a,{x:radius,y:0})};}
  const source=segments(shape),hit=nearestPart(shape,side),tangent=sub(at(hit.segment,Math.min(1,hit.t+.001)),at(hit.segment,Math.max(0,hit.t-.001))),signed=cross(tangent,sub(side,hit.point))>=0?amount:-amount;
- const closed=shape.type==='rect'||('closed'in shape&&shape.closed);
+ // Coincident polyline endpoints form a contour even without the explicit C flag.
+ const closed=shape.type==='rect'||('closed'in shape&&shape.closed)||(shape.type==='polyline'&&shape.nodes.length>=3&&distance(shape.nodes[0].p,shape.nodes[shape.nodes.length-1].p)<.001);
  const chain=(shape.type==='bezier'?source.flatMap(s=>{const ps=flatten(s,tolerance);return ps.slice(1).map((p,i):Segment=>({kind:'line',a:ps[i].p,b:p.p}));}):source).filter(s=>distance(s.a,s.b)>EPS);
  if(chain.length>5000)throw new Error('Courbe trop détaillée pour ce décalage.');
  const shifted=chain.map((s):Segment=>{

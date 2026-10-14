@@ -40,12 +40,12 @@ Le site est publié sur https://jlg-formation.github.io/jlg-cad/ par GitHub Acti
 - Grille et aimantation de 10 mm activables, couleurs, liste et dimensions des objets.
 - Ctrl+Z / Ctrl+Maj+Z pour annuler/rétablir ; Échap pour quitter un outil en conservant le travail construit. Les polylignes et Bézier avec au moins deux points confirmés sont terminées en contours ouverts, sans ajouter le point d’aperçu au pointeur. Une forme valide en cours de glissement est conservée ; les constructions insuffisantes et les transformations sans destination confirmée sont abandonnées. Ctrl+Z annule ensuite l’objet créé.
 - Dans l’espace objet, Ctrl+A sélectionne tous les objets, puis Suppr efface la sélection en une opération annulable. Les objets verrouillés restent protégés. Dans un champ texte, Ctrl+A sélectionne le texte.
-- Sauvegarder (Ctrl+S) télécharge un `.jlgcad` JSON versionné ; Ouvrir recharge ce format.
+- Sauvegarder (Ctrl+S) télécharge un `.jlgcad` JSON versionné ; Ouvrir recharge ce format et importe les fichiers DXF texte 2D.
 - Une copie est automatiquement conservée dans le stockage de session de chaque onglet.
 
 ## Formats et limites
 
-Le format natif version 5 conserve le dessin, les chemins, les cotations, les hachures et leurs liaisons aux contours, les calques et les présentations. Les fichiers versions 1 à 4 sont migrés à l’ouverture. Les unités sont des millimètres. Les coordonnées affichées dans l’espace objet utilisent Y vers le haut, comme le DXF.
+Le format natif version 6 conserve le dessin, les chemins, les cotations, les hachures et leurs liaisons aux contours, les calques et les présentations. Les fichiers versions 1 à 5 sont migrés à l’ouverture. Les unités sont des millimètres. Les coordonnées affichées dans l’espace objet utilisent Y vers le haut, comme le DXF.
 
 ## Espace papier et PDF
 
@@ -61,9 +61,25 @@ Le format natif version 5 conserve le dessin, les chemins, les cotations, les ha
 - Imprimer le PDF à **100 % / taille réelle**, sans ajustement automatique, pour respecter les échelles.
 - L’annulation/rétablissement couvre le dessin, les objets papier et les paramètres des présentations. La sauvegarde `.jlgcad` et le stockage local conservent l’ensemble.
 
-L’export DXF conserve le dessin objet visible et ses calques. Sans hachure, il utilise le format ASCII R12 existant (LINE, CIRCLE, POLYLINE, TEXT ; rectangles en quatre lignes). Avec des hachures, il utilise le format R2004 avec de véritables entités HATCH éditables, leurs motifs et leurs îlots, des LWPOLYLINE et les couleurs individuelles. Les liaisons associatives des hachures restent propres au fichier natif : les HATCH exportées sont indépendantes. Les arcs des polylignes sont conservés et les Bézier sont approchées à 0,1 mm ; les cotes deviennent des lignes et textes. Une unité DXF représente un millimètre. Les présentations ne sont pas exportées en DXF. Il n’y a pas d’import DXF/DWG ni de 3D. Les fenêtres sont rectangulaires sans rotation. Le texte PDF utilise Helvetica avec les caractères latins usuels ; les alphabets complexes et les emoji ne sont pas encore pris en charge. La marge pointillée de 5 mm est un repère visuel.
+L’export DXF conserve le dessin objet visible et ses calques. Sans hachure ni texte objet, il utilise le format ASCII R12 existant (LINE, CIRCLE, POLYLINE, TEXT ; rectangles en quatre lignes). Avec des hachures ou du texte objet, il utilise le format R2004 avec de véritables entités HATCH éditables, leurs motifs et leurs îlots, des LWPOLYLINE et les couleurs individuelles. Les liaisons associatives des hachures restent propres au fichier natif : les HATCH exportées sont indépendantes. Les arcs des polylignes sont conservés et les Bézier sont approchées à 0,1 mm ; les cotes deviennent des lignes et textes. Une unité DXF représente un millimètre. Les présentations ne sont pas exportées en DXF. L’import DXF texte 2D est disponible ; l’import DWG et la 3D restent indisponibles. Les fenêtres sont rectangulaires sans rotation. Le texte PDF utilise Helvetica avec les caractères latins usuels ; les alphabets complexes et les emoji ne sont pas encore pris en charge. La marge pointillée de 5 mm est un repère visuel.
 
 Le DWG direct n’est pas implémenté. Autodesk propose [RealDWG](https://forge.autodesk.com/developer/overview/realdwg-api), avec des API C++/.NET : cela nécessite une intégration distincte. Un DXF peut être ouvert puis sauvegardé en DWG avec AutoCAD ([documentation Autodesk](https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-LT/files/GUID-11AEFE3C-D05A-45C3-8604-7B6A594440F3.htm)).
+
+## Import DXF 2D
+
+Dans **Fichiers → Ouvrir…**, choisir un `.dxf`, vérifier l’unité puis cliquer **Analyser le fichier**. Le bilan présente le nombre d’objets et de calques, les blocs décomposés, l’enveloppe du dessin en millimètres et les éléments non importés. Vérifier l’échelle avant d’ouvrir le résultat. En cas de modifications du dessin courant, une sauvegarde téléchargeable est proposée avant son remplacement. Annuler ou une erreur conserve le dessin courant ; un fichier sans objet compatible ne peut pas le remplacer.
+
+Cette première version lit les DXF **texte**, notamment les structures R12 et R2004 : LINE, CIRCLE, ARC, POLYLINE 2D, LWPOLYLINE, TEXT, MTEXT simplifié, ATTRIB et INSERT. Les arcs sont conservés exactement. Les blocs statiques sont décomposés, avec point de base, rotation, échelle, miroir géométrique, imbrication et répétitions. Les calques gardent leur nom, leur visibilité et leur verrouillage ; les couleurs ACI, RGB, ByLayer et ByBlock sont résolues en couleurs individuelles.
+
+Le choix d’unité est obligatoire si `$INSUNITS` est absent, sans unité ou non reconnu. Les unités proposées sont mm, cm, m, pouces et pieds ; le stockage reste en mm. Les DXF modernes (R2007+) sont décodés en UTF-8 ; les anciens utilisent leur encodage ANSI déclaré, ou Windows-1252 en son absence. Un encodage non reconnu produit une erreur.
+
+Les textes sont éditables dans l’espace objet : contenu, hauteur, rotation, déplacement et copier-coller. Leur alignement est conservé ; les polices sont remplacées par Arial/Helvetica. MTEXT perd ses styles et ses retours automatiques. Les exports DXF conservent les textes et les sauts de ligne explicites. Le format natif passe en version 6 pour conserver les textes objet et leurs paramètres ; il ouvre les anciennes versions 1 à 5.
+
+**Limites signalées dans le bilan :** hachures, cotations AutoCAD, splines, ellipses, présentations, références externes, objets personnalisés et géométrie 3D. Les textes déformés et les arcs ou cercles soumis à une échelle non uniforme sont exclus. Les types de trait, épaisseurs, largeurs de polyligne et la structure réutilisable des blocs ne sont pas conservés. Un bloc cyclique ou manquant est signalé. Le DXF binaire est refusé.
+
+Limites : 20 Mo, 50 000 objets, 200 calques, 5 000 sommets par polyligne, 16 niveaux de blocs et 100 000 visites d’entités. Le fichier importé est cadré automatiquement et marqué comme à sauvegarder en `.jlgcad`. L’import reste entièrement local au navigateur.
+
+Un [plan de vérification](tests/fixtures/import-2d.dxf) est fourni : contour de 8 × 6 m, arc de porte, fenêtre sous forme de bloc et annotations. La validation sur les fichiers réels de l’agence reste à réaliser.
 
 ## Vérification
 

@@ -1,6 +1,6 @@
 import {hatchLines} from './hatch';
 import { jsPDF } from 'jspdf';
-import { bounds, modelToPaper, paperSize, visibleShapes, type Drawing, type Layout, type Shape, type TextItem } from './model';
+import { bounds, modelToPaper, paperSize, visibleShapes,textLineOffset, type Drawing, type Layout, type Shape, type TextItem } from './model';
 import { mapItem, segments, arcCubics, dimensionGeometry } from './geometry';
 
 export function createPdf(drawing: Drawing, layouts: Layout[],displayUnit:'m'|'cm'|'mm'='mm') {
@@ -16,7 +16,7 @@ export function createPdf(drawing: Drawing, layouts: Layout[],displayUnit:'m'|'c
     const draw=(s:Shape|TextItem,dimensionLabel?:string)=>{
       const color=layout.monochrome?'#17242a':s.color;
       pdf.setDrawColor(color);pdf.setTextColor(color);pdf.setLineWidth(.25);
-      if(s.type==='text'){pdf.setFont('helvetica');pdf.setFontSize(s.height*72/25.4);pdf.text(s.text,s.a.x,s.a.y,{baseline:'top',lineHeightFactor:1.2});}
+      if(s.type==='text'){const offset=textLineOffset(s),angle=(s.rotation||0)*Math.PI/180;pdf.setFont('helvetica');pdf.setFontSize(s.height*72/25.4);pdf.text(s.text,s.a.x-Math.sin(angle)*offset,s.a.y+Math.cos(angle)*offset,{baseline:s.vertical==='baseline'?'alphabetic':s.vertical==='middle'?'middle':s.vertical==='bottom'?'bottom':'top',align:s.align||'left',angle:-(s.rotation||0),lineHeightFactor:1.2});}
       else if(s.type==='hatch'){
         if(s.pattern==='SOLID'){pdf.setFillColor(color);for(const r of s.regions){pdf.path(r.loops.flatMap(loop=>[{op:'m',c:[loop[0].x,loop[0].y]},...loop.slice(1).map(p=>({op:'l',c:[p.x,p.y]})),{op:'h',c:[]}]));pdf.fillEvenOdd();}}
         else hatchLines(s).forEach(([a,b])=>pdf.line(a.x,a.y,b.x,b.y));

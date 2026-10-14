@@ -1,0 +1,33 @@
+{
+  "result": "OK",
+  "rectangle": {
+    "widthMm": 1200,
+    "heightMm": 800,
+    "exportedAs": "4 LINE",
+    "coordinatesPreserved": true
+  },
+  "circle": {
+    "centerDxf": {
+      "x": 2000,
+      "y": 600
+    },
+    "radiusMm": 250,
+    "coordinatesPreserved": true
+  },
+  "unitSelected": "mm",
+  "importReport": {
+    "version": "AC1009",
+    "unit": "mm",
+    "objects": 5,
+    "blocks": 0,
+    "skipped": {},
+    "warnings": [
+      "Unité choisie : mm (1 unité DXF = 1 mm)."
+    ]
+  },
+  "files": {
+    "sourcePath": "D:\\___AGENTS\\jlg-cad\\artifacts\\dxf-roundtrip\\rectangle-cercle-source.jlgcad",
+    "dxfPath": "D:\\___AGENTS\\jlg-cad\\artifacts\\dxf-roundtrip\\rectangle-cercle.dxf",
+    "importedPath": "D:\\___AGENTS\\jlg-cad\\artifacts\\dxf-roundtrip\\rectangle-cercle-reimporte.jlgcad"
+  }
+}

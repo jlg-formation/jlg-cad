@@ -16,7 +16,7 @@ Ce remplacement doit préserver ses échanges professionnels : elle doit pouvoir
 
 La réduction du coût des licences ne doit pas se faire au prix d’une rupture dans son travail ou dans ses échanges. La fidélité des fichiers échangés doit être évaluée sur ses documents réels : plans, façades, coupes et dessins de patrimoine avec des contours irréguliers. Les pertes, conversions et éléments non pris en charge doivent être signalés clairement avant qu’elle ne s’appuie sur le résultat.
 
-**État actuel à distinguer de l’objectif :** le prototype propose un fichier natif `.jlgcad` et un export DXF limité. Il ne permet pas encore l’import DXF ni l’import/export DWG. Il ne satisfait donc pas encore l’objectif de remplacement d’AutoCAD et d’échange bidirectionnel de fichiers AutoCAD.
+**État actuel à distinguer de l’objectif :** le prototype propose un fichier natif `.jlgcad` et un export DXF limité. Il permet un premier import DXF texte 2D avec bilan des conversions et exclusions ; l’import/export DWG reste indisponible. Il ne satisfait donc pas encore l’objectif de remplacement d’AutoCAD et d’échange bidirectionnel de fichiers AutoCAD.
 
 La destinataire numéro un de JLG CAD est l’épouse du porteur du projet, architecte et architecte du patrimoine. Le logiciel doit d’abord répondre à son travail réel de dessin architectural. Les autres profils permettent de vérifier qu’il reste compréhensible et utilisable à différents niveaux de maîtrise.
 

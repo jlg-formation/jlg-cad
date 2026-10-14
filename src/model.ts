@@ -13,15 +13,15 @@ export type Dimension = BaseShape & { type: 'dimension'; offset: number; height:
 export type HatchStyle = {pattern:'SOLID'|'ANSI31'|'CROSS'|'BRICK'|'CONCRETE'|'USER';scale:number;angle:number;spacing:number;double:boolean;origin:Point;islands:'normal'|'outer'|'ignore';associative:boolean;mirrored?:boolean};
 export type HatchRegion = {loops:Point[][];boundaryLoops?:Point[][];outerSourceIds?:string[];sourceIds:string[];seed:Point};
 export type HatchShape = BaseShape & HatchStyle & {type:'hatch';regions:HatchRegion[];boundaryVersion?:number;detachedReason?:string};
-export type Shape = SimpleShape | PathShape | Dimension | HatchShape;
-export type TextItem = BaseShape & { type: 'text'; text: string; height: number };
+export type Shape = SimpleShape | PathShape | Dimension | HatchShape | TextItem;
+export type TextItem = BaseShape & { type: 'text'; text: string; height: number; rotation?:number; align?:'left'|'center'|'right'; vertical?:'top'|'baseline'|'middle'|'bottom' };
 export type Viewport = BaseShape & { type: 'viewport'; center: Point; denominator: number; locked: boolean; printBorder: boolean };
 export type PaperItem = Shape | TextItem | Viewport;
 export type Layout = { id: string; name: string; format: 'A4' | 'A3'; orientation: 'portrait' | 'landscape'; monochrome: boolean; items: PaperItem[] };
 export type Layer = { id: string; name: string; color: string; visible: boolean; locked: boolean };
 export const defaultLayers = (): Layer[] => [{id:'0',name:'Dessin',color:'#b5ddd6',visible:true,locked:false},{id:'murs',name:'Murs',color:'#a6e0cf',visible:true,locked:false},{id:'ouvertures',name:'Ouvertures',color:'#e6b776',visible:true,locked:false},{id:'cotes',name:'Cotations',color:'#94bfea',visible:true,locked:false}];
-export type Drawing = { format: 'jlg-cad'; version: 5; name: string; units: 'mm'; shapes: Shape[]; layouts: Layout[]; layers: Layer[]; grid?:DrawingGrid };
-export const documentOf = (name: string, shapes: Shape[], layouts: Layout[] = [], layers: Layer[] = defaultLayers()): Drawing => ({ format: 'jlg-cad', version: 5, name, units: 'mm', shapes, layouts, layers, grid:defaultGrid() });
+export type Drawing = { format: 'jlg-cad'; version: 6; name: string; units: 'mm'; shapes: Shape[]; layouts: Layout[]; layers: Layer[]; grid?:DrawingGrid };
+export const documentOf = (name: string, shapes: Shape[], layouts: Layout[] = [], layers: Layer[] = defaultLayers()): Drawing => ({ format: 'jlg-cad', version: 6, name, units: 'mm', shapes, layouts, layers, grid:defaultGrid() });
 export const visibleShapes = (doc: Drawing) => doc.shapes.filter(s=>doc.layers.find(l=>l.id===(s.layerId||'0'))?.visible!==false);
 export const lockedShape = (doc: Drawing, s: Shape) => !!doc.layers.find(l=>l.id===(s.layerId||'0'))?.locked;
 export const newLayout = (id: string, name: string): Layout => ({ id, name, format: 'A4', orientation: 'landscape', monochrome: true, items: [] });
@@ -30,11 +30,12 @@ export function paperSize(layout: Layout): Point {
   return layout.orientation === 'landscape' ? { x:long,y:short } : { x:short,y:long };
 }
 export function bounds(item: PaperItem) {
+  if(item.type==='text'){const ps=textCorners(item),x=Math.min(...ps.map(p=>p.x)),y=Math.min(...ps.map(p=>p.y));return{x,y,width:Math.max(...ps.map(p=>p.x))-x,height:Math.max(...ps.map(p=>p.y))-y};}
   if(item.type==='hatch'){const {a,b}=hatchBounds(item.regions);return{x:a.x,y:a.y,width:b.x-a.x,height:b.y-a.y};}
   if(item.type==='polyline'||item.type==='bezier') {
     const points=item.nodes.flatMap(n=>[n.p,...(n.in?[n.in]:[]),...(n.out?[n.out]:[])]);
-    // A bulged arc can extend beyond its chord. Include its full circle conservatively.
-    if(item.type==='polyline')item.nodes.forEach((n,i)=>{const next=item.nodes[(i+1)%item.nodes.length];if(!next||(!item.closed&&i===item.nodes.length-1)||!n.bulge)return;const dx=next.p.x-n.p.x,dy=next.p.y-n.p.y,b=n.bulge,c={x:(n.p.x+next.p.x)/2-dy*(1-b*b)/(4*b),y:(n.p.y+next.p.y)/2+dx*(1-b*b)/(4*b)},r=Math.hypot(dx,dy)*(1+b*b)/(4*Math.abs(b));points.push({x:c.x-r,y:c.y-r},{x:c.x+r,y:c.y+r});});
+    // Include only extrema on the arc, so import dimensions and framing remain meaningful.
+    if(item.type==='polyline')for(const seg of segments(item))if(seg.kind==='arc')for(let i=0;i<4;i++){const angle=i*Math.PI/2,tau=2*Math.PI,delta=seg.sweep>0?((angle-seg.start)%tau+tau)%tau:((seg.start-angle)%tau+tau)%tau;if(delta<=Math.abs(seg.sweep)+1e-10)points.push({x:seg.center.x+seg.radius*Math.cos(angle),y:seg.center.y+seg.radius*Math.sin(angle)});}
     const x=Math.min(...points.map(p=>p.x)),y=Math.min(...points.map(p=>p.y));return{x,y,width:Math.max(...points.map(p=>p.x))-x,height:Math.max(...points.map(p=>p.y))-y};
   }
   if(item.type==='dimension'&&(item.kind==='diameter'||item.linearAngle!==undefined)){const d=dimensionGeometry(item),ps=[...d.lines.flat(),...d.arrows.flat(),d.label];const x=Math.min(...ps.map(p=>p.x))-item.height,y=Math.min(...ps.map(p=>p.y))-item.height;return{x,y,width:Math.max(...ps.map(p=>p.x))-x+item.height,height:Math.max(...ps.map(p=>p.y))-y+item.height};}
@@ -42,6 +43,13 @@ export function bounds(item: PaperItem) {
   const radius = item.type === 'circle' ? Math.hypot(item.b.x-item.a.x,item.b.y-item.a.y) : 0;
   return item.type === 'circle' ? {x:item.a.x-radius,y:item.a.y-radius,width:radius*2,height:radius*2} : {x:Math.min(item.a.x,item.b.x),y:Math.min(item.a.y,item.b.y),width:Math.abs(item.b.x-item.a.x),height:Math.abs(item.b.y-item.a.y)};
 }
+export function textCorners(s:TextItem):Point[]{
+ const lines=s.text.split('\n'),width=Math.max(1,...lines.map(l=>l.length))*s.height*.65,height=lines.length*s.height*1.2;
+ const x=s.align==='center'?-width/2:s.align==='right'?-width:0,y=s.vertical==='baseline'?-s.height*.8:s.vertical==='bottom'?-height:s.vertical==='middle'?-height/2:0;
+ const angle=(s.rotation||0)*Math.PI/180,c=Math.cos(angle),sin=Math.sin(angle);
+ return [{x,y},{x:x+width,y},{x:x+width,y:y+height},{x,y:y+height}].map(p=>({x:s.a.x+c*p.x-sin*p.y,y:s.a.y+sin*p.x+c*p.y}));
+}
+export function textLineOffset(s:TextItem):number{const extra=(s.text.split('\n').length-1)*s.height*1.2;return s.vertical==='bottom'?-extra:s.vertical==='middle'?-extra/2:0;}
 export function modelToPaper(p: Point, viewport: Viewport): Point {
   const r=bounds(viewport);
   return {x:r.x+r.width/2+(p.x-viewport.center.x)/viewport.denominator,y:r.y+r.height/2+(p.y-viewport.center.y)/viewport.denominator};
@@ -75,8 +83,8 @@ export function parseDrawing(text: string): Drawing {
         &&(s.detachedReason===undefined||typeof s.detachedReason==='string');
     }catch{return false;}
   };
-  const list = (items: PaperItem[], paper=false) => Array.isArray(items) && items.length <= 50000 && unique(items) && items.every(s => base(s) && (s.layerId===undefined||typeof s.layerId==='string') && ((s.type==='hatch'&&hatchValid(s)) || ['line','rect','circle'].includes(s.type) || ((s.type==='polyline'||s.type==='bezier') && Array.isArray(s.nodes) && s.nodes.length>=2 && s.nodes.length<=5000 && typeof s.closed==='boolean' && s.nodes.every(n=>point(n.p) && (n.bulge===undefined||Number.isFinite(n.bulge)&&Math.abs(n.bulge)<1e4) && (!n.in||point(n.in)) && (!n.out||point(n.out)) && (n.smooth===undefined||typeof n.smooth==='boolean'))) || (s.type==='dimension'&&(s.kind===undefined||s.kind==='linear'||s.kind==='diameter')&&(s.linearAngle===undefined||s.kind!=='diameter'&&Number.isFinite(s.linearAngle))&&(s.circleId===undefined||d.version>=4&&s.kind==='diameter'&&typeof s.circleId==='string'&&s.circleId.length>0)&&Number.isFinite(s.offset)&&Math.abs(s.offset)<=1e7&&Number.isFinite(s.height)&&s.height>0&&s.height<=1e5) || (paper && ((s.type==='text' && typeof s.text==='string' && s.text.length<=10000 && Number.isFinite(s.height) && s.height>=.5 && s.height<=100) || (s.type==='viewport' && point(s.center) && Number.isFinite(s.denominator) && s.denominator>=.01 && s.denominator<=10000 && typeof s.locked==='boolean' && typeof s.printBorder==='boolean' && bounds(s).width>0 && bounds(s).height>0)))));
-  if (!d || d.format !== 'jlg-cad' || ![1,2,3,4,5].includes(d.version) || d.units !== 'mm' || typeof d.name !== 'string' || !list(d.shapes)) throw new Error('Ce fichier n’est pas un projet JLG CAD valide.');
+  const list = (items: PaperItem[], paper=false) => Array.isArray(items) && items.length <= 50000 && unique(items) && items.every(s => base(s) && (s.layerId===undefined||typeof s.layerId==='string') && ((s.type==='hatch'&&hatchValid(s)) || ['line','rect','circle'].includes(s.type) || ((s.type==='polyline'||s.type==='bezier') && Array.isArray(s.nodes) && s.nodes.length>=2 && s.nodes.length<=5000 && typeof s.closed==='boolean' && s.nodes.every(n=>point(n.p) && (n.bulge===undefined||Number.isFinite(n.bulge)&&Math.abs(n.bulge)<1e4) && (!n.in||point(n.in)) && (!n.out||point(n.out)) && (n.smooth===undefined||typeof n.smooth==='boolean'))) || (s.type==='dimension'&&(s.kind===undefined||s.kind==='linear'||s.kind==='diameter')&&(s.linearAngle===undefined||s.kind!=='diameter'&&Number.isFinite(s.linearAngle))&&(s.circleId===undefined||d.version>=4&&s.kind==='diameter'&&typeof s.circleId==='string'&&s.circleId.length>0)&&Number.isFinite(s.offset)&&Math.abs(s.offset)<=1e7&&Number.isFinite(s.height)&&s.height>0&&s.height<=1e5) || ((s.type==='text' && (paper||d.version>=6) && typeof s.text==='string' && s.text.length<=10000 && Number.isFinite(s.height) && s.height>0 && s.height<=1e5 && (s.rotation===undefined||Number.isFinite(s.rotation)) && (s.align===undefined||['left','center','right'].includes(s.align)) && (s.vertical===undefined||['top','baseline','middle','bottom'].includes(s.vertical))) || (paper && s.type==='viewport' && point(s.center) && Number.isFinite(s.denominator) && s.denominator>=.01 && s.denominator<=10000 && typeof s.locked==='boolean' && typeof s.printBorder==='boolean' && bounds(s).width>0 && bounds(s).height>0))));
+  if (!d || d.format !== 'jlg-cad' || ![1,2,3,4,5,6].includes(d.version) || d.units !== 'mm' || typeof d.name !== 'string' || !list(d.shapes)) throw new Error('Ce fichier n’est pas un projet JLG CAD valide.');
   if(d.version===1) return documentOf(d.name,d.shapes);
   if(!Array.isArray(d.layouts) || d.layouts.length>100 || !unique(d.layouts) || !d.layouts.every((l:Layout)=>l && typeof l.id==='string' && typeof l.name==='string' && ['A4','A3'].includes(l.format) && ['portrait','landscape'].includes(l.orientation) && typeof l.monochrome==='boolean' && list(l.items,true))) throw new Error('Les présentations du fichier sont invalides.');
   if(d.version>=3&&(!Array.isArray(d.layers)||!d.layers.length||d.layers.length>200||!unique(d.layers)||!d.layers.some((l:Layer)=>l.id==='0')||!d.layers.every((l:Layer)=>typeof l.name==='string'&&/^#[0-9a-f]{6}$/i.test(l.color)&&typeof l.visible==='boolean'&&typeof l.locked==='boolean')||d.shapes.some((s:Shape)=>s.layerId&&!d.layers.some((l:Layer)=>l.id===s.layerId))))throw new Error('Les calques du fichier sont invalides.');
@@ -85,7 +93,7 @@ export function parseDrawing(text: string): Drawing {
   return synchronizeDrawing({...documentOf(d.name,d.shapes,d.layouts,d.version>=3?d.layers:defaultLayers()),grid:readGrid(d.grid)});
 }
 export function toDxf(shapes: Shape[], layers: Layer[] = defaultLayers(),displayUnit:'m'|'cm'|'mm'='mm') {
-  if(shapes.some(s=>s.type==='hatch'))return toModernDxf(shapes,layers,displayUnit);
+  if(shapes.some(s=>s.type==='hatch'||s.type==='text'))return toModernDxf(shapes,layers,displayUnit);
   const names=new Map(layers.map((l,i)=>[l.id,l.id==='0'?'0':`${l.name.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9_-]/g,'_').slice(0,80)}_${i}`]));
   const pairs: (string | number)[] = [0,'SECTION',2,'HEADER',9,'$ACADVER',1,'AC1009',0,'ENDSEC',0,'SECTION',2,'TABLES',0,'TABLE',2,'LAYER',70,layers.length];
   for(const l of layers)pairs.push(0,'LAYER',2,names.get(l.id)!,70,l.locked?4:0,62,l.visible?7:-7,6,'CONTINUOUS');

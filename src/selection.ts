@@ -1,5 +1,5 @@
 import {hatchContains} from './hatch';
-import {type PaperItem,type Point} from './model';
+import {type PaperItem,type Point,textCorners} from './model';
 import {at,closestSegment,distance,intersections,segments,type Segment} from './geometry';
 
 export type SelectionPreferences={lasso:boolean;blue:boolean;green:boolean};
@@ -36,10 +36,7 @@ export function validLasso(polygon:Point[]):boolean {
 }
 export function selectionSegments(item:PaperItem):Segment[]{
  if(item.type==='viewport')return segments({...item,type:'rect'});
- if(item.type==='text'){
-  const lines=item.text.split('\n'),width=Math.max(...lines.map(l=>l.length),1)*item.height*.65;
-  return segments({...item,type:'rect',b:{x:item.a.x+width,y:item.a.y+lines.length*item.height*1.2}});
- }
+ if(item.type==='text')return edges(textCorners(item));
  return segments(item);
 }
 export function itemInSelection(item:PaperItem,polygon:Point[],crossing:boolean,measuredGeometry?:Segment[]):boolean {

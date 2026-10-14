@@ -1,0 +1,125 @@
+{
+  "format": "jlg-cad",
+  "version": 6,
+  "name": "rectangle-cercle",
+  "units": "mm",
+  "shapes": [
+    {
+      "id": "dxf-0",
+      "layerId": "0",
+      "color": "#ffffff",
+      "a": {
+        "x": 100,
+        "y": -200
+      },
+      "b": {
+        "x": 1300,
+        "y": -200
+      },
+      "type": "line"
+    },
+    {
+      "id": "dxf-1",
+      "layerId": "0",
+      "color": "#ffffff",
+      "a": {
+        "x": 1300,
+        "y": -200
+      },
+      "b": {
+        "x": 1300,
+        "y": -1000
+      },
+      "type": "line"
+    },
+    {
+      "id": "dxf-2",
+      "layerId": "0",
+      "color": "#ffffff",
+      "a": {
+        "x": 1300,
+        "y": -1000
+      },
+      "b": {
+        "x": 100,
+        "y": -1000
+      },
+      "type": "line"
+    },
+    {
+      "id": "dxf-3",
+      "layerId": "0",
+      "color": "#ffffff",
+      "a": {
+        "x": 100,
+        "y": -1000
+      },
+      "b": {
+        "x": 100,
+        "y": -200
+      },
+      "type": "line"
+    },
+    {
+      "id": "dxf-4",
+      "layerId": "0",
+      "color": "#ffffff",
+      "a": {
+        "x": 2000,
+        "y": -600
+      },
+      "b": {
+        "x": 2250,
+        "y": -600
+      },
+      "type": "circle"
+    }
+  ],
+  "layouts": [],
+  "layers": [
+    {
+      "id": "0",
+      "name": "0",
+      "color": "#ffffff",
+      "visible": true,
+      "locked": false
+    },
+    {
+      "id": "dxf-layer-1",
+      "name": "Murs_1",
+      "color": "#ffffff",
+      "visible": true,
+      "locked": false
+    },
+    {
+      "id": "dxf-layer-2",
+      "name": "Ouvertures_2",
+      "color": "#ffffff",
+      "visible": true,
+      "locked": false
+    },
+    {
+      "id": "dxf-layer-3",
+      "name": "Cotations_3",
+      "color": "#ffffff",
+      "visible": true,
+      "locked": false
+    }
+  ],
+  "grid": {
+    "model": {
+      "visible": true,
+      "snap": true,
+      "minimum": 10,
+      "style": "lines",
+      "adaptive": true
+    },
+    "paper": {
+      "visible": true,
+      "snap": true,
+      "minimum": 1,
+      "style": "lines",
+      "adaptive": true
+    }
+  }
+}

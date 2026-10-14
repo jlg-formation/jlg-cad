@@ -1,0 +1,42 @@
+import {strict as assert} from 'node:assert';
+import {mkdirSync,readFileSync,writeFileSync} from 'node:fs';
+import {resolve} from 'node:path';
+import {bounds,documentOf,parseDrawing,toDxf,type Shape} from '../src/model';
+import {segments} from '../src/geometry';
+import {decodeDxf,importDxf,inspectDxf} from '../src/dxf-import';
+
+// Exercise actual file writes and reads through the same codec used by the application.
+const output=resolve(import.meta.dir,'../artifacts/dxf-roundtrip');
+mkdirSync(output,{recursive:true});
+const rectangle:Shape={id:'rectangle',type:'rect',a:{x:100,y:-200},b:{x:1300,y:-1000},color:'#ffffff',layerId:'0'};
+const circle:Shape={id:'circle',type:'circle',a:{x:2000,y:-600},b:{x:2250,y:-600},color:'#ffffff',layerId:'0'};
+const original=documentOf('rectangle-cercle',[rectangle,circle]);
+const sourcePath=resolve(output,'rectangle-cercle-source.jlgcad');
+const dxfPath=resolve(output,'rectangle-cercle.dxf');
+const importedPath=resolve(output,'rectangle-cercle-reimporte.jlgcad');
+writeFileSync(sourcePath,JSON.stringify(original,null,2),'utf8');
+const source=parseDrawing(readFileSync(sourcePath,'utf8'));
+writeFileSync(dxfPath,toDxf(source.shapes,source.layers),'utf8');
+const bytes=readFileSync(dxfPath),text=decodeDxf(bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength));
+assert.equal(inspectDxf(text).version,'AC1009');
+assert.equal(inspectDxf(text).unit,null);
+// Our R12 exporter has no INSUNITS: the UI asks for the unit; select mm here.
+const imported=importDxf(text,'rectangle-cercle.dxf','mm');
+writeFileSync(importedPath,JSON.stringify(imported.drawing,null,2),'utf8');
+const restored=parseDrawing(readFileSync(importedPath,'utf8'));
+assert.equal(restored.shapes.length,5);
+assert.deepEqual(Object.keys(imported.report.skipped),[]);
+const lines=restored.shapes.filter(s=>s.type==='line');
+assert.equal(lines.length,4);
+assert.deepEqual(lines.flatMap(segments),segments(rectangle));
+const importedCircle=restored.shapes.find(s=>s.type==='circle');
+assert.ok(importedCircle);
+assert.deepEqual(importedCircle.a,circle.a);
+assert.deepEqual(importedCircle.b,circle.b);
+assert.equal(bounds(importedCircle).width/2,250);
+const lineBounds=lines.map(bounds);
+assert.equal(Math.max(...lineBounds.map(b=>b.x+b.width))-Math.min(...lineBounds.map(b=>b.x)),1200);
+assert.equal(Math.max(...lineBounds.map(b=>b.y+b.height))-Math.min(...lineBounds.map(b=>b.y)),800);
+const report={result:'OK',rectangle:{widthMm:1200,heightMm:800,exportedAs:'4 LINE',coordinatesPreserved:true},circle:{centerDxf:{x:2000,y:600},radiusMm:250,coordinatesPreserved:true},unitSelected:'mm',importReport:imported.report,files:{sourcePath,dxfPath,importedPath}};
+writeFileSync(resolve(output,'verification.json'),JSON.stringify(report,null,2),'utf8');
+console.log(JSON.stringify(report,null,2));

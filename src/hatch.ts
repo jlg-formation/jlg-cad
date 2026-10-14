@@ -8,7 +8,7 @@ export const defaultHatchStyle: HatchStyle = {pattern:'ANSI31',scale:1,angle:0,s
 export function hatchStyleOf(s:HatchStyle):HatchStyle {const {pattern,scale,angle,spacing,double,origin,islands,associative,mirrored}=s;return {pattern,scale,angle,spacing,double,origin,islands,associative,...(mirrored!==undefined?{mirrored}:{})};}
 export const hatchPatterns = ['SOLID','ANSI31','CROSS','BRICK','CONCRETE','USER'] as const;
 export const hatchPatternLabels = {SOLID:'Uni',ANSI31:'ANSI31 — diagonales',CROSS:'Croisé',BRICK:'Brique',CONCRETE:'Béton',USER:'Lignes personnalisées'};
-export const boundaryShape = (s:Shape) => s.type!=='hatch' && s.type!=='dimension';
+export const boundaryShape = (s:Shape) => s.type!=='hatch' && s.type!=='dimension' && s.type!=='text';
 export const polygonArea = (ps:Point[]) => ps.reduce((sum,p,i)=>{const q=ps[(i+1)%ps.length];return sum+p.x*q.y-q.x*p.y;},0)/2;
 export function polygonContains(p:Point,ps:Point[],border=true):boolean {
  let inside=false;

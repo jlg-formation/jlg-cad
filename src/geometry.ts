@@ -45,6 +45,7 @@ export function threePointArc(a:Point,through:Point,b:Point,base:BaseShape):Path
  return {...base,type:'polyline',a,b,closed:false,nodes:[{p:a,bulge},{p:b}]};
 }
 export function segments(shape:Shape):Segment[] {
+ if(shape.type==='text')return[];
  if(shape.type==='hatch')return shape.regions.flatMap(r=>r.loops.flatMap(loop=>loop.map((a,i):Segment=>({kind:'line',a,b:loop[(i+1)%loop.length]}))));
  if(shape.type==='line')return[{kind:'line',a:shape.a,b:shape.b}];
  if(shape.type==='rect'){const {a,b}=shape,c={x:b.x,y:a.y},d={x:a.x,y:b.y};return[{kind:'line',a,b:c},{kind:'line',a:c,b},{kind:'line',a:b,b:d},{kind:'line',a:d,b:a}];}
@@ -121,6 +122,7 @@ export function shapeFromSegments(source:Shape,segs:Segment[],closed=false):Shap
  return{id:source.id,type:cubic?'bezier':'polyline',a:nodes[0].p,b:nodes[nodes.length-1].p,color:source.color,layerId:source.layerId,nodes,closed};
 }
 export function trimShape(shape:Shape,boundaries:Shape[],click:Point,preview=false):Shape[]{
+ if(shape.type==='text')throw new Error('Cette opération ne s’applique pas aux textes.');
  if(shape.type==='hatch')throw new Error('Cette opération ne s’applique pas aux hachures. Modifiez leur contour.');
  if(shape.type==='dimension')throw new Error('Les cotations ne se découpent pas.');
  const all=segments(shape),hit=nearestPart(shape,click);if(!hit)throw new Error('Aucun segment à ajuster.');
@@ -151,6 +153,7 @@ export function trimShape(shape:Shape,boundaries:Shape[],click:Point,preview=fal
  return parts.filter(ss=>ss.length&&ss.some(s=>distance(s.a,s.b)>EPS||s.kind!=='line')).map((ss,i)=>({...shapeFromSegments(shape,ss),id:i?crypto.randomUUID():shape.id}));
 }
 export function extendShape(shape:Shape,boundaries:Shape[],click:Point):Shape {
+ if(shape.type==='text')throw new Error('Cette opération ne s’applique pas aux textes.');
  if(shape.type==='hatch')throw new Error('Cette opération ne s’applique pas aux hachures. Modifiez leur contour.');
  if(shape.type==='dimension'||shape.type==='circle'||shape.type==='rect'||('closed'in shape&&shape.closed))throw new Error('Prolonger exige une ligne ou un chemin ouvert.');
  const all=segments(shape),first=distance(click,all[0].a)<distance(click,all[all.length-1].b),index=first?0:all.length-1,s=all[index],end=first?s.a:s.b;
@@ -181,6 +184,7 @@ export function joinCorner(a:Shape,b:Shape,clickA:Point,clickB:Point):[Shape,Sha
 }
 
 export function offsetShape(shape:Shape,amount:number,side:Point,tolerance=.1):Shape {
+ if(shape.type==='text')throw new Error('Cette opération ne s’applique pas aux textes.');
  if(shape.type==='hatch')throw new Error('Cette opération ne s’applique pas aux hachures. Modifiez leur contour.');
  if(amount<=0||!Number.isFinite(amount))throw new Error('Le décalage doit être positif.');
  if(shape.type==='dimension')throw new Error('Décalez une ligne ou un contour.');
@@ -224,7 +228,7 @@ export function mapItem<T extends PaperItem>(shape:T,fn:(p:Point)=>Point,scale=1
 
  if(shape.type==='polyline'||shape.type==='bezier'){const nodes=shape.nodes.map(n=>({...n,p:fn(n.p),in:n.in?fn(n.in):undefined,out:n.out?fn(n.out):undefined,bulge:n.bulge!==undefined?n.bulge*(flip?-1:1):undefined}));return{...common,a:nodes[0].p,b:nodes[nodes.length-1].p,nodes} as T;}
  if(shape.type==='dimension'){const angle=shape.linearAngle,axis=angle===undefined?undefined:sub(fn(add(shape.a,{x:Math.cos(angle),y:Math.sin(angle)})),fn(shape.a));return{...common,...(axis?{linearAngle:Math.atan2(axis.y,axis.x)}:{}),offset:shape.offset*scale*(flip&&shape.kind!=='diameter'?-1:1),height:shape.height*scale} as T;}
- if(shape.type==='text')return{...common,height:shape.height*scale} as T;
+ if(shape.type==='text'){const angle=(shape.rotation||0)*Math.PI/180,axis=sub(fn(add(shape.a,{x:Math.cos(angle),y:Math.sin(angle)})),fn(shape.a));return{...common,height:shape.height*scale,rotation:Math.atan2(axis.y,axis.x)*180/Math.PI} as T;}
  return common;
 }
 export const translateItem=<T extends PaperItem>(s:T,dx:number,dy:number)=>mapItem(s,p=>add(p,{x:dx,y:dy}));

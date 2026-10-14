@@ -1,0 +1,83 @@
+{
+  "format": "jlg-cad",
+  "version": 6,
+  "name": "rectangle-cercle",
+  "units": "mm",
+  "shapes": [
+    {
+      "id": "rectangle",
+      "type": "rect",
+      "a": {
+        "x": 100,
+        "y": -200
+      },
+      "b": {
+        "x": 1300,
+        "y": -1000
+      },
+      "color": "#ffffff",
+      "layerId": "0"
+    },
+    {
+      "id": "circle",
+      "type": "circle",
+      "a": {
+        "x": 2000,
+        "y": -600
+      },
+      "b": {
+        "x": 2250,
+        "y": -600
+      },
+      "color": "#ffffff",
+      "layerId": "0"
+    }
+  ],
+  "layouts": [],
+  "layers": [
+    {
+      "id": "0",
+      "name": "Dessin",
+      "color": "#b5ddd6",
+      "visible": true,
+      "locked": false
+    },
+    {
+      "id": "murs",
+      "name": "Murs",
+      "color": "#a6e0cf",
+      "visible": true,
+      "locked": false
+    },
+    {
+      "id": "ouvertures",
+      "name": "Ouvertures",
+      "color": "#e6b776",
+      "visible": true,
+      "locked": false
+    },
+    {
+      "id": "cotes",
+      "name": "Cotations",
+      "color": "#94bfea",
+      "visible": true,
+      "locked": false
+    }
+  ],
+  "grid": {
+    "model": {
+      "visible": true,
+      "snap": true,
+      "minimum": 10,
+      "style": "lines",
+      "adaptive": true
+    },
+    "paper": {
+      "visible": true,
+      "snap": true,
+      "minimum": 1,
+      "style": "lines",
+      "adaptive": true
+    }
+  }
+}

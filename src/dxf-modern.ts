@@ -21,8 +21,14 @@ export function toModernDxf(shapes:Shape[],layers:Layer[],displayUnit:'m'|'cm'|'
  const point=(code:number,p:Point)=>add(code,p.x,code+10,-p.y,code+20,0);
  const line=(a:Point,b:Point)=>{entity('LINE','AcDbLine');point(10,a);point(11,b);};
  const polyline=(ps:{p:Point;bulge?:number}[],closed:boolean)=>{entity('LWPOLYLINE','AcDbPolyline');add(90,ps.length,70,closed?1:0);for(const n of ps)add(10,n.p.x,20,-n.p.y,42,-(n.bulge||0));};
+ // R2004 text is ASCII with Unicode escapes, independent of the browser's UTF-8 download.
+ const textValue=(value:string)=>value.replace(/[^\x20-\x7e]|[\\{}]/g,c=>'\\U+'+c.charCodeAt(0).toString(16).toUpperCase().padStart(4,'0'));
  for(const s of ordered){layer=names.get(s.layerId||'0')||'0';color=s.color;
   if(s.type==='hatch'){const data=hatchDxf(s,layer,handle());data.splice(4,0,330,modelSpace);add(...data);}
+  else if(s.type==='text'){
+   if(s.text.includes('\n')){entity('MTEXT','AcDbMText');const angle=(s.rotation||0)*Math.PI/180,baseline=s.vertical==='baseline',origin=baseline?{x:s.a.x+Math.sin(angle)*s.height*.8,y:s.a.y-Math.cos(angle)*s.height*.8}:s.a;point(10,origin);add(40,s.height,41,0,71,(s.vertical==='middle'?3:s.vertical==='bottom'?6:0)+(s.align==='center'?2:s.align==='right'?3:1),1,s.text.split('\n').map(textValue).join('\\P'),7,'STANDARD',11,Math.cos(angle),21,-Math.sin(angle),31,0);}
+   else{entity('TEXT','AcDbText');point(10,s.a);add(40,s.height,1,textValue(s.text),50,-(s.rotation||0),7,'STANDARD',72,s.align==='center'?1:s.align==='right'?2:0);point(11,s.a);add(100,'AcDbText',73,s.vertical==='top'||!s.vertical?3:s.vertical==='middle'?2:s.vertical==='bottom'?1:0);}
+  }
   else if(s.type==='line')line(s.a,s.b);
   else if(s.type==='circle'){entity('CIRCLE','AcDbCircle');point(10,s.a);add(40,Math.hypot(s.b.x-s.a.x,s.b.y-s.a.y));}
   else if(s.type==='rect')polyline([{p:s.a},{p:{x:s.b.x,y:s.a.y}},{p:s.b},{p:{x:s.a.x,y:s.b.y}}],true);

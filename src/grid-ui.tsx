@@ -5,7 +5,7 @@ import type {Bindings} from './shortcuts';
 
 export function GridPattern({id,g,scale,origin={x:0,y:0},coordinateScale=1,light=false}:{id:string;g:GridSettings;scale:number;origin?:{x:number;y:number};coordinateScale?:number;light?:boolean}) {
  const step=displayedGrid(g,scale), x=step.x*coordinateScale, y=step.y*coordinateScale;
- const w=x*GRID_MAJOR_INTERVALS, h=y*GRID_MAJOR_INTERVALS, color=light?'#aebbb8':'#34444f';
+ const w=x*GRID_MAJOR_INTERVALS, h=y*GRID_MAJOR_INTERVALS, color=light?'#aebbb8':'#303840';
  const stroke=.6*coordinateScale/scale;
  return <>
   <pattern id={id+'-minor'} width={x} height={y} patternUnits="userSpaceOnUse">
@@ -13,7 +13,7 @@ export function GridPattern({id,g,scale,origin={x:0,y:0},coordinateScale=1,light
   </pattern>
   <pattern id={id} width={w} height={h} x={origin.x} y={origin.y} patternUnits="userSpaceOnUse">
    <rect width={w} height={h} fill={`url(#${id}-minor)`}/>
-   {g.style==='lines'&&<path d={`M ${w} 0 H 0 V ${h}`} fill="none" stroke={light?'#8faaa3':'#4c6472'} strokeWidth={coordinateScale/scale}/>}
+   {g.style==='lines'&&<path d={`M ${w} 0 H 0 V ${h}`} fill="none" stroke={light?'#8faaa3':'#3d4852'} strokeWidth={coordinateScale/scale}/>}
   </pattern>
  </>;
 }

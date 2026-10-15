@@ -1,5 +1,5 @@
 import {expect,test} from 'bun:test';
-import {itemInSelection,rectangleSelection,signedArea,validLasso,readSelectionPreferences} from '../src/selection';
+import {itemInSelection,rectangleSelection,signedArea,validLasso,readSelectionPreferences,startSelection,moveSelection,releaseSelection,combineSelection} from '../src/selection';
 import {type Shape} from '../src/model';
 const line=(a:{x:number;y:number},b:{x:number;y:number}):Shape=>({id:'1',type:'line',a,b,color:'#abcdef'});
 const box=rectangleSelection({x:0,y:0},{x:10,y:10});
@@ -31,7 +31,42 @@ test('lasso winding is clockwise with screen Y down; crossings and tiny traces a
  expect(validLasso([{x:0,y:0},{x:10,y:10},{x:0,y:10},{x:10,y:0}])).toBe(false);
  expect(validLasso([{x:0,y:0},{x:10,y:10},{x:0,y:0}])).toBe(false);
 });
-test('preferences default to rectangle, both directions enabled, and survive serialization',()=>{
- expect(readSelectionPreferences('broken')).toEqual({lasso:false,blue:true,green:true});
+test('preferences enable automatic lasso, migrate legacy settings, and preserve explicit new choices',()=>{
+ expect(readSelectionPreferences('broken')).toEqual({lasso:true,blue:true,green:true});
  expect(readSelectionPreferences('{"lasso":true,"blue":false,"green":"bad"}')).toEqual({lasso:true,blue:false,green:true});
+});
+
+
+test('legacy rectangle preference migrates, new opt-out persists',()=>{
+ expect(readSelectionPreferences('{"lasso":false,"blue":false}')).toEqual({lasso:true,blue:false,green:true});
+ expect(readSelectionPreferences('{"version":2,"lasso":false}').lasso).toBe(false);
+});
+test('click release followed by movement remains a rectangle with lasso enabled',()=>{
+ const s=startSelection({x:20,y:20},['old'],false);
+ expect(releaseSelection(s,{x:21,y:21},true)).toBe(false);
+ expect(s.phase).toBe('rectangle');
+ moveSelection(s,{x:60,y:60},true);expect(s.phase).toBe('rectangle');expect(s.crossing).toBe(false);
+ moveSelection(s,{x:0,y:60},true);expect(s.crossing).toBe(true);
+ expect(releaseSelection(s,{x:0,y:60},true)).toBe(false);
+});
+test('held movement starts a lasso after tolerance, and direction stays fixed when looping',()=>{
+ const s=startSelection({x:20,y:20},[],false);
+ moveSelection(s,{x:22,y:21},true);expect(s.phase).toBe('pending');
+ moveSelection(s,{x:10,y:20},true);expect(s.phase).toBe('lasso');expect(s.crossing).toBe(true);
+ moveSelection(s,{x:60,y:60},true);expect(s.crossing).toBe(true);
+ expect(releaseSelection(s,{x:20,y:60},true)).toBe(true);
+ const right=startSelection({x:20,y:20},[],false);
+ moveSelection(right,{x:30,y:20},true);moveSelection(right,{x:0,y:40},true);expect(right.crossing).toBe(false);
+});
+test('disabled lasso allows drag rectangles and release detects movement without move event',()=>{
+ const s=startSelection({x:20,y:20},[],false);
+ expect(releaseSelection(s,{x:60,y:60},false)).toBe(true);expect(s.phase).toBe('dragRectangle');
+ const l=startSelection({x:20,y:20},[],false);expect(releaseSelection(l,{x:60,y:60},true)).toBe(true);expect(l.phase).toBe('lasso');
+});
+test('successive selections accumulate, Shift only removes, and snapshot survives cancellation',()=>{
+ const previous=['a','b'],s=startSelection({x:0,y:0},previous,true);previous.push('c');
+ expect(s.previous).toEqual(['a','b']);
+ expect(combineSelection(s.previous,['b','d'],false)).toEqual(['a','b','d']);
+ expect(combineSelection(s.previous,['b','d'],true)).toEqual(['a']);
+ expect(combineSelection(s.previous,[],false)).toEqual(['a','b']);
 });

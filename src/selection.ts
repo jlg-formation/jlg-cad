@@ -5,9 +5,33 @@ import {at,closestSegment,distance,intersections,segments,type Segment} from './
 export type SelectionPreferences={lasso:boolean;blue:boolean;green:boolean};
 export const selectionStorageKey='jlg-cad-selection';
 export function readSelectionPreferences(raw:string|null):SelectionPreferences {
- const defaults={lasso:false,blue:true,green:true};
- try{const value=JSON.parse(raw||'null');for(const key of ['lasso','blue','green'] as const)if(typeof value?.[key]==='boolean')defaults[key]=value[key];}catch{}
+ const defaults={lasso:true,blue:true,green:true};
+ try{const value=JSON.parse(raw||'null');for(const key of ['lasso','blue','green'] as const)if(typeof value?.[key]==='boolean'&&(key!=='lasso'||value?.version===2))defaults[key]=value[key];}catch{}
  return defaults;
+}
+export type SelectionDrag={points:Point[];phase:'pending'|'lasso'|'rectangle'|'dragRectangle';crossing:boolean;remove:boolean;previous:string[]};
+export function startSelection(p:Point,previous:string[],remove:boolean):SelectionDrag {
+ return {points:[p],phase:'pending',crossing:false,remove,previous:[...previous]};
+}
+export function moveSelection(selection:SelectionDrag,p:Point,lassoEnabled:boolean):void {
+ const start=selection.points[0];
+ if(selection.phase==='pending'){
+  if(distance(start,p)<4)return;
+  selection.phase=lassoEnabled?'lasso':'dragRectangle';
+  selection.crossing=p.x<start.x;
+ }
+ if(selection.phase==='lasso'){
+  if(distance(selection.points.at(-1)!,p)>=3&&selection.points.length<1500)selection.points.push(p);
+ }else{selection.points=[start,p];selection.crossing=p.x<start.x;}
+}
+export function combineSelection(previous:string[],ids:string[],remove:boolean):string[]{
+ return remove?previous.filter(id=>!ids.includes(id)):[...new Set([...previous,...ids])];
+}
+export function releaseSelection(selection:SelectionDrag,p:Point,lassoEnabled:boolean):boolean {
+ if(selection.phase==='rectangle')return false;
+ moveSelection(selection,p,lassoEnabled);
+ if(selection.phase==='pending'){selection.phase='rectangle';return false;}
+ return true;
 }
 const edges=(polygon:Point[]):Segment[]=>polygon.map((a,i)=>({kind:'line',a,b:polygon[(i+1)%polygon.length]}));
 export function signedArea(polygon:Point[]):number {

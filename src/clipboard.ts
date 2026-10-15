@@ -1,9 +1,18 @@
 import {detachHatch} from './hatch';
 import {detachDimension,synchronizeDimensions} from './associations';
-import {bounds, documentOf, parseDrawing, type Drawing, type Point, type Shape} from './model';
+import {bounds, documentOf, parseDrawing, lockedShape, type Drawing, type Point, type Shape} from './model';
 import {translateItem} from './geometry';
 
 export type CadClipboard = {format:'jlg-cad-clipboard';version:1;units:'mm';base:Point;drawing:Drawing};
+export function selectedCopyIds(doc:Drawing,ids:string[],single:string|null):string[]{
+ const selection=new Set(ids.length?ids:single?[single]:[]);
+ return doc.shapes.filter(s=>selection.has(s.id)).map(s=>s.id);
+}
+export function copySelection(doc:Drawing,ids:string[],base:Point,end:Point,makeId:()=>string):Drawing{
+ const shapes=doc.shapes.filter(s=>ids.includes(s.id));
+ if(shapes.some(s=>lockedShape(doc,s)))throw new Error('Le calque est verrouillé.');
+ return pasteClipboard(doc,decodeClipboard(encodeClipboard(doc,shapes,base)),end,makeId);
+}
 export function encodeClipboard(doc:Drawing, shapes:Shape[], base?:Point):string {
  if(!shapes.length)throw new Error('Sélectionnez des objets à copier.');
  const selected=new Set(shapes.map(s=>s.id));shapes=synchronizeDimensions(doc.shapes).filter(s=>selected.has(s.id)).map(s=>s.type==='hatch'&&s.regions.some(r=>r.sourceIds.some(id=>!selected.has(id)))?detachHatch(s):s.type==='dimension'&&s.circleId&&!selected.has(s.circleId)?detachDimension(s):s);

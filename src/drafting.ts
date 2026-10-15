@@ -25,6 +25,9 @@ export function lineEndpoint(start:Point,pointer:Point,text:string,unit:LengthUn
  const direction=start.x===pointer.x&&start.y===pointer.y?{x:start.x+1,y:start.y}:pointer;
  return exactEndpoint(start,direction,text,unit,ortho,polar,angle);
 }
+export function copyEndpoint(base:Point,pointer:Point,text:string,unit:LengthUnit,ortho:boolean,polar=0,objectSnap=false):Point{
+ return text.trim()?exactEndpoint(base,pointer,text,unit,ortho,polar):constrainedEnd(base,pointer,'','',ortho,ortho?0:polar,objectSnap);
+}
 export const draftingCommands=[
  {id:'hatch',name:'HATCH',label:'Hachures',aliases:['HACHURES','HACHURE','HA']},
  {id:'arc',name:'ARC',label:'Arc par 3 points',aliases:['A']},

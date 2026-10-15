@@ -2,12 +2,19 @@ import {expect,test} from 'bun:test';
 import {documentOf,parseDrawing,toDxf,type Shape,type Dimension} from '../src/model';
 import {diameterDimension,dimensionGeometry,distance,translateItem} from '../src/geometry';
 import {synchronizeDrawing,synchronizeDimensions} from '../src/associations';
-import {encodeClipboard,decodeClipboard,pasteClipboard} from '../src/clipboard';
+import {copySelection,encodeClipboard,decodeClipboard,pasteClipboard} from '../src/clipboard';
 import {moveGrip,objectGrips} from '../src/grips';
 import {resolveCommand} from '../src/drafting';
 const circle:Extract<Shape,{type:'circle'}>={id:'c',type:'circle',a:{x:100,y:200},b:{x:150,y:200},color:'#abcdef'};
 const dim:Dimension={...diameterDimension(circle,{x:-50,y:120},{...circle,id:'d'},5),circleId:'c'};
 const original=documentOf('Linked',[circle,dim]);
+test('Copier une sélection relie les nouvelles cotes aux nouveaux cercles',()=>{
+ let n=0;const next=copySelection(original,['c','d'],{x:0,y:0},{x:500,y:0},()=>`copy-${++n}`);
+ const copiedCircle=next.shapes[2],copiedDimension=next.shapes[3] as Dimension;
+ expect(copiedCircle.a).toEqual({x:600,y:200});expect(copiedDimension.circleId).toBe(copiedCircle.id);
+ const alone=copySelection(original,['d'],{x:0,y:0},{x:500,y:0},()=>`copy-${++n}`);
+ expect((alone.shapes[2] as Dimension).circleId).toBeUndefined();expect(original.shapes[1]).toEqual(dim);
+});
 test('associative diameter follows radius and center while retaining angle and text gap',()=>{
  const changed={...circle,a:{x:300,y:400},b:{x:400,y:400}};
  const next=synchronizeDrawing({...original,shapes:[changed,dim]},original),d=next.shapes[1] as Dimension;

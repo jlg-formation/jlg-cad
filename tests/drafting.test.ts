@@ -84,7 +84,37 @@ test('rayon précis indépendant de la direction, unités et rayons invalides',(
  expect(resolveCommand('C')?.id).toBe('circle');
 });
 
-import {lineEndpoint} from '../src/drafting';
+import {lineEndpoint,copyEndpoint} from '../src/drafting';
+
+describe('Copie par direction et distance',()=>{
+ const base={x:120,y:80};
+ test('distance précise dans les quatre directions, indépendante du point de base',()=>{
+  for(const [pointer,expected] of [
+   [{x:200,y:90},{x:620,y:80}],
+   [{x:0,y:90},{x:-380,y:80}],
+   [{x:130,y:200},{x:120,y:580}],
+   [{x:130,y:-100},{x:120,y:-420}],
+  ]){
+   const end=copyEndpoint(base,pointer,'50 cm','m',true);
+   expect(end.x).toBeCloseTo(expected.x);expect(end.y).toBeCloseTo(expected.y);
+  }
+ });
+ test('saisie prioritaire sur un accrochage, unités et décimales françaises',()=>{
+  const end=copyEndpoint(base,{x:123,y:84},'0,5','m',false,0,true);
+  expect(end.x).toBeCloseTo(420);expect(end.y).toBeCloseTo(480);
+  expect(copyEndpoint(base,{x:200,y:90},'','mm',true,0,true)).toEqual({x:200,y:90});
+ });
+ test('guidage polaire et copies successives depuis la même base',()=>{
+  const first=copyEndpoint(base,{x:130,y:72},'100','mm',false,45);
+  expect(first.x-base.x).toBeCloseTo(base.y-first.y);expect(distance(base,first)).toBeCloseTo(100);
+  const second=copyEndpoint(base,{x:200,y:80},'200','mm',true);
+  expect(second).toEqual({x:320,y:80});expect(base).toEqual({x:120,y:80});
+ });
+ test('refuse une distance invalide ou une direction absente',()=>{
+  for(const text of ['0','-1','abc'])expect(()=>copyEndpoint(base,{x:200,y:80},text,'m',true)).toThrow();
+  expect(()=>copyEndpoint(base,base,'1','m',true)).toThrow('direction');
+ });
+});
 test('ligne : valide une longueur sans mouvement, conserve directions et angles explicites',()=>{
  const a={x:20,y:30};
  expect(lineEndpoint(a,a,'2,5','m',false)).toEqual({x:2520,y:30});

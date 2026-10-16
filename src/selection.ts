@@ -9,14 +9,18 @@ export function readSelectionPreferences(raw:string|null):SelectionPreferences {
  try{const value=JSON.parse(raw||'null');for(const key of ['lasso','blue','green'] as const)if(typeof value?.[key]==='boolean'&&(key!=='lasso'||value?.version===2))defaults[key]=value[key];}catch{}
  return defaults;
 }
-export type SelectionDrag={points:Point[];phase:'pending'|'lasso'|'rectangle'|'dragRectangle';crossing:boolean;remove:boolean;previous:string[]};
-export function startSelection(p:Point,previous:string[],remove:boolean):SelectionDrag {
- return {points:[p],phase:'pending',crossing:false,remove,previous:[...previous]};
+// A moving quick click still opens a two-click window. Only a held gesture drags.
+export const selectionHoldMs=200;
+export type SelectionDrag={points:Point[];startedAt:number;phase:'pending'|'lasso'|'rectangle'|'dragRectangle';crossing:boolean;remove:boolean;previous:string[]};
+export function startSelection(p:Point,previous:string[],remove:boolean,now=performance.now()):SelectionDrag {
+ return {points:[p],startedAt:now,phase:'pending',crossing:false,remove,previous:[...previous]};
 }
-export function moveSelection(selection:SelectionDrag,p:Point,lassoEnabled:boolean):void {
+export function moveSelection(selection:SelectionDrag,p:Point,lassoEnabled:boolean,now=performance.now()):void {
  const start=selection.points[0];
  if(selection.phase==='pending'){
-  if(distance(start,p)<4)return;
+  if(now-selection.startedAt<selectionHoldMs||distance(start,p)<4){
+   selection.points=[start,p];selection.crossing=p.x<start.x;return;
+  }
   selection.phase=lassoEnabled?'lasso':'dragRectangle';
   selection.crossing=p.x<start.x;
  }
@@ -27,9 +31,9 @@ export function moveSelection(selection:SelectionDrag,p:Point,lassoEnabled:boole
 export function combineSelection(previous:string[],ids:string[],remove:boolean):string[]{
  return remove?previous.filter(id=>!ids.includes(id)):[...new Set([...previous,...ids])];
 }
-export function releaseSelection(selection:SelectionDrag,p:Point,lassoEnabled:boolean):boolean {
+export function releaseSelection(selection:SelectionDrag,p:Point,lassoEnabled:boolean,now=performance.now()):boolean {
  if(selection.phase==='rectangle')return false;
- moveSelection(selection,p,lassoEnabled);
+ moveSelection(selection,p,lassoEnabled,now);
  if(selection.phase==='pending'){selection.phase='rectangle';return false;}
  return true;
 }

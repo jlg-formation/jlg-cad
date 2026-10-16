@@ -97,3 +97,9 @@ Le bouton Cotation démarre directement la sélection d’un objet : cliquez un 
 `DIMLINEAR` ou `DLI`, puis Entrée, démarre une cotation horizontale ou verticale. Cliquez deux points, déplacez la souris pour choisir l’orientation et la position, puis cliquez pour poser la cote. La commande se termine après ce dernier clic.
 
 Pour coter directement un côté, faites Entrée une seconde fois avant de placer le premier point, cliquez une ligne ou un segment droit de rectangle ou de polyligne, puis placez la cote. La valeur mesure la projection horizontale ou verticale, utilise l’unité du projet et conserve une hauteur de texte fixe selon les réglages de cotation. Les points de cette cotation sont indépendants de l’objet sélectionné.
+
+# Déplacer avec une distance précise
+
+Sélectionnez un ou plusieurs objets, puis activez Déplacer (`M`). Cliquez le point de base, indiquez la direction avec la souris, saisissez la distance puis Entrée, ou cliquez directement la destination. Le champ Distance près du curseur accepte les unités du dessin et les unités explicites (par exemple `50 cm`), ainsi que les décimales françaises. Le mode orthogonal et le guidage polaire fonctionnent comme pour Copier. La distance saisie est prioritaire sur la position accrochée.
+
+Le déplacement conserve les identifiants et les calques. Toute la sélection est déplacée en une seule action annulable ; un objet sélectionné sur un calque verrouillé bloque toute l’opération. Échap annule avant validation. La commande revient à Sélection après le déplacement.

@@ -2,7 +2,7 @@ import {expect,test} from 'bun:test';
 import {documentOf,parseDrawing,toDxf,type Shape,type Dimension} from '../src/model';
 import {diameterDimension,dimensionGeometry,distance,translateItem} from '../src/geometry';
 import {synchronizeDrawing,synchronizeDimensions} from '../src/associations';
-import {copySelection,encodeClipboard,decodeClipboard,pasteClipboard} from '../src/clipboard';
+import {moveSelectionObjects,copySelection,encodeClipboard,decodeClipboard,pasteClipboard} from '../src/clipboard';
 import {moveGrip,objectGrips} from '../src/grips';
 import {resolveCommand} from '../src/drafting';
 const circle:Extract<Shape,{type:'circle'}>={id:'c',type:'circle',a:{x:100,y:200},b:{x:150,y:200},color:'#abcdef'};
@@ -58,4 +58,15 @@ test('DDI, accented and unaccented diameter commands resolve to circle-only tool
 test('exports use the synchronized diameter snapshot',()=>{
  const next=synchronizeDrawing({...original,shapes:[{...circle,b:{x:250,y:200}},dim]},original);
  expect(toDxf(next.shapes,undefined,'m')).toContain('%%c0,3 m');
+});
+
+test('Déplacer le cercle et sa cote ensemble applique une seule translation en conservant la liaison',()=>{
+ const next=synchronizeDrawing(moveSelectionObjects(original,['c','d'],{x:30,y:20},{x:530,y:120}),original);
+ expect(next.shapes).toHaveLength(2);
+ expect(next.shapes[0].a).toEqual({x:600,y:300});
+ const moved=next.shapes[1] as Dimension;
+ expect(moved.circleId).toBe('c');expect(moved.id).toBe('d');
+ expect(moved.a.x).toBeCloseTo(dim.a.x+500);expect(moved.a.y).toBeCloseTo(dim.a.y+100);
+ expect(moved.b.x).toBeCloseTo(dim.b.x+500);expect(moved.b.y).toBeCloseTo(dim.b.y+100);
+ expect(original.shapes).toEqual([circle,dim]);
 });

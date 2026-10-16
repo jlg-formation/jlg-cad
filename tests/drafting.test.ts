@@ -84,9 +84,9 @@ test('rayon précis indépendant de la direction, unités et rayons invalides',(
  expect(resolveCommand('C')?.id).toBe('circle');
 });
 
-import {lineEndpoint,copyEndpoint} from '../src/drafting';
+import {lineEndpoint,translationEndpoint,copyEndpoint} from '../src/drafting';
 
-describe('Copie par direction et distance',()=>{
+describe('Translation par direction et distance (Copier et Déplacer)',()=>{
  const base={x:120,y:80};
  test('distance précise dans les quatre directions, indépendante du point de base',()=>{
   for(const [pointer,expected] of [
@@ -95,7 +95,7 @@ describe('Copie par direction et distance',()=>{
    [{x:130,y:200},{x:120,y:580}],
    [{x:130,y:-100},{x:120,y:-420}],
   ]){
-   const end=copyEndpoint(base,pointer,'50 cm','m',true);
+   const end=translationEndpoint(base,pointer,'50 cm','m',true);
    expect(end.x).toBeCloseTo(expected.x);expect(end.y).toBeCloseTo(expected.y);
   }
  });

@@ -16,7 +16,7 @@ export const tips:Partial<Record<Tool,string>>={
  extend:'Cliquez près de l’extrémité à prolonger jusqu’à une limite. Une Bézier se prolonge par sa tangente.',
  join:'Cliquez près des deux extrémités à raccorder. Les deux lignes sont ajustées à leur intersection (rayon 0).',
  copy:'Sélectionnez un objet, puis cliquez le point de base et sa destination, ou saisissez X/Y ci-dessous.',
- move:'Sélectionnez un objet, puis cliquez le point de base et sa destination, ou saisissez X/Y ci-dessous.',
+ move:'Sélectionnez les objets, cliquez le point de base, indiquez la direction puis saisissez une distance et Entrée, ou cliquez la destination.',
  rotate:'Sélectionnez un objet, cliquez le centre puis la direction de l’angle, ou appliquez un angle saisi.',
  mirror:'Sélectionnez un objet puis deux points pour l’axe du miroir. La copie peut conserver l’original.',
  circle:'Cliquez le centre, saisissez le rayon puis Entrée, ou cliquez un point du cercle. Échap annule le cercle en cours.',

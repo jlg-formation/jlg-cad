@@ -1,5 +1,5 @@
 import {expect,test} from 'bun:test';
-import {copySelection,selectedCopyIds,encodeClipboard,decodeClipboard,pasteClipboard} from '../src/clipboard';
+import {moveSelectionObjects,copySelection,selectedCopyIds,encodeClipboard,decodeClipboard,pasteClipboard} from '../src/clipboard';
 import {documentOf,type Shape} from '../src/model';
 const shape:Shape={id:'old',type:'bezier',a:{x:10,y:20},b:{x:40,y:50},color:'#abcdef',layerId:'murs',closed:false,nodes:[{p:{x:10,y:20},out:{x:15,y:25}},{p:{x:40,y:50},in:{x:35,y:45}}]};
 test('Copier reprend le clic, le lasso à un objet et la sélection multiple',()=>{
@@ -41,3 +41,20 @@ test('copie avec point de base explicite conserve le décalage des objets',()=>{
  const pasted=pasteClipboard(documentOf('B',[]),data,{x:100,y:200},()=>`base-${++n}`).shapes[0];
  expect(pasted.a).toEqual({x:110,y:220});
 });
+
+ test('Déplacer une sélection conserve identifiants, calques et objets hors sélection sans modifier le document initial',()=>{
+ const other:Shape={id:'other',type:'line',a:{x:0,y:0},b:{x:100,y:0},color:'#fff'};
+ const untouched:Shape={...other,id:'untouched'};
+ const doc=documentOf('Plan',[shape,other,untouched]);
+ const next=moveSelectionObjects(doc,[shape.id,other.id],{x:70,y:90},{x:570,y:-110});
+ expect(next.shapes).toHaveLength(3);
+ expect(next.shapes[0]).toMatchObject({id:shape.id,layerId:shape.layerId,a:{x:510,y:-180}});
+ expect(next.shapes[1].a).toEqual({x:500,y:-200});expect(next.shapes[2]).toBe(untouched);
+ if(next.shapes[0].type!=='bezier')throw new Error('Type perdu');
+ expect(next.shapes[0].nodes[0].out).toEqual({x:515,y:-175});
+ expect(doc.shapes).toEqual([shape,other,untouched]);
+ doc.layers.find(l=>l.id==='murs')!.locked=true;
+ expect(()=>moveSelectionObjects(doc,[other.id,shape.id],{x:0,y:0},{x:100,y:0})).toThrow('verrouillé');
+ expect(doc.shapes[1]).toBe(other);
+ expect(()=>moveSelectionObjects(doc,[],{x:0,y:0},{x:100,y:0})).toThrow();
+ });

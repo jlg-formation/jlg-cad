@@ -8,6 +8,12 @@ export function selectedCopyIds(doc:Drawing,ids:string[],single:string|null):str
  const selection=new Set(ids.length?ids:single?[single]:[]);
  return doc.shapes.filter(s=>selection.has(s.id)).map(s=>s.id);
 }
+export function moveSelectionObjects(doc:Drawing,ids:string[],base:Point,end:Point):Drawing{
+ const selected=new Set(ids),shapes=doc.shapes.filter(s=>selected.has(s.id));
+ if(!shapes.length)throw new Error('Sélectionnez des objets à déplacer.');
+ if(shapes.some(s=>lockedShape(doc,s)))throw new Error('Le calque est verrouillé.');
+ return {...doc,shapes:doc.shapes.map(s=>selected.has(s.id)?translateItem(s,end.x-base.x,end.y-base.y):s)};
+}
 export function copySelection(doc:Drawing,ids:string[],base:Point,end:Point,makeId:()=>string):Drawing{
  const shapes=doc.shapes.filter(s=>ids.includes(s.id));
  if(shapes.some(s=>lockedShape(doc,s)))throw new Error('Le calque est verrouillé.');

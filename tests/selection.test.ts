@@ -52,16 +52,16 @@ test('click release followed by movement remains a rectangle with lasso enabled'
 test('held movement starts a lasso after tolerance, and direction stays fixed when looping',()=>{
  const s=startSelection({x:20,y:20},[],false,0);
  moveSelection(s,{x:22,y:21},true,100);expect(s.phase).toBe('pending');
- moveSelection(s,{x:10,y:20},true,200);expect(s.phase).toBe('lasso');expect(s.crossing).toBe(true);
+ moveSelection(s,{x:10,y:20},true,300);expect(s.phase).toBe('lasso');expect(s.crossing).toBe(true);
  moveSelection(s,{x:60,y:60},true);expect(s.crossing).toBe(true);
  expect(releaseSelection(s,{x:20,y:60},true)).toBe(true);
  const right=startSelection({x:20,y:20},[],false,0);
- moveSelection(right,{x:30,y:20},true,200);moveSelection(right,{x:0,y:40},true,300);expect(right.crossing).toBe(false);
+ moveSelection(right,{x:30,y:20},true,300);moveSelection(right,{x:0,y:40},true,400);expect(right.crossing).toBe(false);
 });
 test('disabled lasso allows drag rectangles and release detects movement without move event',()=>{
  const s=startSelection({x:20,y:20},[],false,0);
- expect(releaseSelection(s,{x:60,y:60},false,250)).toBe(true);expect(s.phase).toBe('dragRectangle');
- const l=startSelection({x:20,y:20},[],false,0);expect(releaseSelection(l,{x:60,y:60},true,250)).toBe(true);expect(l.phase).toBe('lasso');
+ expect(releaseSelection(s,{x:60,y:60},false,300)).toBe(true);expect(s.phase).toBe('dragRectangle');
+ const l=startSelection({x:20,y:20},[],false,0);expect(releaseSelection(l,{x:60,y:60},true,300)).toBe(true);expect(l.phase).toBe('lasso');
 });
 test('successive selections accumulate, Shift only removes, and snapshot survives cancellation',()=>{
  const previous=['a','b'],s=startSelection({x:0,y:0},previous,true);previous.push('c');
@@ -77,7 +77,7 @@ test('moving quick clicks keep their first corner and wait for the second click'
   moveSelection(s,{x:50,y:30},lasso,1050);
   expect(s.phase).toBe('pending');
   expect(s.points).toEqual([{x:20,y:20},{x:50,y:30}]);
-  expect(releaseSelection(s,{x:80,y:40},lasso,1199)).toBe(false);
+  expect(releaseSelection(s,{x:80,y:40},lasso,1299)).toBe(false);
   expect(s.phase).toBe('rectangle');
   expect(s.points).toEqual([{x:20,y:20},{x:80,y:40}]);
   moveSelection(s,{x:0,y:60},lasso,1500);

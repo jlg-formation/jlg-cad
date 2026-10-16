@@ -10,7 +10,7 @@ export function readSelectionPreferences(raw:string|null):SelectionPreferences {
  return defaults;
 }
 // A moving quick click still opens a two-click window. Only a held gesture drags.
-export const selectionHoldMs=200;
+export const selectionHoldMs=300;
 export type SelectionDrag={points:Point[];startedAt:number;phase:'pending'|'lasso'|'rectangle'|'dragRectangle';crossing:boolean;remove:boolean;previous:string[]};
 export function startSelection(p:Point,previous:string[],remove:boolean,now=performance.now()):SelectionDrag {
  return {points:[p],startedAt:now,phase:'pending',crossing:false,remove,previous:[...previous]};

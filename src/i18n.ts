@@ -11,6 +11,7 @@ export function setLanguage(next:Language){if(next===language)return;language=ne
 export function useLanguage(){return useSyncExternalStore(listener=>{listeners.add(listener);return()=>{listeners.delete(listener);};},getLanguage,()=> 'fr' as Language);}
 export function translate(text:string,lang:Language):string{
  if(lang==='fr')return text;
+ const joined=/^Jonction terminée : (\d+) objet\(s\) réuni\(s\), (\d+) résultat\(s\), (\d+) objet\(s\) non joint\(s\)\.$/.exec(text);if(joined)return `Join complete: ${joined[1]} object(s) joined, ${joined[2]} result(s), ${joined[3]} unjoined object(s).`;
  const exact=(english as Record<string,string>)[text];if(exact!==undefined)return exact;
  for(const separator of [' — ',' · '])if(text.includes(separator))return text.split(separator).map(part=>translate(part,lang)).join(separator);
  const prefixes:Record<string,string>={'Masquer ':'Hide ','Afficher ':'Show ','Verrouiller ':'Lock ','Déverrouiller ':'Unlock ','Supprimer le calque ':'Delete layer ','Nom du calque ':'Layer name ','Couleur du calque ':'Layer color ','Modifier ':'Edit ','Retirer ':'Remove ','Ajouter un raccourci pour ':'Add shortcut for '};

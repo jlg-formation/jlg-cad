@@ -10,7 +10,7 @@ export function cursorMode(state: {
  if(state.tool==='pan')return 'pan';
  if(state.choosingBoundaries)return 'object';
  if(state.tool==='select')return 'idle';
- if(['trim','extend','join'].includes(state.tool))return 'object';
+ if(['trim','extend','join','fillet'].includes(state.tool))return 'object';
  if(['offset','move','copy','rotate','mirror','diameter'].includes(state.tool))return state.hasSource?'point':'object';
  if((state.tool==='dimension'||state.tool==='linearDimension')&&state.selectingDimension)return 'object';
  return 'point';

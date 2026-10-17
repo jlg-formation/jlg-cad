@@ -1,5 +1,5 @@
 import type {PaperItem,Point,Shape} from './model';
-import {add,sub,distance,at,segments,translateItem,moveNode,syncPath,dimensionGeometry,diameterDimension} from './geometry';
+import {add,sub,distance,at,segments,translateItem,threePointArc,moveNode,syncPath,dimensionGeometry,diameterDimension} from './geometry';
 
 export type Grip={key:string;point:Point;kind:'vertex'|'segment'|'center'|'radius'|'control';index:number};
 export function objectGrips(s:PaperItem):Grip[]{
@@ -8,6 +8,7 @@ export function objectGrips(s:PaperItem):Grip[]{
   const mids=s.type==='polyline'?segments(s).map((seg,index):Grip=>({key:`segment-${index}`,point:at(seg,.5),kind:'segment',index})):[];
   return [...mids,...vertices];
  }
+ if(s.type==='arc'){const arc=segments(s)[0];return [{key:'vertex-0',kind:'vertex',index:0,point:s.a},{key:'vertex-1',kind:'vertex',index:1,point:s.b},{key:'control-0',kind:'control',index:0,point:at(arc,.5)},{key:'center-0',kind:'center',index:0,point:arc.kind==='arc'?arc.center:s.a}];}
  if(s.type==='hatch')return [{key:'center-0',kind:'center',index:0,point:{x:(s.a.x+s.b.x)/2,y:(s.a.y+s.b.y)/2}}];
  if(s.type==='line')return [{key:'segment-0',kind:'segment',index:0,point:{x:(s.a.x+s.b.x)/2,y:(s.a.y+s.b.y)/2}},{key:'vertex-0',kind:'vertex',index:0,point:s.a},{key:'vertex-1',kind:'vertex',index:1,point:s.b}];
  if(s.type==='rect')return [s.a,{x:s.b.x,y:s.a.y},s.b,{x:s.a.x,y:s.b.y}].map((point,index)=>({key:`vertex-${index}`,kind:'vertex',index,point}));
@@ -22,6 +23,7 @@ export function moveGrip(s:PaperItem,key:string,p:Point):PaperItem{
  const delta=sub(p,grip.point);
  if(s.type==='dimension'&&s.circleId){const center={x:(s.a.x+s.b.x)/2,y:(s.a.y+s.b.y)/2};return {...diameterDimension({id:s.circleId,type:'circle',a:center,b:s.a,color:s.color},p,s,s.height),circleId:s.circleId};}
  if(grip.kind==='center'||s.type==='line'&&grip.kind==='segment')return translateItem(s,delta.x,delta.y);
+ if(s.type==='arc'){const middle=at(segments(s)[0],.5);return threePointArc(grip.kind==='vertex'&&grip.index===0?p:s.a,grip.kind==='control'?p:middle,grip.kind==='vertex'&&grip.index===1?p:s.b,s);}
  if(s.type==='polyline'||s.type==='bezier'){
   if(grip.kind==='vertex')return moveNode(s,grip.index,p);
   const next=(grip.index+1)%s.nodes.length;

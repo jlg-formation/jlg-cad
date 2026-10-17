@@ -21,6 +21,8 @@ Le site est publié sur https://jlg-formation.github.io/jlg-cad/ par GitHub Acti
 
 ## Utilisation
 
+- **Ligne** enchaîne les segments : chaque extrémité devient le départ suivant, et chaque segment reste un objet indépendant. Une longueur saisie puis Entrée valide le segment et permet de poursuivre. Entrée sans valeur ou Échap termine sans ajouter l’aperçu. **C puis Entrée** ferme la suite après au moins deux segments ; **U puis Entrée** ou **Ctrl+Z** retire le dernier segment et revient au point précédent. Le clic droit propose aussi Terminer, Fermer et Annuler le dernier segment.
+
 - Le titre de l’onglet et l’en-tête affichent le nom réel du fichier ouvert ou enregistré, ou « nouveau fichier ». Un astérisque indique des modifications non enregistrées dans un fichier ; la sauvegarde de session conserve le nom et cet état au rechargement. Le nom est tronqué au besoin dans l’en-tête, visible en entier au survol, et masqué sur petit écran.
 - Le menu **Fichier** regroupe Nouveau, Ouvrir, Sauvegarder et les exports DXF/PDF. Nouveau propose de télécharger une sauvegarde avant de remplacer un dessin non sauvegardé.
 - Le menu **Aide** contient le guide de démarrage, les outils d’architecture, l’espace papier, les formats et **Raccourcis clavier…** (F1).
@@ -58,7 +60,7 @@ La traduction est centralisée dans src/locales/en.json. Les textes non encore t
 
 ## Formats et limites
 
-Le format natif version 6 conserve le dessin, les chemins, les cotations, les hachures et leurs liaisons aux contours, les calques et les présentations. Les fichiers versions 1 à 5 sont migrés à l’ouverture. Les unités sont des millimètres. Les coordonnées affichées dans l’espace objet utilisent Y vers le haut, comme le DXF.
+Le format natif version 7 conserve le dessin, les arcs natifs, les chemins, les cotations, les hachures et leurs liaisons aux contours, les calques et les présentations. Les fichiers versions 1 à 6 sont migrés à l’ouverture. Les unités sont des millimètres. Les coordonnées affichées dans l’espace objet utilisent Y vers le haut, comme le DXF.
 
 ## Espace papier et PDF
 
@@ -74,7 +76,7 @@ Le format natif version 6 conserve le dessin, les chemins, les cotations, les ha
 - Imprimer le PDF à **100 % / taille réelle**, sans ajustement automatique, pour respecter les échelles.
 - L’annulation/rétablissement couvre le dessin, les objets papier et les paramètres des présentations. La sauvegarde `.jlgcad` et le stockage local conservent l’ensemble.
 
-L’export DXF conserve le dessin objet visible et ses calques. Sans hachure ni texte objet, il utilise le format ASCII R12 existant (LINE, CIRCLE, POLYLINE, TEXT ; rectangles en quatre lignes). Avec des hachures ou du texte objet, il utilise le format R2004 avec de véritables entités HATCH éditables, leurs motifs et leurs îlots, des LWPOLYLINE et les couleurs individuelles. Les liaisons associatives des hachures restent propres au fichier natif : les HATCH exportées sont indépendantes. Les arcs des polylignes sont conservés et les Bézier sont approchées à 0,1 mm ; les cotes deviennent des lignes et textes. Une unité DXF représente un millimètre. Les présentations ne sont pas exportées en DXF. L’import DXF texte 2D est disponible ; l’import DWG et la 3D restent indisponibles. Les fenêtres sont rectangulaires sans rotation. Le texte PDF utilise Helvetica avec les caractères latins usuels ; les alphabets complexes et les emoji ne sont pas encore pris en charge. La marge pointillée de 5 mm est un repère visuel.
+L’export DXF conserve le dessin objet visible et ses calques. Il utilise le format ASCII R2004, avec des entités LINE, ARC et CIRCLE, des LWPOLYLINE (y compris pour les rectangles), les couleurs individuelles et de véritables entités HATCH éditables avec leurs motifs et leurs îlots. Les liaisons associatives des hachures restent propres au fichier natif : les HATCH exportées sont indépendantes. Les arcs des polylignes sont conservés et les Bézier sont approchées à 0,1 mm ; les cotes deviennent des lignes et textes. Une unité DXF représente un millimètre. Les présentations ne sont pas exportées en DXF. L’import DXF texte 2D est disponible ; l’import DWG et la 3D restent indisponibles. Les fenêtres sont rectangulaires sans rotation. Le texte PDF utilise Helvetica avec les caractères latins usuels ; les alphabets complexes et les emoji ne sont pas encore pris en charge. La marge pointillée de 5 mm est un repère visuel.
 
 Le DWG direct n’est pas implémenté. Autodesk propose [RealDWG](https://forge.autodesk.com/developer/overview/realdwg-api), avec des API C++/.NET : cela nécessite une intégration distincte. Un DXF peut être ouvert puis sauvegardé en DWG avec AutoCAD ([documentation Autodesk](https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-LT/files/GUID-11AEFE3C-D05A-45C3-8604-7B6A594440F3.htm)).
 
@@ -86,7 +88,7 @@ Cette première version lit les DXF **texte**, notamment les structures R12 et R
 
 Le choix d’unité est obligatoire si `$INSUNITS` est absent, sans unité ou non reconnu. Les unités proposées sont mm, cm, m, pouces et pieds ; le stockage reste en mm. Les DXF modernes (R2007+) sont décodés en UTF-8 ; les anciens utilisent leur encodage ANSI déclaré, ou Windows-1252 en son absence. Un encodage non reconnu produit une erreur.
 
-Les textes sont éditables dans l’espace objet : contenu, hauteur, rotation, déplacement et copier-coller. Leur alignement est conservé ; les polices sont remplacées par Arial/Helvetica. MTEXT perd ses styles et ses retours automatiques. Les exports DXF conservent les textes et les sauts de ligne explicites. Le format natif passe en version 6 pour conserver les textes objet et leurs paramètres ; il ouvre les anciennes versions 1 à 5.
+Les textes sont éditables dans l’espace objet : contenu, hauteur, rotation, déplacement et copier-coller. Leur alignement est conservé ; les polices sont remplacées par Arial/Helvetica. MTEXT perd ses styles et ses retours automatiques. Les exports DXF conservent les textes et les sauts de ligne explicites. Le format natif version 7 conserve les textes objet et les arcs natifs ; il ouvre les anciennes versions 1 à 6.
 
 **Limites signalées dans le bilan :** hachures, cotations AutoCAD, splines, ellipses, présentations, références externes, objets personnalisés et géométrie 3D. Les textes déformés et les arcs ou cercles soumis à une échelle non uniforme sont exclus. Les types de trait, épaisseurs, largeurs de polyligne et la structure réutilisable des blocs ne sont pas conservés. Un bloc cyclique ou manquant est signalé. Le DXF binaire est refusé.
 
@@ -102,7 +104,7 @@ Un [plan de vérification](tests/fixtures/import-2d.dxf) est fourni : contour de
 
 - **Décalage (O)** : sélectionner une ligne ou un contour, saisir par exemple `10 cm`, puis cliquer du côté voulu. L’original reste en place.
 - **Ajuster (X)** : cliquer le morceau à supprimer entre les intersections. La prévisualisation indique la partie retirée. Les formes visibles servent de limites ; on peut aussi choisir les limites puis valider avec Entrée. Répéter les clics pour nettoyer le plan.
-- **Prolonger (E)** atteint la première limite du côté de l’extrémité choisie. **Raccorder** ajuste deux lignes droites à leur intersection, avec un rayon nul.
+- **Prolonger (E)** atteint la première limite du côté de l’extrémité choisie. **RACCORD / FILLET** ajuste deux lignes droites à leur intersection, avec un rayon nul. **JOINDRE / JOIN** est une commande distincte qui fusionne des objets compatibles.
 - **Copier**, **Déplacer (M)**, **Rotation** et **Miroir** utilisent un objet sélectionné et des points de référence. Copier/déplacer disposent aussi de déplacements X/Y saisis ; une rotation saisie utilise le centre choisi ou le premier point de l’objet.
 - Les distances acceptent `mm`, `cm`, `m`, les valeurs signées et les virgules décimales. Sans unité, une valeur est en millimètres.
 - Longueur et angle précis contraignent les lignes et segments de polyligne. **F8** active l’orthogonal ; le guidage polaire propose 15°, 30°, 45° ou 90°. Les accrochages reconnaissent extrémités, milieux, centres et intersections.
@@ -128,3 +130,15 @@ Voir le [guide des commandes, unités et poignées](docs/drafting.md) pour la sa
 - L’aide **Hachures — guide en 2 minutes** décrit les deux parcours. Les dégradés, motifs PAT importés, hachures annotatives, masquage des textes et Ajuster/Prolonger sur les hachures restent hors de cette version.
 
 Les nouvelles cotations de diamètre (DIAMÈTRE / DDI puis Entrée) suivent le rayon et le centre du cercle. Le fichier natif version 4 conserve cette liaison ; copier le cercle et sa cote ensemble la recrée pour les copies, et supprimer le cercle retire ses cotations liées en une action annulable. Les anciennes cotations restent indépendantes.
+
+## JOINDRE / JOIN et RACCORD / FILLET
+
+- **JOIN**, **JOINDRE** ou **J** : sélectionner plusieurs objets (clics, fenêtre, lasso ou Ctrl+A), puis Entrée. Les lignes jointives formant des angles deviennent des polylignes, ouvertes ou fermées ; plusieurs ensembles indépendants peuvent être traités ensemble. Une présélection de plusieurs objets est traitée dès le lancement de JOIN. Maj+clic retire un objet de la sélection en cours.
+- Pour un **objet source**, sélectionner un seul objet puis Entrée (ou Utiliser comme source), sélectionner les objets à ajouter, puis Entrée. Une ligne source accepte uniquement des lignes alignées, même avec des espaces ; une polyligne ouverte source exige des extrémités jointives. Le résultat conserve l’identifiant, la couleur et le calque de la source. Sans source explicite, le premier objet de chaque ensemble détermine ses propriétés.
+- Les **arcs natifs** sont distincts des polylignes à segments courbes. Les arcs de même centre et rayon peuvent être réunis avec des espaces ; une couverture circulaire complète devient un cercle. Avec un arc source, **C puis Entrée** ou Fermer l’arc en cercle produit un cercle. Les autres arcs jointifs peuvent former une polyligne exacte avec des lignes et des polylignes ouvertes. Les propriétés de l’arc donnent accès au centre, au rayon et à l’angle ; ses poignées modifient les extrémités, le point intermédiaire et le centre.
+- **Échap** abandonne la préparation sans fusionner les objets. **Ctrl+Z** annule toute la jonction validée en une opération ; Rétablir restaure le résultat. Les objets incompatibles ou verrouillés sont conservés, avec un bilan des objets non joints. Les embranchements ambigus ne sont pas résolus arbitrairement.
+- Les références des **hachures associatives**, y compris leurs îlots, suivent les objets réunis. La synchronisation existante conserve ou détache la hachure selon la validité du contour résultant. La tolérance de coïncidence est de **0,000001 mm**, indépendante du zoom, de la grille et des accrochages. La limite reste de 5 000 sommets par polyligne. JOIN fonctionne dans Objet, dans une fenêtre active et sur les objets papier.
+- **FILLET**, **RACCORD** et l’ancien alias **RACCORDER** conservent le raccord d’angle à rayon zéro entre deux lignes. Cette commande ne fusionne pas les objets. Les anciens raccourcis personnalisés de Raccorder sont transférés à FILLET ; J désigne désormais JOIN. F reste affecté à la fenêtre de vue.
+- Les nouveaux arcs créés avec ARC ou importés depuis un DXF sont enregistrés comme arcs dans le format natif v7 et exportés comme ARC dans le DXF. Les anciennes polylignes courbes restent des polylignes : aucune conversion fondée seulement sur leur apparence. Les Bézier, ellipses, splines AutoCAD et objets 3D ne sont pas pris en charge par JOIN.
+
+Les tests de jonction couvrent les lignes avec espaces et superpositions, les ordres et sens des segments, les contours séparés et fermés, les sources, les arcs passant par zéro degré, les calques verrouillés, les hachures avec îlots et les échanges natif/presse-papiers/DXF. La comparaison interactive sur les fichiers réels de l’agence avec AutoCAD reste à effectuer.

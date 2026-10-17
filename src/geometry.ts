@@ -1,5 +1,5 @@
 import {hatchBounds} from './hatch';
-import { type Point, type Shape, type PathShape, type Node, type PaperItem, type Dimension, type BaseShape } from './model';
+import { type Point, type Shape, type PathShape, type Node, type PaperItem, type Dimension, type BaseShape, type ArcShape } from './model';
 
 const EPS=1e-8;
 export const add=(a:Point,b:Point):Point=>({x:a.x+b.x,y:a.y+b.y});
@@ -28,13 +28,13 @@ export function parseAngle(value:string):number {
 export const formatLength=(n:number)=>`${Number(n.toFixed(2)).toLocaleString('fr-FR').replace(/[\u202f\u00a0]/g,' ')} mm`;
 
 export type Segment = {kind:'line';a:Point;b:Point} | {kind:'arc';a:Point;b:Point;center:Point;radius:number;start:number;sweep:number} | {kind:'cubic';a:Point;b:Point;c1:Point;c2:Point};
-export function arcSegment(a:Point,b:Point,bulge:number):Segment {
- if(Math.abs(bulge)<EPS||distance(a,b)<EPS)return{kind:'line',a,b};
+export function arcSegment(a:Point,b:Point,bulge:number,exact=false):Segment {
+ if((exact?bulge===0:Math.abs(bulge)<EPS)||distance(a,b)<EPS)return{kind:'line',a,b};
  const d=sub(b,a),center=add(lerp(a,b,.5),mul(normal(d),(1-bulge*bulge)/(4*bulge)));
  return{kind:'arc',a,b,center,radius:distance(a,center),start:Math.atan2(a.y-center.y,a.x-center.x),sweep:4*Math.atan(bulge)};
 }
 // One exact circular segment, oriented through the intermediate point.
-export function threePointArc(a:Point,through:Point,b:Point,base:BaseShape):PathShape {
+export function threePointArc(a:Point,through:Point,b:Point,base:BaseShape):ArcShape {
  const u=sub(through,a),v=sub(b,a),det=cross(u,v),scale=Math.max(dot(u,u),dot(v,v),distance(through,b)**2);
  if(!scale||Math.min(distance(a,through),distance(a,b),distance(through,b))<.001)throw new Error('Choisissez trois points distincts.');
  if(Math.abs(det)<=scale*1e-10)throw new Error('Les trois points sont alignés : choisissez un autre point.');
@@ -42,11 +42,12 @@ export function threePointArc(a:Point,through:Point,b:Point,base:BaseShape):Path
  const start=Math.atan2(a.y-center.y,a.x-center.x),end=Math.atan2(b.y-center.y,b.x-center.x);
  const sweep=angleDelta(start,end,det),bulge=Math.tan(sweep/4);
  if(!Number.isFinite(bulge)||Math.abs(bulge)>=1e4)throw new Error('Arc trop proche d’un cercle complet.');
- return {...base,type:'polyline',a,b,closed:false,nodes:[{p:a,bulge},{p:b}]};
+ return {...base,type:'arc',a,b,bulge};
 }
 export function segments(shape:Shape):Segment[] {
  if(shape.type==='text')return[];
  if(shape.type==='hatch')return shape.regions.flatMap(r=>r.loops.flatMap(loop=>loop.map((a,i):Segment=>({kind:'line',a,b:loop[(i+1)%loop.length]}))));
+ if(shape.type==='arc')return[arcSegment(shape.a,shape.b,shape.bulge,true)];
  if(shape.type==='line')return[{kind:'line',a:shape.a,b:shape.b}];
  if(shape.type==='rect'){const {a,b}=shape,c={x:b.x,y:a.y},d={x:a.x,y:b.y};return[{kind:'line',a,b:c},{kind:'line',a:c,b},{kind:'line',a:b,b:d},{kind:'line',a:d,b:a}];}
  if(shape.type==='circle'){const r=distance(shape.a,shape.b),a={x:shape.a.x+r,y:shape.a.y},b={x:shape.a.x-r,y:shape.a.y};return[arcSegment(a,b,1),arcSegment(b,a,1)];}
@@ -114,6 +115,10 @@ export function nearestPart(shape:Shape,p:Point){
  return segments(shape).map((s,index)=>({...closestSegment(p,s),index,segment:s})).sort((a,b)=>distance(a.point,p)-distance(b.point,p))[0];
 }
 export function shapeFromSegments(source:Shape,segs:Segment[],closed=false):Shape {
+ if(source.type==='arc'&&segs.length===1&&segs[0].kind==='arc'){const s=segs[0];return {...source,a:s.a,b:s.b,bulge:Math.tan(s.sweep/4)};}
+ // Native arcs may be almost complete circles. Split them exactly when a
+ // polyline's bulge field cannot represent that sweep within the file limits.
+ segs=segs.flatMap(s=>s.kind==='arc'&&Math.abs(Math.tan(s.sweep/4))>=1e4?[portion(s,0,.5),portion(s,.5,1)]:[s]);
  if(segs.length===1&&segs[0].kind==='line'&&source.type==='line')return{...source,a:segs[0].a,b:segs[0].b};
  const cubic=segs.some(s=>s.kind==='cubic');
  const nodes:Node[]=segs.map(s=>({p:s.a,...(s.kind==='arc'?{bulge:Math.tan(s.sweep/4)}:{}),...(s.kind==='cubic'?{out:s.c1}:{} )}));
@@ -254,6 +259,7 @@ export function offsetShape(shape:Shape,amount:number,side:Point,tolerance=.1):S
 
 export function mapItem<T extends PaperItem>(shape:T,fn:(p:Point)=>Point,scale=1,flip=false):T {
  const common={...shape,a:fn(shape.a),b:fn(shape.b)};
+ if(shape.type==='arc')return {...common,bulge:shape.bulge*(flip?-1:1)} as T;
  if(shape.type==='hatch'){
   const origin=fn(shape.origin),angle=-shape.angle*Math.PI/180,axis=fn({x:shape.origin.x+Math.cos(angle),y:shape.origin.y+Math.sin(angle)}),mappedAngle=-Math.atan2(axis.y-origin.y,axis.x-origin.x)*180/Math.PI;
   const regions=shape.regions.map(r=>({...r,seed:fn(r.seed),boundaryLoops:r.boundaryLoops?.map(loop=>loop.map(fn)),loops:r.loops.map(loop=>loop.map(fn))}));

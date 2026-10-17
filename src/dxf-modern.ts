@@ -30,6 +30,7 @@ export function toModernDxf(shapes:Shape[],layers:Layer[],displayUnit:'m'|'cm'|'
    else{entity('TEXT','AcDbText');point(10,s.a);add(40,s.height,1,textValue(s.text),50,-(s.rotation||0),7,'STANDARD',72,s.align==='center'?1:s.align==='right'?2:0);point(11,s.a);add(100,'AcDbText',73,s.vertical==='top'||!s.vertical?3:s.vertical==='middle'?2:s.vertical==='bottom'?1:0);}
   }
   else if(s.type==='line')line(s.a,s.b);
+  else if(s.type==='arc'){const arc=segments(s)[0];if(arc.kind!=='arc')continue;entity('ARC','AcDbCircle');point(10,arc.center);add(40,arc.radius,100,'AcDbArc');const start=arc.sweep<0?arc.start:arc.start+arc.sweep,end=arc.sweep<0?arc.start+arc.sweep:arc.start;const degrees=(a:number)=>((-a*180/Math.PI)%360+360)%360;add(50,degrees(start),51,degrees(end));}
   else if(s.type==='circle'){entity('CIRCLE','AcDbCircle');point(10,s.a);add(40,Math.hypot(s.b.x-s.a.x,s.b.y-s.a.y));}
   else if(s.type==='rect')polyline([{p:s.a},{p:{x:s.b.x,y:s.a.y}},{p:s.b},{p:{x:s.a.x,y:s.b.y}}],true);
   else if(s.type==='polyline')polyline(s.nodes,s.closed);

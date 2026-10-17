@@ -90,7 +90,7 @@ export function importDxf(text:string,name:string,override?:DxfUnit):DxfImport{
   else if(e.type==='CIRCLE'||e.type==='ARC'){
    if(!similar){skip(`${e.type} : échelle non uniforme`);return;}const center=point(e),radius=num(e,40);if(radius<=0)throw new Error('Rayon DXF invalide.');
    if(e.type==='CIRCLE')shape={...base,type:'circle',b:{x:base.a.x+radius*scale*factor,y:base.a.y}};
-   else{const start=num(e,50)*Math.PI/180,sweep=((num(e,51)-num(e,50))%360+360)%360;if(!sweep){skip('ARC : angle nul');return;}const end=start+sweep*Math.PI/180,a=fn({x:center.x+radius*Math.cos(start),y:center.y+radius*Math.sin(start)}),b=fn({x:center.x+radius*Math.cos(end),y:center.y+radius*Math.sin(end)});shape={...base,type:'polyline',a,b,closed:false,nodes:[{p:a,bulge:-Math.sign(det)*Math.tan(sweep*Math.PI/720)},{p:b}]};}
+   else{const start=num(e,50)*Math.PI/180,sweep=((num(e,51)-num(e,50))%360+360)%360;if(!sweep){skip('ARC : angle nul');return;}const end=start+sweep*Math.PI/180,a=fn({x:center.x+radius*Math.cos(start),y:center.y+radius*Math.sin(start)}),b=fn({x:center.x+radius*Math.cos(end),y:center.y+radius*Math.sin(end)});shape={...base,type:'arc',a,b,bulge:-Math.sign(det)*Math.tan(sweep*Math.PI/720)};}
   }else if(e.type==='LWPOLYLINE'||e.type==='POLYLINE'){
    if(num(e,70)&(8|16|64)){skip(`${e.type} : maillage ou 3D`);return;}const nodes:Node[]=[];
    if(e.vertices){for(const v of e.vertices){if(num(v,30)){skip('POLYLINE : géométrie 3D');return;}nodes.push({p:fn(point(v)),bulge:-Math.sign(det)*num(v,42)});if(num(v,40)||num(v,41))warnings.add('Largeurs de polyligne non conservées.');}}

@@ -1,23 +1,25 @@
 import {commandName} from './command-language';
 import {t as tr} from './i18n';
 import { useContext, useEffect, useRef, useState } from 'react';
-import {SelectIcon as MousePointer2, PanIcon as Hand, OffsetIcon as ArrowRightLeft, ExtendIcon as MoveRight, JoinIcon as CornerDownRight, RotateIcon as RotateCw, MirrorIcon as FlipHorizontal, MeasureIcon as Ruler, RectangleIcon as Square, TextIcon as Type, ViewportIcon as PanelsTopLeft, BezierIcon as Spline, DimensionIcon as PenLine, VisibleIcon as Eye, HiddenIcon as EyeOff, LockIcon as Lock, UnlockIcon as Unlock, AddIcon as Plus, DeleteIcon as Trash2, HatchIcon as PaintBucket} from './cad-icons';
+import {SelectIcon as MousePointer2, PanIcon as Hand, OffsetIcon as ArrowRightLeft, ExtendIcon as MoveRight, JoinIcon as Join, FilletIcon as CornerDownRight, RotateIcon as RotateCw, MirrorIcon as FlipHorizontal, MeasureIcon as Ruler, RectangleIcon as Square, TextIcon as Type, ViewportIcon as PanelsTopLeft, BezierIcon as Spline, DimensionIcon as PenLine, VisibleIcon as Eye, HiddenIcon as EyeOff, LockIcon as Lock, UnlockIcon as Unlock, AddIcon as Plus, DeleteIcon as Trash2, HatchIcon as PaintBucket} from './cad-icons';
 import { type Drawing, type PathShape, type Shape, type Point, lockedShape } from './model';
-import { parseLength, parseAngle, moveNode, insertNode, deleteNode, smoothNodes, syncPath, distance, constrainedEnd } from './geometry';
+import { parseLength, parseAngle, moveNode, insertNode, deleteNode, smoothNodes, syncPath, distance, constrainedEnd,segments,translateItem } from './geometry';
 import './architecture.css';
 import {LineIcon as Minus, PolylineIcon as Waypoints, CircleIcon as Circle, ArcIcon, TrimIcon as Scissors, CopyIcon as Copy, MoveIcon as Move} from './cad-icons';
 import {UnitContext} from './units';
 import {displayDistance} from './drafting';
 
-export type Tool = Shape['type'] | 'arc' | 'select' | 'pan' | 'text' | 'viewport' | 'offset' | 'trim' | 'extend' | 'join' | 'copy' | 'move' | 'rotate' | 'mirror' | 'measure' | 'diameter' | 'linearDimension';
-export const labels:Record<Tool,string>={hatch:'Hachures',arc:'Arc par 3 points',select:'Sélection',line:'Ligne',rect:'Rectangle',circle:'Cercle',pan:'Déplacement de vue',text:'Texte',viewport:'Fenêtre de vue',polyline:'Polyligne',bezier:'Bézier',dimension:'Cotation',diameter:'Diamètre',linearDimension:'Cotation linéaire',offset:'Décalage',trim:'Ajuster',extend:'Prolonger',join:'Raccorder',copy:'Copier',move:'Déplacer',rotate:'Rotation',mirror:'Miroir',measure:'Mesurer'};
-export const commandTools:Tool[]=['arc','offset','trim','extend','join','copy','move','rotate','mirror','measure','dimension','diameter','linearDimension','polyline','bezier'];
+export type Tool = Shape['type'] | 'arc' | 'select' | 'pan' | 'text' | 'viewport' | 'offset' | 'trim' | 'extend' | 'join' | 'fillet' | 'copy' | 'move' | 'rotate' | 'mirror' | 'measure' | 'diameter' | 'linearDimension';
+export const labels:Record<Tool,string>={hatch:'Hachures',arc:'Arc',select:'Sélection',line:'Ligne',rect:'Rectangle',circle:'Cercle',pan:'Déplacement de vue',text:'Texte',viewport:'Fenêtre de vue',polyline:'Polyligne',bezier:'Bézier',dimension:'Cotation',diameter:'Diamètre',linearDimension:'Cotation linéaire',offset:'Décalage',trim:'Ajuster',extend:'Prolonger',join:'Joindre',fillet:'Raccord',copy:'Copier',move:'Déplacer',rotate:'Rotation',mirror:'Miroir',measure:'Mesurer'};
+export const commandTools:Tool[]=['arc','offset','trim','extend','join','fillet','copy','move','rotate','mirror','measure','dimension','diameter','linearDimension','polyline','bezier'];
 export const tips:Partial<Record<Tool,string>>={
+ line:'Cliquez les points successifs. Chaque segment est une ligne indépendante. C puis Entrée ferme ; U puis Entrée annule le dernier segment ; Entrée ou Échap termine en conservant les lignes créées.',
  arc:'Indiquez le point de départ, un point sur l’arc, puis le point final. Échap annule.',
  offset:'Saisissez la distance puis Entrée, sélectionnez un objet et cliquez du côté voulu. Entrée ou Échap quitte sans créer l’aperçu.',
  trim:'Cliquez sur un morceau ou maintenez le bouton gauche et balayez les morceaux à enlever. Relâchez pour valider ; Échap annule le geste.',
  extend:'Cliquez près de l’extrémité à prolonger jusqu’à une limite. Une Bézier se prolonge par sa tangente.',
- join:'Cliquez près des deux extrémités à raccorder. Les deux lignes sont ajustées à leur intersection (rayon 0).',
+ join:'Sélectionnez un objet source ou plusieurs objets, puis Entrée. Les objets compatibles sont réunis ; Échap annule avant validation.',
+ fillet:'Cliquez près des deux extrémités à raccorder. Les deux lignes sont ajustées à leur intersection (rayon 0).',
  copy:'Sélectionnez un objet, puis cliquez le point de base et sa destination, ou saisissez X/Y ci-dessous.',
  move:'Sélectionnez les objets, cliquez le point de base, indiquez la direction puis saisissez une distance et Entrée, ou cliquez la destination.',
  rotate:'Sélectionnez un objet, cliquez le centre puis la direction de l’angle, ou appliquez un angle saisi.',
@@ -31,7 +33,7 @@ export const tips:Partial<Record<Tool,string>>={
  dimension:'Cliquez un cercle puis placez sa cote de diamètre (Ø). Pour une cote linéaire, cliquez deux points puis placez la ligne de cote.',
 };
 export function ArchitectureToolbar({tool,onTool,shortcut,paper=false}:{tool:Tool;onTool:(t:Tool)=>void;shortcut:(id:string)=>string;paper?:boolean}) {
- const groups=paper?[[['line',Minus],['rect',Square],['circle',Circle],['text',Type],['viewport',PanelsTopLeft],['hatch',PaintBucket]],[['select',MousePointer2],['pan',Hand]]] as const:[[['polyline',Waypoints],['circle',Circle],['line',Minus],['bezier',Spline],['dimension',PenLine],['arc',ArcIcon],['rect',Square],['hatch',PaintBucket],['text',Type]],[['offset',ArrowRightLeft],['trim',Scissors],['extend',MoveRight],['join',CornerDownRight],['copy',Copy],['move',Move],['rotate',RotateCw],['mirror',FlipHorizontal],['measure',Ruler]],[['select',MousePointer2],['pan',Hand]]] as const;
+ const groups=paper?[[['line',Minus],['rect',Square],['circle',Circle],['text',Type],['viewport',PanelsTopLeft],['hatch',PaintBucket]],[['join',Join],['select',MousePointer2],['pan',Hand]]] as const:[[['polyline',Waypoints],['circle',Circle],['line',Minus],['bezier',Spline],['dimension',PenLine],['arc',ArcIcon],['rect',Square],['hatch',PaintBucket],['text',Type]],[['offset',ArrowRightLeft],['trim',Scissors],['extend',MoveRight],['join',Join],['fillet',CornerDownRight],['copy',Copy],['move',Move],['rotate',RotateCw],['mirror',FlipHorizontal],['measure',Ruler]],[['select',MousePointer2],['pan',Hand]]] as const;
  return <nav className="architecture-toolbar" aria-label={tr("Outils d’architecture")}>{groups.map((tools,index)=><span className="architecture-tool-group" role="group" aria-label={tr(index===0?"Créer des objets":index===groups.length-1?"Sélection et navigation":"Opérations sur les objets")} key={index}>{tools.map(([t,Icon])=><button key={t} aria-label={commandName(t,labels[t])} className={tool===t||t==='dimension'&&tool==='linearDimension'?'active':''} onClick={()=>onTool(t)} title={commandName(t,labels[t])+(shortcut(t)?' — '+shortcut(t):'')}><Icon size={18}/></button>)}</span>)}</nav>;
 }
 export type Settings={length:string;angle:string;distance:string;dx:string;dy:string;rotation:string;ortho:boolean;polarEnabled:boolean;polarAngle:number;osnap:boolean;segment:'line'|'arc';arcAngle:string;closed:boolean;keepOriginal:boolean;dimensionText:string;annotationScale:string};
@@ -70,6 +72,13 @@ export function PathEditor({shape,index,setIndex,onChange,onError}:{shape:PathSh
 export function LineEditor({shape,onChange,onError}:{shape:Shape;onChange:(s:Shape)=>void;onError:(s:string)=>void}){
  if(shape.type!=='line')return null;const length=distance(shape.a,shape.b),angle=-Math.atan2(shape.b.y-shape.a.y,shape.b.x-shape.a.x)*180/Math.PI;
  return <><UnitInput label={tr("Longueur de ligne")} value={length} onValue={n=>{if(n<=0){onError('La longueur doit être positive.');return;}onChange({...shape,b:constrainedEnd(shape.a,shape.b,String(n),String(angle),false,0)});}} onError={onError}/><UnitInput label={tr("Angle de ligne")} angle value={angle} onValue={n=>onChange({...shape,b:constrainedEnd(shape.a,shape.b,String(length),String(n),false,0)})} onError={onError}/></>;
+}
+export function ArcEditor({shape,onChange,onError,paper=false}:{paper?:boolean;shape:Extract<Shape,{type:'arc'}>;onChange:(s:Shape)=>void;onError:(s:string)=>void}){
+ const arc=segments(shape)[0];if(arc.kind!=='arc')return null;
+ return <><UnitInput label={tr('Centre X')} value={arc.center.x} onValue={x=>onChange(translateItem(shape,x-arc.center.x,0))} onError={onError}/>
+ <UnitInput label={tr('Centre Y')} value={paper?arc.center.y:-arc.center.y} onValue={y=>onChange(translateItem(shape,0,(paper?y:-y)-arc.center.y))} onError={onError}/>
+ <UnitInput label={tr('Rayon de l’arc')} value={arc.radius} onValue={radius=>{if(radius<=0){onError('Le rayon doit être positif.');return;}const scale=radius/arc.radius,point=(p:Point)=>({x:arc.center.x+(p.x-arc.center.x)*scale,y:arc.center.y+(p.y-arc.center.y)*scale});onChange({...shape,a:point(shape.a),b:point(shape.b)});}} onError={onError}/>
+ <UnitInput label={tr('Angle de l’arc')} angle value={-arc.sweep*180/Math.PI} onValue={degrees=>{if(Math.abs(degrees)<.01||Math.abs(degrees)>=359.99){onError('L’angle doit être compris entre -359,99° et 359,99°, hors zéro.');return;}const sweep=-degrees*Math.PI/180;onChange({...shape,b:{x:arc.center.x+arc.radius*Math.cos(arc.start+sweep),y:arc.center.y+arc.radius*Math.sin(arc.start+sweep)},bulge:Math.tan(sweep/4)});}} onError={onError}/></>;
 }
 export function LayerPanel({doc,current,onCurrent,onChange,selected}:{doc:Drawing;current:string;onCurrent:(id:string)=>void;onChange:(d:Drawing)=>void;selected?:Shape}){
  const patch=(id:string,p:Partial<Drawing['layers'][number]>)=>onChange({...doc,layers:doc.layers.map(l=>l.id===id?{...l,...p}:l)});

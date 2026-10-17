@@ -1,6 +1,6 @@
 import {describe,expect,test} from 'bun:test';
 import {importDxf,inspectDxf,decodeDxf,aciColor} from '../src/dxf-import';
-import {documentOf,parseDrawing,toDxf,bounds,type PathShape,type TextItem} from '../src/model';
+import {documentOf,parseDrawing,toDxf,bounds,type PathShape,type ArcShape,type TextItem} from '../src/model';
 import {segments,at,rotateShape,translateItem,trimShape} from '../src/geometry';
 import {encodeClipboard,decodeClipboard,pasteClipboard} from '../src/clipboard';
 import {createPdf} from '../src/pdf';
@@ -28,7 +28,7 @@ describe('Import DXF 2D',()=>{
  test('invalid native text fields and legacy model text are refused; v5 still migrates',()=>{
   const t:TextItem={id:'t',type:'text',a:{x:0,y:0},b:{x:0,y:0},color:'#123456',text:'x',height:3};
   for(const patch of [{height:0},{rotation:Infinity},{align:'unsupported'},{vertical:'unsupported'}])expect(()=>parseDrawing(JSON.stringify(documentOf('x',[{...t,...patch} as TextItem])))).toThrow();
-  expect(()=>parseDrawing(JSON.stringify({...documentOf('x',[t]),version:5}))).toThrow();expect(parseDrawing(JSON.stringify({...documentOf('x',[]),version:5})).version).toBe(6);
+  expect(()=>parseDrawing(JSON.stringify({...documentOf('x',[t]),version:5}))).toThrow();expect(parseDrawing(JSON.stringify({...documentOf('x',[]),version:5})).version).toBe(7);
  });
  test('converts units, preserves origin, reflects Y, saves native and restores',()=>{
   const {drawing,report}=importDxf(file(line(),6),'maison.dxf');expect(drawing.name).toBe('maison');expect(drawing.shapes[0].a).toEqual({x:1000,y:-2000});expect(drawing.shapes[0].b).toEqual({x:3000,y:-4000});expect(report.objects).toBe(1);expect(parseDrawing(JSON.stringify(drawing))).toEqual(drawing);
@@ -42,8 +42,8 @@ describe('Import DXF 2D',()=>{
   expect(drawing.layers.find(l=>l.name==='Murs')).toMatchObject({visible:false,locked:true,color:'#ff0000'});expect(drawing.shapes.map(s=>s.color)).toEqual(['#ff0000','#12ab34','#0000ff']);
  });
  test('exact arc wraps through zero and preserves its circular geometry',()=>{
-  const s=importDxf(file(pairs(0,'ARC',10,0,20,0,40,10,50,350,51,10)),'x').drawing.shapes[0] as PathShape;
-  expect(s.nodes[0].bulge).toBeCloseTo(-Math.tan(20*Math.PI/720));const segment=segments(s)[0];expect(segment.kind).toBe('arc');expect(at(segment,.5).x).toBeCloseTo(10);expect(at(segment,.5).y).toBeCloseTo(0);
+  const s=importDxf(file(pairs(0,'ARC',10,0,20,0,40,10,50,350,51,10)),'x').drawing.shapes[0] as ArcShape;
+  expect(s.bulge).toBeCloseTo(-Math.tan(20*Math.PI/720));const segment=segments(s)[0];expect(segment.kind).toBe('arc');expect(at(segment,.5).x).toBeCloseTo(10);expect(at(segment,.5).y).toBeCloseTo(0);
  });
  test('reads R12 POLYLINE/VERTEX and modern LWPOLYLINE with closure and bulges',()=>{
   const old=pairs(0,'POLYLINE',70,1,0,'VERTEX',10,0,20,0,42,1,0,'VERTEX',10,10,20,0,0,'VERTEX',10,10,20,10,0,'SEQEND');
@@ -57,7 +57,7 @@ describe('Import DXF 2D',()=>{
  });
  test('block arrays and reflected arcs keep positions and bulge sign',()=>{
   const blocks=block('a',pairs(0,'ARC',10,0,20,0,40,2,50,0,51,90));const result=importDxf(file(pairs(0,'INSERT',2,'a',41,-1,42,1,70,2,44,10),4,blocks),'x');
-  expect(result.drawing.shapes).toHaveLength(2);const s=result.drawing.shapes as PathShape[];expect(s[0].nodes[0].bulge).toBeGreaterThan(0);expect(s[1].a.x-s[0].a.x).toBe(10);
+  expect(result.drawing.shapes).toHaveLength(2);const s=result.drawing.shapes as ArcShape[];expect(s[0].bulge).toBeGreaterThan(0);expect(s[1].a.x-s[0].a.x).toBe(10);
  });
  test('nonuniform blocks retain lines and report unsupported curved geometry',()=>{
   const result=importDxf(file(pairs(0,'INSERT',2,'a',41,2,42,1),4,block('a',line()+pairs(0,'CIRCLE',10,0,20,0,40,5))),'x');expect(result.drawing.shapes).toHaveLength(1);expect(result.report.skipped['CIRCLE : échelle non uniforme']).toBe(1);

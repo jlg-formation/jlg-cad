@@ -40,7 +40,8 @@ export const ExtendIcon = icon('extend', <>
  <path d="M5 10 12 5.625m-3.5-.125 3.5.125-1.3 3.175" stroke={gold} strokeWidth="1.5"/>
  <rect x="9.75" y="12.75" width="2.5" height="2.5" stroke={blue} strokeWidth="1"/>
 </>);
-export const JoinIcon = icon('join', <><path d="M3 19h13V4"/><path d="M16 19h5M16 19v-6" stroke={gold}/><Grip x={16} y={19}/></>);
+export const JoinIcon = icon('join', <><path d="M2 17h7l6-10h7"/><path d="M9 17l6-10" stroke={gold}/><Grip x={9} y={17}/><Grip x={15} y={7}/></>);
+export const FilletIcon = icon('fillet', <><path d="M3 19h13V4"/><path d="M16 19h5M16 19v-6" stroke={gold}/><Grip x={16} y={19}/></>);
 export const RotateIcon = icon('rotate', <><path d="M5 15a8 8 0 1 1 14 2m0-5v5h-5" stroke={gold}/><path d="m8 18 4-6 5 3"/><Grip x={12} y={12}/></>);
 export const MirrorIcon = icon('mirror', <><path d="M12 2v20" stroke={gold} strokeDasharray="2 2"/><path d="M3 18V6l6 12z"/><path d="M21 18V6l-6 12z" stroke={blue}/></>);
 export const MeasureIcon = icon('measure', <><path d="m3 16 14-13 4 4L7 20zM13 7l2 2m-6 2 2 2m-6 2 2 2"/><Grip x={3} y={16}/><Grip x={21} y={7}/></>);

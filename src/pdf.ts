@@ -24,9 +24,9 @@ export function createPdf(drawing: Drawing, layouts: Layout[],displayUnit:'m'|'c
       else if(s.type==='line')pdf.line(s.a.x,s.a.y,s.b.x,s.b.y);
       else if(s.type==='circle')pdf.circle(s.a.x,s.a.y,Math.hypot(s.b.x-s.a.x,s.b.y-s.a.y),'S');
       else if(s.type==='dimension'){const d=dimensionGeometry(s,displayUnit);d.lines.forEach(([a,b])=>pdf.line(a.x,a.y,b.x,b.y));pdf.setFillColor(color);d.arrows.forEach(ps=>pdf.triangle(ps[0].x,ps[0].y,ps[1].x,ps[1].y,ps[2].x,ps[2].y,'F'));pdf.setFontSize(s.height*72/25.4);pdf.text(dimensionLabel||d.text,d.label.x,d.label.y,{align:'center',angle:d.angle});}
-      else if(s.type==='polyline'||s.type==='bezier'){
+      else if(s.type==='arc'||s.type==='polyline'||s.type==='bezier'){
         const parts=segments(s);if(!parts.length)return;const path:{op:string;c:number[]}[]=[{op:'m',c:[parts[0].a.x,parts[0].a.y]}];
-        for(const part of parts){for(const seg of part.kind==='arc'?arcCubics(part):[part])path.push(seg.kind==='line'?{op:'l',c:[seg.b.x,seg.b.y]}:{op:'c',c:[seg.c1.x,seg.c1.y,seg.c2.x,seg.c2.y,seg.b.x,seg.b.y]});}if(s.closed)path.push({op:'h',c:[]});pdf.path(path);pdf.stroke();
+        for(const part of parts){for(const seg of part.kind==='arc'?arcCubics(part):[part])path.push(seg.kind==='line'?{op:'l',c:[seg.b.x,seg.b.y]}:{op:'c',c:[seg.c1.x,seg.c1.y,seg.c2.x,seg.c2.y,seg.b.x,seg.b.y]});}if('closed'in s&&s.closed)path.push({op:'h',c:[]});pdf.path(path);pdf.stroke();
       }
       else {const r=bounds(s);pdf.rect(r.x,r.y,r.width,r.height,'S');}
     };

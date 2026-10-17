@@ -51,7 +51,8 @@ export const draftingCommands=[
  {id:'rotate',name:'ROTATE',label:'Rotation',aliases:['RO','ROTATION']},
  {id:'mirror',name:'MIRROR',label:'Miroir',aliases:['MI','MIROIR']},
  {id:'measure',name:'DIST',label:'Mesurer',aliases:['DI','MESURER']},
- {id:'join',name:'JOIN',label:'Raccorder',aliases:['J','RACCORDER']},
+ {id:'join',name:'JOIN',label:'Joindre',aliases:['J','JOINDRE']},
+ {id:'fillet',name:'FILLET',label:'Raccord',aliases:['RACCORD','RACCORDER']},
  {id:'text',name:'TEXT',label:'Texte papier',aliases:['T','TEXTE']},
  {id:'viewport',name:'VIEWPORT',label:'Fenêtre de vue',aliases:['F']},
 ] as const;

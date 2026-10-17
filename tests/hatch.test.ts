@@ -125,7 +125,7 @@ describe('Hachures : associativité, transformations et fichiers',()=>{
   const next=pasteClipboard(doc,decodeClipboard(encodeClipboard(doc,[r,h])),{x:200,y:200},()=>`copy-${++i}`),pair=next.shapes.slice(-2);expect((pair[1] as HatchShape).associative).toBe(true);expect((pair[1] as HatchShape).regions[0].sourceIds).toEqual([pair[0].id]);expect(hatchContains(pair[1] as HatchShape,{x:210,y:210})).toBe(true);expect(pair[0].a).toEqual({x:200,y:200});
  });
  test('format natif v5 roundtrip, anciens fichiers et validation des paramètres / liaisons',()=>{
-  const r=rect(),h=hatch([r]),doc=documentOf('Plan',[r,h]);expect(parseDrawing(JSON.stringify(doc))).toEqual(doc);expect(parseDrawing(JSON.stringify({...documentOf('Old',[r]),version:4})).version).toBe(6);
+  const r=rect(),h=hatch([r]),doc=documentOf('Plan',[r,h]);expect(parseDrawing(JSON.stringify(doc))).toEqual(doc);expect(parseDrawing(JSON.stringify({...documentOf('Old',[r]),version:4})).version).toBe(7);
   for(const bad of [{...h,scale:0},{...h,pattern:'INVALID'},{...h,origin:{x:1e9,y:0}},{...h,regions:[{...h.regions[0],loops:[[{x:0,y:0},{x:1,y:0},{x:2,y:0}]]}]},{...h,regions:[{...h.regions[0],sourceIds:['missing']}]}])expect(()=>parseDrawing(JSON.stringify(documentOf('Bad',[r,bad as HatchShape])))).toThrow();
  });
  test('présentations : hachures papier, liaisons et motif à l’échelle des fenêtres',()=>{
@@ -137,7 +137,7 @@ describe('Hachures : associativité, transformations et fichiers',()=>{
  });
  test('DXF moderne : entité HATCH éditable, boucles et motifs, autres objets conservés',()=>{
   const r=rect(),hole=rect('hole',{x:20,y:20},{x:80,y:80}),h=hatch([r,hole],undefined,{angle:15,scale:2}),text=toDxf([r,hole,h,circle('c',{x:200,y:0},10)]);
-  expect(text).toContain('AC1018');expect(text).toContain('0\r\nHATCH\r\n');expect(text).toContain('100\r\nAcDbHatch\r\n');expect(text).toContain('91\r\n2\r\n');expect(text).toContain('53\r\n60\r\n');expect(text).toContain('0\r\nLWPOLYLINE\r\n');expect(text).toContain('0\r\nCIRCLE\r\n');expect(text.indexOf('HATCH')).toBeLessThan(text.indexOf('LWPOLYLINE'));expect(text.endsWith('0\r\nEOF\r\n')).toBe(true);expect(toDxf([r])).toContain('AC1009');
+  expect(text).toContain('AC1018');expect(text).toContain('0\r\nHATCH\r\n');expect(text).toContain('100\r\nAcDbHatch\r\n');expect(text).toContain('91\r\n2\r\n');expect(text).toContain('53\r\n60\r\n');expect(text).toContain('0\r\nLWPOLYLINE\r\n');expect(text).toContain('0\r\nCIRCLE\r\n');expect(text.indexOf('HATCH')).toBeLessThan(text.indexOf('LWPOLYLINE'));expect(text.endsWith('0\r\nEOF\r\n')).toBe(true);expect(toDxf([r])).toContain('AC1018');
  });
  test('DXF béton : le décalage des grains tient compte de Y inversé, même hors des motifs symétriques',()=>{
   const tags=hatchDxf(hatch([rect()],undefined,{pattern:'CONCRETE'}),'0','100');let grain=-1;for(let i=0;i<tags.length;i+=2)if(tags[i]===53&&tags[i+1]===45)grain=i;expect(grain).toBeGreaterThan(0);

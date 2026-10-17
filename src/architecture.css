@@ -45,3 +45,10 @@ header .architecture-toolbar .other-tools-dots{position:absolute;left:50%;bottom
 .sidebar-section-content>.section-label:first-child{margin-top:8px}
 .sidebar-section-content .tool-description:first-child{margin-top:0}
 @media(prefers-reduced-motion:reduce){.sidebar-section-heading svg{transition:none}}
+
+.dimension-split-button{display:inline-flex;align-items:center;flex-shrink:0;border-radius:4px}
+.dimension-split-button.active{background:#2b443f}
+header .architecture-toolbar .dimension-split-button>button:first-child{border-radius:4px 0 0 4px}
+header .architecture-toolbar .dimension-split-button>.dimension-menu-trigger{width:14px;min-width:14px;padding:3px;border-left:0;border-radius:0 4px 4px 0}
+header .architecture-toolbar .dimension-menu-trigger svg{width:7px;height:5px}
+.dimension-tools-menu{min-width:248px}

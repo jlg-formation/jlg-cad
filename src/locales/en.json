@@ -439,5 +439,9 @@
   "Longueur de référence": "Reference length",
   "Nouvelle longueur": "New length",
   "Copier les objets": "Copy objects",
-  "Mise à l’échelle appliquée.": "Scale applied."
+  "Mise à l’échelle appliquée.": "Scale applied.",
+  "Dessiner": "Draw",
+  "Modifier": "Modify",
+  "Annoter": "Annotation",
+  "Choisir un outil de cotation": "Choose a dimension tool"
 }

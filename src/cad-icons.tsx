@@ -80,7 +80,22 @@ export const RectangleIcon = icon('rectangle', <><path d="M4 5h16v14H4z"/><Grip 
 export const TextIcon = icon('text', <><path d="m5 20 7-16 7 16M8 14h8"/><path d="M3 21h18" stroke={blue} strokeDasharray="2 2"/></>);
 export const ViewportIcon = icon('viewport', <><path d="M3 4h18v16H3z"/><path d="M7 8h10v8H7z" stroke={blue}/><Grip x={7} y={8}/><Grip x={17} y={16}/></>);
 export const BezierIcon = icon('bezier', <><path d="m9 7.5 6 9" stroke={blue}/><path d="M3 10C6 4 8 6 12 12S18 20 21 14"/><circle cx="9" cy="7.5" r="1" fill={blue} stroke="none"/><circle cx="15" cy="16.5" r="1" fill={blue} stroke="none"/><Grip x={3} y={10}/><Grip x={12} y={12}/><Grip x={21} y={14}/></>);
-export const DimensionIcon = icon('dimension', <><path d="M4 4v16M20 4v16M4 9h16M2 12l4-6m12 6 4-6"/><path d="M9 5h6" stroke={gold}/><Grip x={4} y={19}/><Grip x={20} y={19}/></>);
+export const DimensionIcon = icon('dimension', <>
+ <path d="m4 20 15-9M3 17l3 5M17 8l4 6" stroke={blue}/>
+ <path d="m3 10 14-8M3 10l4-.5M3 10l2.5-3.5M17 2l-2.5 3.5M17 2l-4 .5" stroke={gold}/>
+ <path d="m4 20-2-12m17 3-2-10" strokeWidth="1"/>
+</>);
+export const LinearDimensionIcon = icon('linear-dimension', <>
+ <path d="M4 13v8M20 13v8M4 20h16" stroke={blue}/>
+ <path d="M4 3v10M20 3v10" strokeWidth="1"/>
+ <path d="M4 7h16M4 7l3-2M4 7l3 2M20 7l-3-2M20 7l-3 2" stroke={gold}/>
+</>);
+export const DiameterDimensionIcon = icon('diameter-dimension', <>
+ <circle cx="12" cy="12" r="8" stroke={blue}/>
+ <path d="M3 21 21 3" stroke={gold}/>
+ <path d="m6.35 17.65 1-3.8m-1 3.8 3.8-1m7.5-10.3-3.8 1m3.8-1-1 3.8" stroke={gold}/>
+ <path d="M10.5 12h3M12 10.5v3" strokeWidth="1"/>
+</>);
 export const VisibleIcon = icon('visible', <><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3" stroke={blue}/></>);
 export const HiddenIcon = icon('hidden', <><path d="M3 9 2 12s4 7 10 7c2 0 4-1 6-3M7 6c7-4 13 3 15 6l-2 3" opacity=".65"/><path d="M3 3 21 21" stroke={gold}/></>);
 export const LockIcon = icon('lock', <><path d="M7 10V7a5 5 0 0 1 10 0v3"/><path d="M5 10h14v11H5z" fill={gold} fillOpacity=".2" stroke={gold}/><path d="M12 14v3"/></>);

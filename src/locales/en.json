@@ -392,5 +392,10 @@
   "Les arcs créés avec ARC ou importés depuis un DXF restent des arcs distincts des polylignes. Avec un arc source, JOIN accepte les arcs de même centre et rayon ; C puis Entrée ferme cet arc en cercle.": "Arcs created with ARC or imported from DXF remain distinct from polylines. With an arc source, JOIN accepts arcs with the same center and radius; C then Enter closes the source arc into a circle.",
   "Objet source trop petit ou dégénéré.": "Source object is too small or degenerate.",
   "Une hachure a été détachée : contour non valide.": "A hatch was detached: invalid boundary.",
-  "Jonction annulée.": "Join cancelled."
+  "Jonction annulée.": "Join cancelled.",
+  "Aucune commande à répéter": "No command to repeat",
+  "Espace": "Space",
+  "Répéter le dernier outil au repos": "Repeat the last tool when idle",
+  "Aucun raccourci disponible": "No shortcut available",
+  "Pendant une commande, les validations habituelles restent prioritaires.": "During a command, its usual confirmations take priority."
 }

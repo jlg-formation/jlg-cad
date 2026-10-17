@@ -47,6 +47,12 @@ Le site est publié sur https://jlg-formation.github.io/jlg-cad/ par GitHub Acti
 - Sauvegarder (Ctrl+S) télécharge un `.jlgcad` JSON versionné ; Ouvrir recharge ce format et importe les fichiers DXF texte 2D.
 - Une copie est automatiquement conservée dans le stockage de session de chaque onglet.
 
+## Répéter au clavier
+
+Au repos, **Entrée** ou **Espace** relance le dernier outil disponible, comme « Répéter » au clic droit. Cela fonctionne aussi dans la ligne de commande vide, palette fermée. La répétition demande de nouveaux points et reprend la sélection selon les règles habituelles de l’outil ; elle ne rejoue pas la géométrie précédente. Pendant une commande ou une saisie, les validations habituelles restent prioritaires. Un appui maintenu ne relance pas plusieurs fois l’outil.
+
+Les touches réaffectées à une autre action restent prioritaires ; le menu contextuel et l’aide indiquent les touches disponibles. L’historique reste propre à l’onglet et est réinitialisé après Nouveau ou une ouverture réussie.
+
 ## Clic droit
 
 Dans la zone de dessin, le clic droit ouvre un menu près du pointeur, adapté à la commande en cours ou à la sélection. Au repos : répéter le dernier outil de dessin, retrouver les huit outils récents, presse-papiers, annuler/rétablir et navigation. Avec une sélection : édition et propriétés ; les hachures et fenêtres de vue proposent aussi leurs actions spécifiques. Pendant une commande : options disponibles, fin ou sortie. Les polylignes proposent Ligne/Arc, retrait du dernier sommet et fermeture. Échap ferme le menu sans quitter la commande. Les flèches permettent de parcourir les actions. Aucun réglage supplémentaire ni clic temporisé.

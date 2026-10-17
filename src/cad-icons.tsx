@@ -47,7 +47,7 @@ export const JoinIcon = icon('join', <>
   <rect x="1" y="9.5" width="2" height="2"/>
   <rect x="11" y="9.5" width="2" height="2"/>
  </g>
- <path d="M7 14c0 3 1.5 4 4 4m-2-2 2 2-2 2" stroke={gold}/>
+ <path d="M2 19h8m-3-3 3 3-3 3" stroke={gold} strokeWidth="1.6"/>
  <path d="m17 13 5 9H12Z" stroke={blue} strokeLinejoin="round"/>
 </>);
 export const FilletIcon = icon('fillet', <><path d="M3 19h13V4"/><path d="M16 19h5M16 19v-6" stroke={gold}/><Grip x={16} y={19}/></>);

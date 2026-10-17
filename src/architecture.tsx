@@ -14,7 +14,7 @@ export const commandTools:Tool[]=['arc','offset','trim','extend','join','copy','
 export const tips:Partial<Record<Tool,string>>={
  arc:'Indiquez le point de départ, un point sur l’arc, puis le point final. Échap annule.',
  offset:'Saisissez la distance puis Entrée, sélectionnez un objet et cliquez du côté voulu. Entrée ou Échap quitte sans créer l’aperçu.',
- trim:'Cliquez sur le morceau à enlever. Les intersections délimitent la coupe. Répétez les clics pour nettoyer le plan.',
+ trim:'Cliquez sur un morceau ou maintenez le bouton gauche et balayez les morceaux à enlever. Relâchez pour valider ; Échap annule le geste.',
  extend:'Cliquez près de l’extrémité à prolonger jusqu’à une limite. Une Bézier se prolonge par sa tangente.',
  join:'Cliquez près des deux extrémités à raccorder. Les deux lignes sont ajustées à leur intersection (rayon 0).',
  copy:'Sélectionnez un objet, puis cliquez le point de base et sa destination, ou saisissez X/Y ci-dessous.',

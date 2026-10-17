@@ -125,7 +125,11 @@ export function trimShape(shape:Shape,boundaries:Shape[],click:Point,preview=fal
  if(shape.type==='text')throw new Error('Cette opération ne s’applique pas aux textes.');
  if(shape.type==='hatch')throw new Error('Cette opération ne s’applique pas aux hachures. Modifiez leur contour.');
  if(shape.type==='dimension')throw new Error('Les cotations ne se découpent pas.');
- const all=segments(shape),hit=nearestPart(shape,click);if(!hit)throw new Error('Aucun segment à ajuster.');
+ const hit=nearestPart(shape,click);if(!hit)throw new Error('Aucun segment à ajuster.');
+ return trimPositions(shape,boundaries,[hit.index+hit.t],preview);
+}
+function trimPositions(shape:Shape,boundaries:Shape[],positions:number[],preview=false,strict=false):Shape[]{
+ const all=segments(shape);
  const closed=shape.type==='circle'||shape.type==='rect'||('closed'in shape&&shape.closed);
  const limiting=boundaries.filter(s=>s.id!==shape.id&&s.type!=='dimension'&&s.type!=='hatch').flatMap(segments),count=all.length;
  const external=all.flatMap((s,i)=>limiting.flatMap(b=>intersections(s,b)).map(p=>i+closestSegment(p,s).t));
@@ -144,13 +148,43 @@ export function trimShape(shape:Shape,boundaries:Shape[],click:Point,preview=fal
  const cuts=raw.filter((t,i)=>!i||Math.abs(t-raw[i-1])>1e-6);
  if(!cuts.length)throw new Error('Aucune intersection : choisissez une limite de coupe.');
  if(closed&&cuts.length<2)throw new Error('Deux intersections sont nécessaires pour découper ce contour fermé.');
- const position=hit.index+hit.t;
- const lo=[...cuts].reverse().find(t=>t<=position+EPS)??(closed?cuts[cuts.length-1]-count:0);
- const hi=cuts.find(t=>t>position+EPS)??(closed?cuts[0]+count:count);
  const slice=(from:number,to:number)=>{const ss:Segment[]=[];for(let i=Math.floor(from);i<Math.ceil(to);i++){const a=Math.max(0,from-i),b=Math.min(1,to-i);if(b-a>EPS)ss.push(portion(all[(i%count+count)%count],a,b));}return ss;};
- if(preview)return[shapeFromSegments(shape,slice(lo,hi))];
- const parts=closed?[slice(hi,lo+count)]:[slice(0,lo),slice(hi,count)];
+ const ranges:[number,number][]=[];
+ for(const position of positions){
+  if(strict&&cuts.some(t=>Math.abs(t-position)<1e-6))continue;
+  const lo=[...cuts].reverse().find(t=>t<=position+EPS)??(closed?cuts[cuts.length-1]-count:0);
+  const hi=cuts.find(t=>t>position+EPS)??(closed?cuts[0]+count:count);
+  if(lo<0)ranges.push([0,hi],[lo+count,count]);
+  else if(hi>count)ranges.push([lo,count],[0,hi-count]);
+  else ranges.push([lo,hi]);
+ }
+ ranges.sort((a,b)=>a[0]-b[0]);
+ const merged:[number,number][]=[];
+ for(const range of ranges){const last=merged.at(-1);if(last&&range[0]<=last[1]+EPS)last[1]=Math.max(last[1],range[1]);else merged.push([...range]);}
+ const kept:[number,number][]=[];let end=0;
+ for(const [lo,hi] of merged){if(lo>end+EPS)kept.push([end,lo]);end=hi;}if(end<count-EPS)kept.push([end,count]);
+ const result=preview?merged:kept;
+ if(closed&&result.length>1&&result[0][0]<EPS&&result.at(-1)![1]>count-EPS){const first=result.shift()!,last=result.pop()!;result.push([last[0],first[1]+count]);}
+ const parts=result.map(([lo,hi])=>slice(lo,hi));
  return parts.filter(ss=>ss.length&&ss.some(s=>distance(s.a,s.b)>EPS||s.kind!=='line')).map((ss,i)=>({...shapeFromSegments(shape,ss),id:i?crypto.randomUUID():shape.id}));
+}
+
+export type TrimSweepResult={sourceId:string;remaining:Shape[];removed:Shape[]};
+/** Every cut uses the original drawing; returning over a portion never cuts it twice. */
+export function trimSweep(shapes:Shape[],boundaries:Shape[],points:Point[],edges?:Point[][]):TrimSweepResult[]{
+ const fence:Segment[]=(edges||points.slice(1).map((p,i)=>[points[i],p])).flatMap(([a,b])=>distance(a,b)>EPS?[{kind:'line' as const,a,b}]:[]);
+ return shapes.filter(s=>!['text','dimension','hatch'].includes(s.type)).flatMap(shape=>{
+  const all=segments(shape);
+  const positions=all.flatMap((segment,index)=>fence.flatMap(line=>intersections(segment,line).flatMap(p=>{
+   const t=closestSegment(p,segment).t;
+   const tangent=sub(at(segment,Math.min(1,t+1e-5)),at(segment,Math.max(0,t-1e-5)));
+   return (shape.type==='circle'||t>EPS&&t<1-EPS)&&Math.abs(cross(tangent,sub(line.b,line.a)))>1e-4*Math.hypot(tangent.x,tangent.y)*distance(line.a,line.b)?[(index+t)%all.length]:[];
+  })));
+  if(!positions.length)return[];
+  const unambiguous=positions;
+  if(!unambiguous.length)return[];
+  try{const removed=trimPositions(shape,boundaries,unambiguous,true,true);return removed.length?[{sourceId:shape.id,removed,remaining:trimPositions(shape,boundaries,unambiguous,false,true)}]:[];}catch{return[];}
+ });
 }
 export function extendShape(shape:Shape,boundaries:Shape[],click:Point):Shape {
  if(shape.type==='text')throw new Error('Cette opération ne s’applique pas aux textes.');

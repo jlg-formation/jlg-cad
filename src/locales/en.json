@@ -352,5 +352,6 @@
   "Position Y": "Position Y",
   "Répéter": "Repeat",
   "Langue d’affichage des commandes": "Command display language",
-  "La langue d’affichage des commandes ne modifie jamais les alias ni les raccourcis clavier.": "The command display language never changes aliases or keyboard shortcuts."
+  "La langue d’affichage des commandes ne modifie jamais les alias ni les raccourcis clavier.": "The command display language never changes aliases or keyboard shortcuts.",
+  "Cliquez sur un morceau ou maintenez le bouton gauche et balayez les morceaux à enlever. Relâchez pour valider ; Échap annule le geste.": "Click a portion or hold the left button and sweep across portions to remove. Release to apply; Escape cancels the gesture."
 }

@@ -8,6 +8,28 @@ L’objectif produit principal est de remplacer AutoCAD dans son travail quotidi
 
 ## Démarrer
 
+Avec [mise](https://mise.jdx.dev/) installé, le fichier `mise.toml` fixe les versions de Bun et Node :
+
+```sh
+mise trust
+mise install
+mise run dev
+```
+
+Les tâches installent automatiquement les dépendances avec le fichier de verrouillage. `mise tasks` affiche les commandes disponibles :
+
+| Tâche | Usage |
+| --- | --- |
+| `mise run install` | Installer les dépendances verrouillées |
+| `mise run dev` | Démarrer le serveur de développement |
+| `mise run test` | Exécuter les tests |
+| `mise run build` | Vérifier TypeScript et compiler dans `dist` |
+| `mise run preview` | Compiler puis prévisualiser le site |
+| `mise run check:dxf` | Vérifier les échanges DXF ; fichiers produits dans `artifacts/dxf-roundtrip` |
+| `mise run check` | Exécuter toutes les vérifications (tests, compilation, DXF) |
+
+Ou directement avec Bun :
+
 ```sh
 bun install
 bun run dev

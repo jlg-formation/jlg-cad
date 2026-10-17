@@ -1,10 +1,61 @@
 import {describe,test,expect} from 'bun:test';
-import {objectGrips,moveGrip} from '../src/grips';
-import {distance,snapPoint} from '../src/geometry';
+import {objectGrips,moveGrip,gripLengthOrigin,gripLengthFactor} from '../src/grips';
+import {lineEndpoint} from '../src/drafting';
+import {distance,snapPoint,segments} from '../src/geometry';
 import type {Shape,PathShape} from '../src/model';
 const line:Shape={id:'l',type:'line',a:{x:0,y:0},b:{x:100,y:0},color:'#fff'};
 const path:PathShape={...line,type:'polyline',b:{x:100,y:100},closed:false,nodes:[{p:{x:0,y:0}},{p:{x:100,y:0}},{p:{x:100,y:100}}]};
 describe('Poignées de modification',()=>{
+ test('une longueur saisie est la longueur totale depuis le point fixe, pour les deux extrémités',()=>{
+  for(const key of ['vertex-0','vertex-1']){
+   const fixed=gripLengthOrigin(line,key)!;
+   const edited=moveGrip(line,key,lineEndpoint(fixed,{x:fixed.x,y:fixed.y+40},'0,25 m','mm',true));
+   expect(distance(edited.a,edited.b)).toBeCloseTo(250);
+   expect(key==='vertex-0'?edited.b:edited.a).toEqual(fixed);
+   const moved=key==='vertex-0'?edited.a:edited.b;
+   expect(moved.x).toBeCloseTo(fixed.x,8);
+   expect(moved.y).toBeCloseTo(fixed.y+250,8);
+  }
+  expect(gripLengthOrigin(line,'segment-0')).toBeUndefined();
+  expect(gripLengthOrigin(path,'vertex-1')).toEqual(path.nodes[0].p);
+  expect(line.b).toEqual({x:100,y:0});
+ });
+ test('longueurs précises aux extrémités et au sommet intérieur d’une polyligne',()=>{
+  for(const key of ['vertex-0','vertex-1','vertex-2']){
+   const origin=gripLengthOrigin(path,key)!;
+   const end=lineEndpoint(origin,{x:origin.x,y:origin.y+1},'25 cm','mm',true);
+   const result=moveGrip(path,key,end) as PathShape;
+   const index=Number(key.slice(7));
+   expect(distance(origin,result.nodes[index].p)).toBeCloseTo(250);
+   for(let i=0;i<path.nodes.length;i++)if(i!==index)expect(result.nodes[i]).toEqual(path.nodes[i]);
+  }
+  expect(gripLengthOrigin({...path,closed:true},'vertex-0')).toEqual(path.nodes[2].p);
+ });
+ test('la distance de la poignée du milieu translate les deux sommets sans changer la longueur',()=>{
+  const origin=gripLengthOrigin(path,'segment-0')!;
+  const end=lineEndpoint(origin,{x:50,y:10},'2 cm','mm',true);
+  const result=moveGrip(path,'segment-0',end) as PathShape;
+  expect(result.nodes.map(n=>n.p)).toEqual([{x:0,y:20},{x:100,y:20},{x:100,y:100}]);
+  expect(distance(result.nodes[0].p,result.nodes[1].p)).toBe(100);
+ });
+ test('la longueur d’un segment courbe tient compte de l’arc et non de sa corde',()=>{
+  const curved:PathShape={...path,nodes:[{p:{x:0,y:0},bulge:1},{p:{x:100,y:0}}],b:{x:100,y:0}};
+  const origin=gripLengthOrigin(curved,'vertex-1')!;
+  const end=lineEndpoint(origin,{x:1,y:0},`${200/gripLengthFactor(curved,'vertex-1')} mm`,'mm',false);
+  const result=moveGrip(curved,'vertex-1',end) as PathShape;
+  const arc=segments(result)[0];
+  expect(arc.kind).toBe('arc');
+  if(arc.kind==='arc')expect(arc.radius*Math.abs(arc.sweep)).toBeCloseTo(200);
+ });
+ test('les poignées du milieu suivent la direction des segments et les sommets restent carrés',()=>{
+  const diagonal:PathShape={...path,nodes:[...path.nodes,{p:{x:150,y:150}}],b:{x:150,y:150}};
+  const grips=objectGrips(diagonal);
+  expect(grips.filter(g=>g.kind==='segment').map(g=>g.angle)).toEqual([0,90,45]);
+  expect(grips.filter(g=>g.kind==='vertex').every(g=>g.angle===undefined)).toBe(true);
+  const curved:PathShape={...path,nodes:[{p:{x:0,y:0},bulge:1},{p:{x:100,y:0}}],b:{x:100,y:0}};
+  const angle=objectGrips(curved).find(g=>g.kind==='segment')!.angle!;
+  expect(Math.abs(Math.sin(angle*Math.PI/180))).toBeCloseTo(0);
+ });
  test('affiche extrémités, sommets et milieux sans doublon de fermeture',()=>{
   expect(objectGrips(line).length).toBe(3);expect(objectGrips(path).length).toBe(5);
   expect(objectGrips({...path,closed:true}).length).toBe(6);

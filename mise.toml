@@ -1,0 +1,36 @@
+[tools]
+bun = "1.4.2"
+node = "26.11.1"
+
+[tasks.install]
+description = "Installer les dépendances verrouillées"
+run = "bun install --frozen-lockfile"
+
+[tasks.dev]
+description = "Démarrer le serveur de développement"
+depends = ["install"]
+run = "bun run dev"
+
+[tasks.test]
+description = "Exécuter les tests"
+depends = ["install"]
+run = "bun test"
+
+[tasks.build]
+description = "Vérifier TypeScript et compiler le site dans dist"
+depends = ["install"]
+run = "bun run build"
+
+[tasks.preview]
+description = "Compiler puis prévisualiser le site"
+depends = ["build"]
+run = "bun run preview"
+
+[tasks."check:dxf"]
+description = "Vérifier les échanges DXF et produire les fichiers dans artifacts/dxf-roundtrip"
+depends = ["install"]
+run = "bun run scripts/check-dxf-roundtrip.ts"
+
+[tasks.check]
+description = "Exécuter les tests, la compilation et la vérification DXF"
+depends = ["test", "build", "check:dxf"]

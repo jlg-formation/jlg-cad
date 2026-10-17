@@ -45,6 +45,17 @@ Le site est publié sur https://jlg-formation.github.io/jlg-cad/ par GitHub Acti
 - Sauvegarder (Ctrl+S) télécharge un `.jlgcad` JSON versionné ; Ouvrir recharge ce format et importe les fichiers DXF texte 2D.
 - Une copie est automatiquement conservée dans le stockage de session de chaque onglet.
 
+## Clic droit
+
+Dans la zone de dessin, le clic droit ouvre un menu près du pointeur, adapté à la commande en cours ou à la sélection. Au repos : répéter le dernier outil de dessin, retrouver les huit outils récents, presse-papiers, annuler/rétablir et navigation. Avec une sélection : édition et propriétés ; les hachures et fenêtres de vue proposent aussi leurs actions spécifiques. Pendant une commande : options disponibles, fin ou sortie. Les polylignes proposent Ligne/Arc, retrait du dernier sommet et fermeture. Échap ferme le menu sans quitter la commande. Les flèches permettent de parcourir les actions. Aucun réglage supplémentaire ni clic temporisé.
+
+## Langues
+
+**Paramètres → Language** permet de choisir Français ou English. Le choix est appliqué immédiatement, conservé sur cet appareil et partagé entre les onglets du site, sans modifier le dessin. Le français reste la valeur par défaut. La première étape couvre les principaux menus, outils, propriétés, paramètres, le menu contextuel et de nombreuses instructions de dessin. Le réglage indépendant « Langue d’affichage des commandes » choisit les noms anglais ou français, toujours en majuscules (anglais par défaut). Il s’applique aux outils, à la palette et aux commandes des menus, y compris Répéter. Changer l’une ou l’autre langue ne modifie jamais les alias ni les raccourcis existants ou personnalisés. Les noms affichés des deux langues restent acceptés à la saisie. Les distances utilisent la virgule en français et le point en anglais, sans conversion de la géométrie.
+
+La traduction est centralisée dans src/locales/en.json. Les textes non encore traduits gardent leur version française, notamment les longs guides d’aide et certains diagnostics techniques. Les noms et textes des dessins ne sont pas traduits.
+
+
 ## Formats et limites
 
 Le format natif version 6 conserve le dessin, les chemins, les cotations, les hachures et leurs liaisons aux contours, les calques et les présentations. Les fichiers versions 1 à 5 sont migrés à l’ouverture. Les unités sont des millimètres. Les coordonnées affichées dans l’espace objet utilisent Y vers le haut, comme le DXF.

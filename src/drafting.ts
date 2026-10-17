@@ -1,3 +1,4 @@
+import {getLanguage} from './i18n';
 import {constrainedEnd,parseLength} from './geometry';
 import type {Point,Node} from './model';
 export function closedPolylineNodes(nodes:Node[]):Node[]{
@@ -13,7 +14,7 @@ export function radiusEndpoint(center:Point,text:string,unit:LengthUnit):Point{
 }
 export const unitFactor:Record<LengthUnit,number>={m:1000,cm:10,mm:1};
 export function readUnit(raw:string|null):LengthUnit{return raw==='cm'||raw==='mm'?raw:'m';}
-export function displayDistance(mm:number,unit:LengthUnit){return Number((mm/unitFactor[unit]).toFixed(4)).toLocaleString('fr-FR',{maximumFractionDigits:4,useGrouping:false});}
+export function displayDistance(mm:number,unit:LengthUnit){return Number((mm/unitFactor[unit]).toFixed(4)).toLocaleString(getLanguage()==='en'?'en-GB':'fr-FR',{maximumFractionDigits:4,useGrouping:false});}
 export function lengthInMillimeters(text:string,unit:LengthUnit){return text.trim()?`${parseLength(text,unit)} mm`:'';}
 export function exactEndpoint(start:Point,pointer:Point,text:string,unit:LengthUnit,ortho:boolean,polar=0,angle=''):Point{
  const length=parseLength(text,unit);

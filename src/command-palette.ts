@@ -1,3 +1,5 @@
+import {commandNames} from './command-language';
+import {translate} from './i18n';
 import {draftingCommands} from './drafting';
 import {commands, type Bindings} from './shortcuts';
 
@@ -11,7 +13,7 @@ export const paletteCommands:PaletteCommand[]=[
  ...Object.entries({start:'Guide de démarrage',hatch:'Hachures — guide en 2 minutes',draw:'Dessiner et modifier un plan',grid:'Grille et accrochage',paper:'Espace papier et PDF',formats:'Formats et limites',about:'À propos de JLG CAD'}).map(([id,label])=>({id:'help:'+id,name:'AIDE '+id.toUpperCase(),label,aliases:[]})),
 ];
 const normalize=(value:string)=>value.trim().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase();
-const names=(c:PaletteCommand,bindings:Bindings)=>[c.name,...c.aliases,...(bindings[c.id]||[]).filter(k=>/^[A-Z]+$/.test(k)),c.label].map(normalize);
+const names=(c:PaletteCommand,bindings:Bindings)=>[c.name,...c.aliases,...(bindings[c.id]||[]).filter(k=>/^[A-Z]+$/.test(k)),c.label,translate(c.label,'en'),...(commandNames[c.id]||[])].map(normalize);
 
 // Ordered subsequence matching: exact aliases and prefixes always win.
 export function fuzzyScore(query:string,value:string):number{

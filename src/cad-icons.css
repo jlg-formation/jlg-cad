@@ -1,4 +1,4 @@
 .cad-icon{display:inline-block;flex-shrink:0;vertical-align:middle;pointer-events:none}
 /* Keep coloured details subdued together with the surrounding disabled control. */
 button:disabled .cad-icon{opacity:.45}
-@media (forced-colors:active){.cad-icon{--cad-icon-blue:currentColor;--cad-icon-gold:currentColor;--cad-icon-paper:Canvas;--cad-icon-paper-edge:currentColor}}
+@media (forced-colors:active){.cad-icon{--cad-icon-blue:currentColor;--cad-icon-gold:currentColor;--cad-icon-copy-arrow:currentColor;--cad-icon-paper:Canvas;--cad-icon-paper-edge:currentColor}}

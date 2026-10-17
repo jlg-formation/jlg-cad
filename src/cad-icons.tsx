@@ -25,7 +25,19 @@ export const CircleIcon = icon('circle', <><circle cx="12" cy="12" r="8.5"/><pat
 export const ArcIcon = icon('arc', <><path d="M4 20A16 16 0 0 1 20 4"/><Grip x={4} y={20}/><Grip x={8.7} y={8.7}/><Grip x={20} y={4}/></>);
 export const TrimIcon = icon('trim', <><path d="M8 3v18" stroke={blue}/><path d="M3 16 8 13.5"/><path d="m8 13.5 13-6.5" stroke={gold} strokeDasharray="2 2"/><path d="m13 14 5 5m0-5-5 5" stroke={gold}/><Grip x={8} y={13.5}/></>);
 export const MoveIcon = icon('move', <><path d="M12 3v18M3 12h18M9 6l3-3 3 3M9 18l3 3 3-3M6 9l-3 3 3 3M18 9l3 3-3 3"/><Grip x={12} y={12}/></>);
-export const CopyIcon = icon('copy', <><path d="M4 8V4h10v4M4 8v6h4" opacity=".65"/><path d="M10 10h10v10H10z"/><path d="m6 18 3-3m-3 0h3v3" stroke={gold}/><Grip x={10} y={10}/><Grip x={20} y={20}/></>);
+export const CopyIcon = icon('copy', <>
+ <circle cx="6.5" cy="6" r="3.75"/>
+ <path d="M13 3.5h5.5v5" stroke="var(--cad-icon-copy-arrow, #ffd447)" strokeWidth="1.6"/>
+ <path d="m15.5 8 3 4 3-4Z" fill="var(--cad-icon-copy-arrow, #ffd447)" stroke="none"/>
+ <g stroke={blue} strokeWidth="1.65">
+  <path d="M15.25 13.35a4.5 4.5 0 1 1 0 8.3"/>
+  <circle cx="10" cy="17.5" r="4.5"/>
+ </g>
+</>);
+export const CopyResultIcon = icon('copy-result', <>
+ <path d="M9 8V5a3 3 0 0 1 3-3h6a3 3 0 0 1 3 3v7a3 3 0 0 1-3 3h-3"/>
+ <rect x="3" y="8" width="12" height="14" rx="3"/>
+</>);
 export const PasteIcon = icon('paste', <><path d="M8 5H5v16h13v-5M15 5h3v4"/><path d="M9 3h5v4H9z" fill={gold} stroke={gold}/><path d="M12 11h9v9h-9z" fill="var(--cad-icon-paper, #dce5ed)" stroke="var(--cad-icon-paper-edge, #8ba1b2)"/><path d="M14 14h5m-5 3h4" stroke="#536979"/></>);
 export const LayersIcon = icon('layers', <><path d="m3 16 9 5 9-5" stroke={blue}/><path d="m3 11 9 5 9-5"/><path d="m3 7 9-4 9 4-9 5z" fill="currentColor" fillOpacity=".16"/><path d="M18 14v6m-3-3h6" stroke={gold}/></>);
 

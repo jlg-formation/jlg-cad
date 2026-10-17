@@ -1,0 +1,9 @@
+.measurement-result{position:absolute;z-index:12;box-sizing:border-box;width:280px;max-width:calc(100% - 16px);max-height:calc(100% - 16px);overflow:auto;padding:14px;color:#e3edf1;background:#17242a;border:1px solid #49606b;border-radius:8px;box-shadow:0 8px 28px #0008;color-scheme:dark}
+.measurement-result .measurement-result-header{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:12px}
+.measurement-result .measurement-result-header div{display:flex;gap:4px}
+.measurement-result button{display:grid;place-items:center;min-width:30px;min-height:30px;padding:5px;background:#22343d;color:#e3edf1;border:1px solid #49606b;border-radius:4px;cursor:pointer}
+.measurement-result button:hover{background:#344d59}
+.measurement-result button:focus-visible{outline:2px solid #a6e0cf;outline-offset:2px}
+.measurement-result output{display:block;margin-top:12px;white-space:pre-line;font:12px/1.9 'IBM Plex Mono',monospace;color:#a6e0cf;overflow-wrap:anywhere}
+.measurement-feedback{display:block;font-size:11px;color:#d1dde3}
+.measurement-feedback:not(:empty){margin-top:8px}

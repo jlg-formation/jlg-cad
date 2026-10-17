@@ -8,7 +8,7 @@ export const paletteCommands:PaletteCommand[]=[
  ...commands.map(([id,label])=>draftingCommands.find(c=>c.id===id)||{id,name:id.toUpperCase(),label,aliases:[]}),
  {id:'zoom',name:'ZOOM',label:'Navigation du dessin',aliases:['Z']},
  {id:'settings',name:'PARAMETRES',label:'Paramètres de l’application',aliases:['CONFIGURATION']},
- {id:'properties',name:'PROPRIETES',label:'Afficher / masquer les propriétés',aliases:[]},
+ {id:'properties',name:'PROPRIETES',label:'Afficher / masquer la barre de droite',aliases:['BARRE','SIDEBAR']},
  {id:'addLayout',name:'PRESENTATION',label:'Ajouter une présentation',aliases:['LAYOUT']},
  ...Object.entries({start:'Guide de démarrage',hatch:'Hachures — guide en 2 minutes',draw:'Dessiner et modifier un plan',grid:'Grille et accrochage',paper:'Espace papier et PDF',formats:'Formats et limites',about:'À propos de JLG CAD'}).map(([id,label])=>({id:'help:'+id,name:'AIDE '+id.toUpperCase(),label,aliases:[]})),
 ];

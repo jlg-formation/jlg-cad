@@ -427,5 +427,17 @@
   "Espace": "Space",
   "Répéter le dernier outil au repos": "Repeat the last tool when idle",
   "Aucun raccourci disponible": "No shortcut available",
-  "Pendant une commande, les validations habituelles restent prioritaires.": "During a command, its usual confirmations take priority."
+  "Pendant une commande, les validations habituelles restent prioritaires.": "During a command, its usual confirmations take priority.",
+  "Angle de rotation": "Rotation angle",
+  "Entrée : valider · Échap : annuler": "Enter: confirm · Escape: cancel",
+  "Choisissez le point de base.": "Choose the base point.",
+  "Sélectionnez des objets à tourner.": "Select objects to rotate.",
+  "Sélectionnez un objet à tourner.": "Select an object to rotate.",
+  "Rotation appliquée.": "Rotation applied.",
+  "Saisissez l’angle puis Entrée, ou indiquez la direction et cliquez.": "Enter an angle and press Enter, or indicate a direction and click.",
+  "Facteur d’échelle": "Scale factor",
+  "Longueur de référence": "Reference length",
+  "Nouvelle longueur": "New length",
+  "Copier les objets": "Copy objects",
+  "Mise à l’échelle appliquée.": "Scale applied."
 }

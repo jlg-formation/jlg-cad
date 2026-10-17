@@ -110,3 +110,5 @@ export const DownloadIcon = icon('download', <><path d="M4 16v5h16v-5"/><path d=
 export const FileIcon = icon('file', <><path d="M5 3h9l5 5v13H5zM14 3v5h5"/><path d="M8 12h8m-8 4h6" stroke={blue}/></>);
 export const SettingsIcon = icon('settings', <><path d="m9 3-.5 3-2 1-3-.5-2 4 2.5 2v2L2 17l2 4 3-.5 2 1L10 23h4l1-2.5 2-1 3 .5 2-4-2.5-2v-2L22 10l-2-4-3 .5-2-1L14 3Z" transform="translate(1 -1) scale(.92)"/><circle cx="12" cy="11" r="3.5" stroke={blue}/></>);
 export const HelpIcon = icon('help', <><circle cx="12" cy="12" r="9"/><path d="M9 8a3 3 0 1 1 4 3c-1 1-1 2-1 3" stroke={blue}/><Grip x={12} y={17}/></>);
+
+export const ScaleIcon = icon('scale', <><path d="M3 14h7v7H3z" stroke={blue}/><path d="M3 3h18v18H3z" strokeDasharray="2 2"/><path d="m10 14 10-10m-6 0h6v6" stroke={gold}/><Grip x={3} y={21}/></>);

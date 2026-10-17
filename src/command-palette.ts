@@ -5,7 +5,7 @@ import {commands, type Bindings} from './shortcuts';
 
 export type PaletteCommand={id:string;name:string;label:string;aliases:readonly string[]};
 export const paletteCommands:PaletteCommand[]=[
- ...commands.map(([id,label])=>draftingCommands.find(c=>c.id===id)||{id,name:id.toUpperCase(),label,aliases:[]}),
+ ...commands.map(([id,label])=>draftingCommands.find(c=>c.id===id)||(id==='scale'?{id,name:'SCALE',label,aliases:['SC','ECHELLE']}:undefined)||{id,name:id.toUpperCase(),label,aliases:[]}),
  {id:'zoom',name:'ZOOM',label:'Navigation du dessin',aliases:['Z']},
  {id:'settings',name:'PARAMETRES',label:'Paramètres de l’application',aliases:['CONFIGURATION']},
  {id:'properties',name:'PROPRIETES',label:'Afficher / masquer la barre de droite',aliases:['BARRE','SIDEBAR']},

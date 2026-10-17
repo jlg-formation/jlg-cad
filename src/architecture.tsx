@@ -1,10 +1,11 @@
 import {commandName} from './command-language';
 import {t as tr} from './i18n';
 import { useContext, useEffect, useRef, useState } from 'react';
-import { MousePointer2, Hand, ArrowRightLeft, Scissors, MoveRight, CornerDownRight, Copy, Move, RotateCw, FlipHorizontal, Ruler, Circle, Square, Type, PanelsTopLeft, Minus, Spline, Waypoints, PenLine, Eye, EyeOff, Lock, Unlock, Plus, Trash2, PaintBucket } from 'lucide-react';
+import {SelectIcon as MousePointer2, PanIcon as Hand, OffsetIcon as ArrowRightLeft, ExtendIcon as MoveRight, JoinIcon as CornerDownRight, RotateIcon as RotateCw, MirrorIcon as FlipHorizontal, MeasureIcon as Ruler, RectangleIcon as Square, TextIcon as Type, ViewportIcon as PanelsTopLeft, BezierIcon as Spline, DimensionIcon as PenLine, VisibleIcon as Eye, HiddenIcon as EyeOff, LockIcon as Lock, UnlockIcon as Unlock, AddIcon as Plus, DeleteIcon as Trash2, HatchIcon as PaintBucket} from './cad-icons';
 import { type Drawing, type PathShape, type Shape, type Point, lockedShape } from './model';
 import { parseLength, parseAngle, moveNode, insertNode, deleteNode, smoothNodes, syncPath, distance, constrainedEnd } from './geometry';
 import './architecture.css';
+import {LineIcon as Minus, PolylineIcon as Waypoints, CircleIcon as Circle, ArcIcon, TrimIcon as Scissors, CopyIcon as Copy, MoveIcon as Move} from './cad-icons';
 import {UnitContext} from './units';
 import {displayDistance} from './drafting';
 
@@ -29,7 +30,6 @@ export const tips:Partial<Record<Tool,string>>={
  diameter:'Cliquez un cercle puis placez sa cote de diamètre (Ø). La cote suit les modifications du cercle.',
  dimension:'Cliquez un cercle puis placez sa cote de diamètre (Ø). Pour une cote linéaire, cliquez deux points puis placez la ligne de cote.',
 };
-function ArcIcon({size=18}:{size?:number}){return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true"><path d="M4 19A9 9 0 0 1 20 19"/><rect x="3" y="18" width="2" height="2"/><rect x="11" y="5" width="2" height="2"/><rect x="19" y="18" width="2" height="2"/></svg>;}
 export function ArchitectureToolbar({tool,onTool,shortcut,paper=false}:{tool:Tool;onTool:(t:Tool)=>void;shortcut:(id:string)=>string;paper?:boolean}) {
  const groups=paper?[[['line',Minus],['rect',Square],['circle',Circle],['text',Type],['viewport',PanelsTopLeft],['hatch',PaintBucket]],[['select',MousePointer2],['pan',Hand]]] as const:[[['polyline',Waypoints],['circle',Circle],['line',Minus],['bezier',Spline],['dimension',PenLine],['arc',ArcIcon],['rect',Square],['hatch',PaintBucket],['text',Type]],[['offset',ArrowRightLeft],['trim',Scissors],['extend',MoveRight],['join',CornerDownRight],['copy',Copy],['move',Move],['rotate',RotateCw],['mirror',FlipHorizontal],['measure',Ruler]],[['select',MousePointer2],['pan',Hand]]] as const;
  return <nav className="architecture-toolbar" aria-label={tr("Outils d’architecture")}>{groups.map((tools,index)=><span className="architecture-tool-group" role="group" aria-label={tr(index===0?"Créer des objets":index===groups.length-1?"Sélection et navigation":"Opérations sur les objets")} key={index}>{tools.map(([t,Icon])=><button key={t} aria-label={commandName(t,labels[t])} className={tool===t||t==='dimension'&&tool==='linearDimension'?'active':''} onClick={()=>onTool(t)} title={commandName(t,labels[t])+(shortcut(t)?' — '+shortcut(t):'')}><Icon size={18}/></button>)}</span>)}</nav>;

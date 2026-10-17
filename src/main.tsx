@@ -1,3 +1,4 @@
+import {LayersIcon as Layers} from './cad-icons';
 import {isTrimDrag,clipTrimEdge} from './trim-gesture';
 import {commandName,useCommandLanguage,setCommandLanguage} from './command-language';
 import {t,useLanguage,setLanguage,type Language} from './i18n';
@@ -13,7 +14,7 @@ import {StatusPrecision,objectSnapKinds} from './status-precision';
 import {synchronizeDrawing,detachDimension} from './associations';
 import React, { useEffect, useRef, useState, useId, useMemo } from 'react';
 import { createRoot } from 'react-dom/client';
-import { ChevronLeft, ChevronRight, Minus, FolderOpen, Download, Trash2, Maximize, Plus, Layers, FileText, Settings as SettingsIcon } from 'lucide-react';
+import {ChevronLeftIcon as ChevronLeft, ChevronRightIcon as ChevronRight, MinusIcon as Minus, FolderIcon as FolderOpen, DownloadIcon as Download, DeleteIcon as Trash2, FitViewIcon as Maximize, AddIcon as Plus, FileIcon as FileText, SettingsIcon as SettingsIcon} from './cad-icons';
 import { documentOf, toDxf, bounds,textLineOffset, modelToPaper, paperToModel, paperSize, newLayout, nextLayoutName, layoutDisplayName, fitViewport, visibleShapes, lockedShape, type Drawing, type Layout, type Point, type Shape, type PaperItem, type Viewport, type Node, type PathShape, type HatchStyle, type HatchShape, type HatchRegion } from './model';
 import { ArchitectureToolbar, CommandPanel, PathEditor, LayerPanel, LineEditor, UnitInput, labels, initialSettings, commandTools, tips, type Tool } from './architecture';
 import { threePointArc, parseLength as parseDistance, parseAngle, distance, sub, dot, cross, add, mul, constrainedEnd, snapPoint, nearestPart, trimShape, trimSweep, type TrimSweepResult, extendShape, offsetShape, joinCorner, translateItem, rotateShape, mirrorShape, svgPath, mapItem, moveNode, smoothNodes, diameterDimension, linearDimension, dimensionGeometry, type Snap } from './geometry';

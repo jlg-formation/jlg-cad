@@ -1,6 +1,6 @@
 import {commandName} from './command-language';
 import {t} from './i18n';
-import {CircleHelp} from 'lucide-react';
+import {HelpIcon as CircleHelp} from './cad-icons';
 import {useEffect,useRef,useState,type ReactNode} from 'react';
 import {chord,commands,conflict,defaults,reserved,type Bindings} from './shortcuts';
 import './menus.css';

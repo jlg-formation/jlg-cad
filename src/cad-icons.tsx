@@ -16,6 +16,10 @@ function icon(name:string, drawing:ReactNode):CadIconComponent {
 }
 
 export const LineIcon = icon('line', <><path d="M4 20 20 4"/><Grip x={4} y={20}/><Grip x={20} y={4}/></>);
+export const OtherToolsIcon = icon('other-tools', <>
+ <g stroke={gold} transform="rotate(45 12 12)"><rect x="10" y="1" width="4" height="7" rx="1"/><path d="M12 8v11m-1 0v3h2v-3"/></g>
+ <g transform="rotate(-45 12 12)"><path d="M5 5h3.8A2 2 0 0 0 10.8 3H18v4H5Z"/><path d="M10.85 7v14h2.3V7"/></g>
+</>);
 export const PolylineIcon = icon('polyline', <><path d="M3 18h8l3-12h7"/><Grip x={3} y={18}/><Grip x={11} y={18}/><Grip x={14} y={6}/><Grip x={21} y={6}/></>);
 export const CircleIcon = icon('circle', <><circle cx="12" cy="12" r="8.5"/><path d="m12 12 6-6" stroke={blue}/><Grip x={12} y={12}/><Grip x={18} y={6}/></>);
 export const ArcIcon = icon('arc', <><path d="M4 20A16 16 0 0 1 20 4"/><Grip x={4} y={20}/><Grip x={8.7} y={8.7}/><Grip x={20} y={4}/></>);

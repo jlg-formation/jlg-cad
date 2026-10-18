@@ -1,3 +1,4 @@
+import type {ScaleReferencePhase} from './scale-reference';
 import type {Tool} from './architecture';
 import type {Language} from './i18n';
 
@@ -40,6 +41,7 @@ alignedDimension:['Mesurez la distance réelle entre deux points, dans leur dire
 export type HelpState = {
  tool:Tool; points?:number; nodes?:number; hasDraft?:boolean; hasSource?:boolean;
  sourceIsCircle?:boolean; selection?:number; selectingArea?:boolean; lasso?:boolean;
+ scaleReferencePhase?:ScaleReferencePhase;
  choosingBoundaries?:boolean; boundaries?:number; sweeping?:boolean;
  offsetReady?:boolean; segment?:'line'|'arc'; closed?:boolean;
  linearSelectObject?:boolean; hatchMode?:'pick'|'objects'; hatchCount?:number;
@@ -67,7 +69,7 @@ export function toolHelp(state:HelpState, language:Language='fr') {
  case 'viewport': instruction=state.hasDraft?text('Terminez le rectangle de la fenêtre sur la feuille.','Complete the viewport rectangle on the sheet.'):text('Faites glisser sur la feuille pour définir la fenêtre.','Drag on the sheet to define the viewport.');break;
  case 'hatch': instruction=state.hatchOrigin?text('Cliquez le point d’origine du motif.','Click the pattern origin.'):state.hatchMode==='objects'?text('Sélectionnez les objets du contour et les îlots, puis créez la hachure.','Select boundary objects and islands, then create the hatch.'):text('Cliquez à l’intérieur d’une zone fermée.','Click inside an enclosed area.');break;
  case 'move': case 'copy': instruction=!state.hasSource?text('Sélectionnez un objet à transformer.','Select an object to transform.'):!n?text('Cliquez le point de base.','Click the base point.'):text('Cliquez la destination, ou indiquez la direction et saisissez une distance puis Entrée.','Click the destination, or indicate a direction and enter a distance followed by Enter.');break;
- case 'scale': instruction=!state.hasSource?text('Sélectionnez les objets à redimensionner.','Select objects to scale.'):!n?text('Cliquez le point de base qui restera fixe.','Click the base point that will remain fixed.'):text('Saisissez un facteur positif puis Entrée, ou cliquez.','Enter a positive factor and press Enter, or click.');break;
+ case 'scale': instruction=!state.hasSource?text('Sélectionnez les objets à redimensionner.','Select objects to scale.'):!n?text('Cliquez le point de base qui restera fixe.','Click the base point that will remain fixed.'):state.scaleReferencePhase?({reference:text('Saisissez la longueur de référence ou cliquez son premier point.','Enter the reference length or click its first point.'),referenceEnd:text('Cliquez le deuxième point de la longueur de référence.','Click the second point of the reference length.'),length:text('Saisissez la nouvelle longueur, cliquez depuis le point de base, ou P pour deux points.','Enter the new length, click from the base point, or P for two points.'),targetStart:text('Cliquez le premier point de la nouvelle longueur.','Click the first point of the new length.'),targetEnd:text('Cliquez le deuxième point de la nouvelle longueur.','Click the second point of the new length.')}[state.scaleReferencePhase]):text('Saisissez un facteur positif, ou R puis Entrée pour Référence.','Enter a positive factor, or R then Enter for Reference.');break;
  case 'rotate': instruction=!state.hasSource?text('Sélectionnez les objets à faire tourner.','Select the objects to rotate.'):!n?text('Cliquez le point de base de la rotation.','Click the rotation base point.'):text('Saisissez l’angle puis Entrée, ou cliquez la direction voulue.','Enter an angle and press Enter, or click the desired direction.');break;
  case 'mirror': instruction=!state.hasSource?text('Sélectionnez l’objet à mettre en miroir.','Select the object to mirror.'):!n?text('Cliquez le premier point de l’axe de symétrie.','Click the first point of the mirror axis.'):text('Cliquez le second point de l’axe de symétrie.','Click the second point of the mirror axis.');break;
  case 'offset': instruction=!state.offsetReady?text('Saisissez la distance dans le champ du dessin puis Entrée.','Enter the distance in the drawing input and press Enter.'):!state.hasSource?text('Sélectionnez l’objet à décaler.','Select the object to offset.'):text('Cliquez du côté où créer le décalage.','Click on the side where the offset should be created.');break;

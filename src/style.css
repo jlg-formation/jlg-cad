@@ -153,3 +153,5 @@ footer .status-precision{flex-shrink:0}
 
 header .brand:hover .brand-icon,header .brand:focus-visible .brand-icon{filter:grayscale(0)}
 @media(prefers-reduced-motion:reduce){header .brand-icon{transition:none}}
+
+.dynamic-length.scale-entry{width:260px;max-width:calc(100% - 16px);pointer-events:none}.scale-entry input,.scale-entry button{pointer-events:auto}.scale-entry label{font-size:11px}.scale-entry input{min-width:65px}.scale-entry small{display:block;white-space:normal;max-width:380px;line-height:1.4}.scale-entry button{font-size:12px;padding:4px 8px;margin:4px 0}

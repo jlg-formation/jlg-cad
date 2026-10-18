@@ -601,5 +601,19 @@
   "Préparation du PDF…": "Preparing PDF…",
   "Référence": "Reference",
   "Délimiter une référence": "Clip a reference",
-  "Régler une référence": "Adjust a reference"
+  "Régler une référence": "Adjust a reference",
+  "R — Référence": "R — Reference",
+  "P — Points": "P — Points",
+  "Repères de mise à l’échelle": "Scale reference guides",
+  "SCALE · Spécifiez le facteur d’échelle ou R — Référence.": "SCALE · Specify scale factor or R — Reference.",
+  "SCALE · Spécifiez la longueur de référence ou cliquez son premier point.": "SCALE · Specify reference length or click its first point.",
+  "SCALE · Spécifiez le deuxième point de la longueur de référence.": "SCALE · Specify the second point of the reference length.",
+  "SCALE · Spécifiez la nouvelle longueur : saisissez une distance, cliquez depuis le point de base, ou P — Points.": "SCALE · Specify new length: enter a distance, click from the base point, or P — Points.",
+  "SCALE · Spécifiez le premier point de la nouvelle longueur.": "SCALE · Specify the first point of the new length.",
+  "SCALE · Spécifiez le deuxième point de la nouvelle longueur.": "SCALE · Specify the second point of the new length.",
+  "SCALE · Copie activée. Spécifiez le facteur d’échelle ou R — Référence.": "SCALE · Copy enabled. Specify scale factor or R — Reference.",
+  "La longueur doit être strictement positive.": "The length must be strictly positive.",
+  "Cliquez le premier point de la nouvelle longueur.": "Click the first point of the new length.",
+  "Définissez les points de référence avant de redimensionner.": "Define the reference points before scaling.",
+  "Saisissez un facteur positif ou R — Référence.": "Enter a positive scale factor or R — Reference."
 }

@@ -128,6 +128,22 @@ Un [plan de vérification](tests/fixtures/import-2d.dxf) est fourni : contour de
 
 `bun test` vérifie le format natif et l’export. `bun run build` vérifie TypeScript et produit le bundle.
 
+### Mise à l’échelle par référence — SCALE / SC
+
+La commande **SCALE** propose l’option **R — Référence** pour les images, les PDF et les autres objets pris en charge dans l’espace Objet. Elle conserve le point de base, l’orientation et les proportions de la sélection.
+
+1. Sélectionner les objets puis lancer `SC`, ou lancer SCALE et choisir l’objet.
+2. Cliquer le **point de base**, qui restera fixe.
+3. Taper **R** puis Entrée, ou cliquer **R — Référence**.
+4. Définir la **longueur de référence** : saisir une distance ou cliquer ses deux extrémités.
+5. Définir la **nouvelle longueur** : saisir une distance (par exemple `12 m`), ou cliquer un point dont la distance au point de base représente la longueur souhaitée.
+
+Le geste avec un cercle est donc : **SC → point de base → R → premier point de référence → second point de référence → point sur le cercle**. Si le premier point de référence est le point de base, il est cliqué de nouveau après R, comme dans AutoCAD. Le cercle, s’il ne fait pas partie de la sélection, conserve sa taille et sert uniquement de repère.
+
+À l’étape de la nouvelle longueur, **P — Points** permet de choisir deux points indépendants pour mesurer la distance cible. Un clic direct mesure au contraire la distance depuis le point de base, même si la référence a été mesurée ailleurs. Les longueurs sans suffixe utilisent l’unité active ; les suffixes mm, cm et m sont acceptés. Entrée sans valeur reprend la dernière longueur de référence ou cible utilisée dans la session.
+
+Les étapes sont indiquées dans la barre de commande et dans l’aide contextuelle. L’aperçu utilise les objets d’origine jusqu’à la validation ; les points de référence ne redimensionnent pas prématurément le dessin. Échap abandonne la commande sans modification. Ctrl+Z annule l’opération validée en une seule fois. **Copier les objets**, ou **C** avant R, conserve les originaux. Les calques verrouillés restent protégés.
+
 ### Images attachées, sous-jacents PDF et transmission
 
 Le menu **Références** propose **Attacher une image**, **Attacher un PDF** et le gestionnaire **Références**. Les commandes `IMAGEATTACH`, `PDFATTACH`, `EXTERNALREFERENCES` et `XREF` donnent accès aux mêmes parcours. Les sources acceptées sont PNG, JPEG et PDF, avec une limite de 20 Mo par fichier et 100 pages par PDF. Un PDF protégé par mot de passe n’est pas pris en charge.
@@ -136,7 +152,7 @@ Comme dans AutoCAD, choisir le fichier, les pages PDF, le point d’insertion, l
 
 Les références peuvent être attachées dans Objet ou sur une présentation. Sélectionner leur cadre pour les déplacer, les copier ou les modifier ; les poignées déplacent l’occurrence ou la redimensionnent proportionnellement. Les propriétés proposent dimensions, rotation, estompage, contraste, réglages propres au type, visibilité et ordre d’affichage. Le verrouillage passe par le calque. Les cadres sont masqués/non imprimés, affichés/imprimés ou affichés/non imprimés (valeur initiale).
 
-**Calibrer l’échelle** demande deux points puis la distance réelle à saisir dans la commande. Avec `SCALE`, après le point de base, `R` puis Entrée lance la même calibration en conservant ce point de base. Le menu contextuel propose aussi la calibration et le découpage. **Délimiter** accepte un rectangle ou un polygone simple dans les limites du document ; la limite peut être désactivée ou supprimée sans modifier la source. `CLIP`, `IMAGECLIP` et `PDFCLIP` lancent le découpage rectangulaire de la référence sélectionnée. `PDFADJUST` et `IMAGEADJUST` ouvrent ses propriétés.
+**Calibrer l’échelle** demande deux points puis la distance réelle à saisir dans la commande. La commande `SCALE` propose aussi le parcours AutoCAD par référence décrit ci-dessus, avec une longueur cible saisie ou pointée. Le menu contextuel propose aussi la calibration et le découpage. **Délimiter** accepte un rectangle ou un polygone simple dans les limites du document ; la limite peut être désactivée ou supprimée sans modifier la source. `CLIP`, `IMAGECLIP` et `PDFCLIP` lancent le découpage rectangulaire de la référence sélectionnée. `PDFADJUST` et `IMAGEADJUST` ouvrent ses propriétés.
 
 Pour les PDF vectoriels, les extrémités et milieux des tracés exploitables peuvent servir d’accrochages, indépendamment des objets JLGCAD. Ce réglage se trouve dans les propriétés du PDF. Les centres et intersections du contenu PDF ne sont pas pris en charge. Un scan ne fournit aucun accrochage aux pixels. Attacher un PDF ne convertit pas son contenu en objets modifiables.
 

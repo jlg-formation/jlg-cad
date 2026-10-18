@@ -1,3 +1,4 @@
+import {dimensionTextAbove} from './dimension-text-placement';
 import {specializedDimensionGeometry} from './dimension-kinds';
 import {hatchBounds} from './hatch';
 import { type Point, type Shape, type PathShape, type Node, type PaperItem, type Dimension, type BaseShape, type ArcShape } from './model';
@@ -296,13 +297,13 @@ export function linearDimension(a:Point,b:Point,pointer:Point,base:BaseShape,hei
  const linearAngle=horizontal?0:Math.PI/2,n={x:-Math.sin(linearAngle),y:Math.cos(linearAngle)};
  return {...base,type:'dimension',kind:'linear',a,b,linearAngle,offset:dot(sub(pointer,a),n),height};
 }
-export function dimensionGeometry(s:Dimension,displayUnit:'m'|'cm'|'mm'='mm'):{lines:[Point,Point][];arrows:Point[][];label:Point;text:string;angle:number}{
- if(s.paperLink){const {paperLink,...paper}=s;return {...dimensionGeometry(paper,displayUnit),text:dimensionGeometry(paperLink.model,displayUnit).text};}
- if(s.points)return specializedDimensionGeometry(s,displayUnit);
+export function dimensionGeometry(s:Dimension,displayUnit:'m'|'cm'|'mm'='mm',textOverride?:string):{lines:[Point,Point][];arrows:Point[][];label:Point;text:string;angle:number}{
+ if(s.paperLink){const {paperLink,...paper}=s;return dimensionGeometry(paper,displayUnit,textOverride??dimensionGeometry(paperLink.model,displayUnit).text);}
+ if(s.points)return specializedDimensionGeometry(s,displayUnit,textOverride);
  const axis=s.linearAngle===undefined?unit(sub(s.b,s.a)):{x:Math.cos(s.linearAngle),y:Math.sin(s.linearAngle)},length=s.kind==='diameter'?distance(s.a,s.b):Math.abs(dot(sub(s.b,s.a),axis));
- const measuredText=displayUnit==='mm'?formatLength(length):Number((length/({m:1000,cm:10,mm:1}[displayUnit])).toFixed(4)).toLocaleString('fr-FR',{maximumFractionDigits:4,useGrouping:false})+' '+displayUnit;
+ const measuredText=textOverride&&s.kind!=='diameter'?textOverride:displayUnit==='mm'?formatLength(length):Number((length/({m:1000,cm:10,mm:1}[displayUnit])).toFixed(4)).toLocaleString('fr-FR',{maximumFractionDigits:4,useGrouping:false})+' '+displayUnit;
  if(s.kind==='diameter'){
-  const u=unit(sub(s.b,s.a)),n=normal(u),text='Ø'+measuredText,extension=Math.max(Math.abs(s.offset),s.height*5),arrowLength=s.height*.8;
+  const u=unit(sub(s.b,s.a)),n=normal(u),text=textOverride??'Ø'+measuredText,extension=Math.max(Math.abs(s.offset),s.height*5),arrowLength=s.height*.8;
   const arrow=(tip:Point,outward:Point):Point[]=>{const base=add(tip,mul(outward,arrowLength)),side=mul(normal(outward),s.height*.16);return[tip,add(base,side),sub(base,side)];};
   let angle=-Math.atan2(u.y,u.x)*180/Math.PI;if(angle>90)angle-=180;if(angle<-90)angle+=180;
   const up={x:Math.sin(-angle*Math.PI/180),y:-Math.cos(-angle*Math.PI/180)};
@@ -310,15 +311,14 @@ export function dimensionGeometry(s:Dimension,displayUnit:'m'|'cm'|'mm'='mm'):{l
  }
 
  const u=axis,n=normal(u),a=add(s.a,mul(n,s.offset)),b=add(s.b,mul(n,s.offset-dot(sub(s.b,s.a),n))),tick=mul(add(u,n),s.height*.4);
- if(s.linearAngle!==undefined&&s.kind!=='linear'){const forward=dot(sub(b,a),u)>=0?u:mul(u,-1),arrow=(tip:Point,direction:Point):Point[]=>{const base=add(tip,mul(direction,s.height*.8)),side=mul(n,s.height*.16);return[tip,add(base,side),sub(base,side)];};return{arrows:[arrow(a,forward),arrow(b,mul(forward,-1))],lines:[[s.a,add(a,mul(n,Math.sign(s.offset)*s.height*.3))],[s.b,add(b,mul(n,Math.sign(s.offset-dot(sub(s.b,s.a),n))*s.height*.3))],[a,b]] as [Point,Point][],label:sub(lerp(a,b,.5),mul(n,s.height*.25)),text:measuredText,angle:-Math.atan2(u.y,u.x)*180/Math.PI};}
+ if(s.linearAngle!==undefined&&s.kind!=='linear'){const forward=dot(sub(b,a),u)>=0?u:mul(u,-1),arrow=(tip:Point,direction:Point):Point[]=>{const base=add(tip,mul(direction,s.height*.8)),side=mul(n,s.height*.16);return[tip,add(base,side),sub(base,side)];};return{arrows:[arrow(a,forward),arrow(b,mul(forward,-1))],lines:[[s.a,add(a,mul(n,Math.sign(s.offset)*s.height*.3))],[s.b,add(b,mul(n,Math.sign(s.offset-dot(sub(s.b,s.a),n))*s.height*.3))],[a,b]] as [Point,Point][],...dimensionTextAbove(lerp(a,b,.5),s.height,u),text:measuredText};}
  if(s.kind==='linear'){
   const forward=dot(sub(b,a),u)>=0?u:mul(u,-1);
   const outside=length<s.height*(measuredText.length*.6+2),sign=outside?-1:1;
   const arrow=(tip:Point,direction:Point):Point[]=>{const base=add(tip,mul(direction,s.height*.8*sign)),side=mul(n,s.height*.16);return [tip,add(base,side),sub(base,side)];};
-  let angle=-Math.atan2(u.y,u.x)*180/Math.PI;if(angle>90)angle-=180;if(angle<-90)angle+=180;
-  return {arrows:[arrow(a,forward),arrow(b,mul(forward,-1))],lines:[[s.a,add(a,mul(n,Math.sign(s.offset)*s.height*.3))],[s.b,add(b,mul(n,Math.sign(s.offset)*s.height*.3))],[sub(a,mul(forward,outside?s.height*2:0)),add(b,mul(forward,outside?s.height*2:0))]] as [Point,Point][],label:sub(outside?add(b,mul(forward,s.height*(measuredText.length*.3+2))):lerp(a,b,.5),mul(n,s.height*.4)),text:measuredText,angle};
+  return {arrows:[arrow(a,forward),arrow(b,mul(forward,-1))],lines:[[s.a,add(a,mul(n,Math.sign(s.offset)*s.height*.3))],[s.b,add(b,mul(n,Math.sign(s.offset)*s.height*.3))],[sub(a,mul(forward,outside?s.height*2:0)),add(b,mul(forward,outside?s.height*2:0))]] as [Point,Point][],...dimensionTextAbove(outside?add(b,mul(forward,s.height*(measuredText.length*.3+2))):lerp(a,b,.5),s.height,u),text:measuredText};
  }
- return{arrows:[] as Point[][],lines:[[s.a,add(a,mul(n,Math.sign(s.offset)*s.height*.3))],[s.b,add(b,mul(n,Math.sign(s.offset)*s.height*.3))],[a,b],[sub(a,tick),add(a,tick)],[sub(b,tick),add(b,tick)]] as [Point,Point][],label:sub(lerp(a,b,.5),mul(n,s.height*.25)),text:measuredText,angle:-Math.atan2(u.y,u.x)*180/Math.PI};
+ return{arrows:[] as Point[][],lines:[[s.a,add(a,mul(n,Math.sign(s.offset)*s.height*.3))],[s.b,add(b,mul(n,Math.sign(s.offset)*s.height*.3))],[a,b],[sub(a,tick),add(a,tick)],[sub(b,tick),add(b,tick)]] as [Point,Point][],...dimensionTextAbove(lerp(a,b,.5),s.height,u),text:measuredText};
 }
 export function smoothNodes(nodes:Node[],closed=false):Node[]{return nodes.map((n,i)=>{const prev=nodes[i-1]?.p||(closed?nodes[nodes.length-1].p:n.p),next=nodes[i+1]?.p||(closed?nodes[0].p:n.p),t=mul(sub(next,prev),1/6);return{...n,in:sub(n.p,t),out:add(n.p,t),smooth:true};});}
 export function syncPath(s:PathShape):PathShape{return{...s,a:s.nodes[0].p,b:s.nodes[s.nodes.length-1].p};}

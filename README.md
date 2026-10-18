@@ -173,7 +173,11 @@ Les tests de jonction couvrent les lignes avec espaces et superpositions, les or
 
 ## Cotations
 
+Les textes des cotes linéaires et alignées restent parallèles au trait et au-dessus dans leur sens de lecture, avec un espace proportionnel à leur hauteur, indépendant de l’ordre des points. Les textes angulaires et de longueur d’arc restent horizontaux et entièrement à l’extérieur de l’arc. Ce placement est commun au dessin, aux présentations et aux exports PDF/DXF, sans masque opaque derrière les chiffres.
+
 La flèche du bouton Cotation ouvre les huit familles, dans l’ordre du menu AutoCAD. Le bouton principal relance la dernière famille choisie. La commande générale **D / DIMENSION** reste disponible en bas du menu.
+
+Pendant la cotation angulaire par deux lignes, les segments choisis deviennent temporairement bleus : le premier pendant le choix du second, puis les deux pendant le placement. Sur un rectangle ou une polyligne, seuls les segments retenus sont mis en évidence, sans poignées ni sélection de l’objet. Dans une présentation, ce retour apparaît uniquement dans la fenêtre utilisée, à l’intérieur de son cadre. Il disparaît à la validation, à Échap ou au changement d’outil ; il ne modifie ni le dessin enregistré ni les exports.
 
 | Outil | Commande / alias | Parcours |
 | --- | --- | --- |

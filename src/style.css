@@ -64,7 +64,7 @@ footer .command-entry input{height:100%}
 /* Single compact header with icon-only drafting tools. */
 header{height:42px;min-height:42px;flex:0 0 42px;padding:0 10px;gap:8px}
 header .brand{font-size:16px;flex-shrink:0;margin-right:0}
-header .brand-icon{padding:2px 7px;margin-right:2px}
+header .brand-icon{display:block;width:30px;height:30px;object-fit:contain;padding:0;margin-right:2px;background:transparent;border-radius:0;flex-shrink:0;filter:grayscale(1);transition:filter .2s ease}
 header>button{padding:6px;width:30px;height:30px;flex-shrink:0}
 header .header-menus{align-items:center;gap:8px}
 header .header-menus>.menu-anchor{flex-shrink:0}
@@ -149,3 +149,6 @@ footer .status-precision{flex-shrink:0}
  footer .command-entry{grid-column:1 / -1;grid-row:2}
  footer .status-spacer{display:none}
 }
+
+header .brand:hover .brand-icon,header .brand:focus-visible .brand-icon{filter:grayscale(0)}
+@media(prefers-reduced-motion:reduce){header .brand-icon{transition:none}}

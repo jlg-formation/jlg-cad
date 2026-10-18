@@ -1,3 +1,4 @@
+import {dimensionTextOutsideArc} from './dimension-text-placement';
 import type {BaseShape,Dimension,Point,Shape} from './model';
 import {add,sub,mul,distance,dot,cross,segments,nearestPart,linearDimension} from './geometry';
 
@@ -42,7 +43,7 @@ export function directedLinearDimension(a:Point,b:Point,p:Point,base:BaseShape,h
 }
 
 /** Shared vector geometry used by the canvas, hit testing, PDF and DXF. */
-export function specializedDimensionGeometry(s:Dimension,displayUnit:'m'|'cm'|'mm'){
+export function specializedDimensionGeometry(s:Dimension,displayUnit:'m'|'cm'|'mm',textOverride?:string){
  const ps=s.points!,h=s.height,lines:[Point,Point][]=[],arrows:Point[][]=[];
  const lengthText=(value:number)=>Number((value/({m:1000,cm:10,mm:1}[displayUnit])).toFixed(4)).toLocaleString('fr-FR',{maximumFractionDigits:4,useGrouping:false})+' '+displayUnit;
  const arrow=(tip:Point,toward:Point)=>{const u=direction(tip,toward),base=add(tip,mul(u,h*.8)),v=mul(normal(u),h*.16);arrows.push([tip,add(base,v),sub(base,v)]);};
@@ -82,11 +83,11 @@ export function specializedDimensionGeometry(s:Dimension,displayUnit:'m'|'cm'|'m
    const outside=radius*Math.abs(sweep)<h*5,sign=outside?-1:1;
    const tangent=(a:number)=>({x:-Math.sin(a)*Math.sign(sweep)*sign,y:Math.cos(a)*Math.sign(sweep)*sign});
    arrow(arc[0],add(arc[0],tangent(begin)));arrow(arc[count],sub(arc[count],tangent(begin+sweep)));
-   label=add(center,{x:Math.cos(begin+sweep/2)*(radius+h*.7),y:Math.sin(begin+sweep/2)*(radius+h*.7)});
-   text=s.kind==='angular'?Number((Math.abs(sweep)*180/Math.PI).toFixed(2)).toLocaleString('fr-FR',{maximumFractionDigits:2})+'°':'⌒ '+lengthText(r*Math.abs(sweep));
+   text=textOverride??(s.kind==='angular'?Number((Math.abs(sweep)*180/Math.PI).toFixed(2)).toLocaleString('fr-FR',{maximumFractionDigits:2})+'°':'⌒ '+lengthText(r*Math.abs(sweep)));
+   label=dimensionTextOutsideArc(center,radius,begin+sweep/2,text,h);
   }
  }
- return {lines,arrows,label,text,angle};
+ return {lines,arrows,label,text:textOverride??text,angle};
 }
 
 export function lineAngleDefinition(first:Shape,second:Shape,p:Point,q:Point):Point[]{

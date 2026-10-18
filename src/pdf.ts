@@ -1,10 +1,12 @@
+import {printReference} from './reference-print';
+import {orderDrawing} from './references';
 import {synchronizeDrawing} from './associations';
 import {hatchLines} from './hatch';
 import { jsPDF } from 'jspdf';
 import { bounds, modelToPaper, paperSize, visibleShapes,textLineOffset, type Drawing, type Layout, type Shape, type TextItem } from './model';
 import { mapItem, segments, arcCubics, dimensionGeometry } from './geometry';
 
-export function createPdf(drawing: Drawing, layouts: Layout[],displayUnit:'m'|'cm'|'mm'='mm') {
+export function createPdf(drawing: Drawing, layouts: Layout[],displayUnit:'m'|'cm'|'mm'='mm',referencePrints:Map<string,string>=new Map()) {
   const resolved=synchronizeDrawing(drawing);layouts=layouts.map(l=>resolved.layouts.find(r=>r.id===l.id)||l);drawing=resolved;
   if (!layouts.length) throw new Error('Créez une présentation avant d’exporter.');
   const size = paperSize(layouts[0]);
@@ -16,6 +18,7 @@ export function createPdf(drawing: Drawing, layouts: Layout[],displayUnit:'m'|'c
     pdf.saveGraphicsState();
     pdf.rect(0,0,size.x,size.y,null);pdf.clip();pdf.discardPath();
     const draw=(s:Shape|TextItem,dimensionLabel?:string)=>{
+      if(s.type==='reference'){printReference(pdf,s,drawing,referencePrints);return;}
       if(s.type==='block'){s.entities.filter(child=>drawing.layers.find(l=>l.id===(child.layerId||'0'))?.visible!==false).forEach(child=>draw(child));return;}
       if(s.type==='dimension'&&s.paperHidden)return;
       const color=layout.monochrome?'#17242a':s.color;
@@ -35,12 +38,12 @@ export function createPdf(drawing: Drawing, layouts: Layout[],displayUnit:'m'|'c
       else {const r=bounds(s);pdf.rect(r.x,r.y,r.width,r.height,'S');}
     };
     // Match the editor: model windows are behind paper annotations.
-    const ordered=[...layout.items.filter(s=>s.type==='viewport'),...layout.items.filter(s=>s.type==='hatch'),...layout.items.filter(s=>s.type!=='viewport'&&s.type!=='hatch')];
+    const ordered=[...layout.items.filter(s=>s.type==='viewport'),...orderDrawing(layout.items.filter(s=>s.type!=='viewport'))];
     for(const item of ordered) {
-      if(item.type!=='viewport'){draw(item);continue;}
+      if(item.type!=='viewport'){if(drawing.layers.find(l=>l.id===(item.layerId||'0'))?.visible!==false)draw(item);continue;}
       const r=bounds(item);
       pdf.saveGraphicsState();pdf.rect(r.x,r.y,r.width,r.height,null);pdf.clip();pdf.discardPath();
-      for(const s of [...visibleShapes(drawing).filter(s=>s.type==='hatch'),...visibleShapes(drawing).filter(s=>s.type!=='hatch')]){draw(mapItem(s,p=>modelToPaper(p,item),1/item.denominator),s.type==='dimension'?dimensionGeometry(s,displayUnit).text:undefined);}
+      for(const s of orderDrawing(visibleShapes(drawing))){draw(mapItem(s,p=>modelToPaper(p,item),1/item.denominator),s.type==='dimension'?dimensionGeometry(s,displayUnit).text:undefined);}
       pdf.restoreGraphicsState();
       if(item.printBorder){pdf.setDrawColor(layout.monochrome?'#17242a':item.color);pdf.setLineWidth(.25);pdf.rect(r.x,r.y,r.width,r.height,'S');}
     }

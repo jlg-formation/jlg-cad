@@ -1,9 +1,13 @@
+import {referenceDxf} from './reference-dxf';
+import type {ReferenceSource} from './references';
+import {orderDrawing} from './references';
 import {mapItem} from './geometry';
 import type {Layer,Point,Shape} from './model';
 import {segments,flatten,dimensionGeometry} from './geometry';
 import {hatchDxf} from './hatch-dxf';
 
-export function toModernDxf(shapes:Shape[],layers:Layer[],displayUnit:'m'|'cm'|'mm',blocks:import('./model').BlockDefinition[]=[]){
+export function toModernDxf(shapes:Shape[],layers:Layer[],displayUnit:'m'|'cm'|'mm',blocks:import('./model').BlockDefinition[]=[],references:ReferenceSource[]=[],referencePaths:Map<string,string>=new Map()){
+ const refs=shapes.some(s=>s.type==='reference')?referenceDxf(references,referencePaths):null;
  const inserts=shapes.filter((s):s is import('./model').BlockShape=>s.type==='block');
  const definitions=[...new Map(inserts.map(s=>[s.definitionId,s])).values()];
  const asciiName=(value:string)=>value.replace(/[^\x20-\x7e]/g,c=>'\\U+'+c.charCodeAt(0).toString(16).toUpperCase().padStart(4,'0'));
@@ -12,7 +16,8 @@ export function toModernDxf(shapes:Shape[],layers:Layer[],displayUnit:'m'|'cm'|'
  let next=0x10;const handle=()=> (next++).toString(16).toUpperCase();
  const ltypeTable=handle(),layerTable=handle(),styleTable=handle(),blockTable=handle(),modelSpace=handle(),paperSpace=handle();
  const names=new Map(layers.map((l,i)=>[l.id,l.id==='0'?'0':`${l.name.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9_-]/g,'_').slice(0,80)}_${i}`]));
- add(0,'SECTION',2,'HEADER',9,'$ACADVER',1,'AC1018',9,'$INSUNITS',70,4,9,'$MEASUREMENT',70,1,0,'ENDSEC');
+ add(0,'SECTION',2,'HEADER',9,'$ACADVER',1,refs?'AC1024':'AC1018',9,'$INSUNITS',70,4,9,'$MEASUREMENT',70,1,0,'ENDSEC');
+ if(refs)add(...refs.classes);
  add(0,'SECTION',2,'TABLES');
  const table=(name:string,id:string,count:number)=>add(0,'TABLE',2,name,5,id,330,'0',100,'AcDbSymbolTable',70,count);
  table('LTYPE',ltypeTable,1);add(0,'LTYPE',5,handle(),330,ltypeTable,100,'AcDbSymbolTableRecord',100,'AcDbLinetypeTableRecord',2,'CONTINUOUS',70,0,3,'Solid line',72,65,73,0,40,0,0,'ENDTAB');
@@ -20,7 +25,7 @@ export function toModernDxf(shapes:Shape[],layers:Layer[],displayUnit:'m'|'cm'|'
  table('STYLE',styleTable,1);add(0,'STYLE',5,handle(),330,styleTable,100,'AcDbSymbolTableRecord',100,'AcDbTextStyleTableRecord',2,'STANDARD',70,0,40,0,41,1,50,0,71,0,42,2.5,3,'txt',4,'',0,'ENDTAB');
  const blockRecords=new Map(definitions.map(s=>[s.definitionId,handle()]));
  table('BLOCK_RECORD',blockTable,2+definitions.length);for(const [name,id] of [['*Model_Space',modelSpace],['*Paper_Space',paperSpace]])add(0,'BLOCK_RECORD',5,id,330,blockTable,100,'AcDbSymbolTableRecord',100,'AcDbBlockTableRecord',2,name);for(const s of definitions)add(0,'BLOCK_RECORD',5,blockRecords.get(s.definitionId)!,330,blockTable,100,'AcDbSymbolTableRecord',100,'AcDbBlockTableRecord',2,blockNames.get(s.definitionId)!);add(0,'ENDTAB',0,'ENDSEC');
- const ordered=[...shapes.filter(s=>s.type==='hatch'),...shapes.filter(s=>s.type!=='hatch')];
+ const ordered=orderDrawing(shapes);
  let layer='0',color='#ffffff',owner=modelSpace;
  const entity=(type:string,subclass:string)=>add(0,type,5,handle(),330,owner,100,'AcDbEntity',8,layer,420,parseInt(color.slice(1),16),100,subclass);
  const point=(code:number,p:Point)=>add(code,p.x,code+10,-p.y,code+20,0);
@@ -29,7 +34,8 @@ export function toModernDxf(shapes:Shape[],layers:Layer[],displayUnit:'m'|'cm'|'
  // R2004 text is ASCII with Unicode escapes, independent of the browser's UTF-8 download.
  const textValue=(value:string)=>value.replace(/[^\x20-\x7e]|[\\{}]/g,c=>'\\U+'+c.charCodeAt(0).toString(16).toUpperCase().padStart(4,'0'));
  const emit=(ordered:Shape[])=>{for(const s of ordered){layer=names.get(s.layerId||'0')||'0';color=s.color;
-  if(s.type==='block'){const x=s.b.x-s.a.x,y=-(s.b.y-s.a.y),scale=Math.hypot(x,y),det=(s.b.x-s.a.x)*(s.yAxis.y-s.a.y)-(s.b.y-s.a.y)*(s.yAxis.x-s.a.x);entity('INSERT','AcDbBlockReference');add(2,blockNames.get(s.definitionId)!);point(10,s.a);add(41,scale,42,det<0?-scale:scale,43,1,50,Math.atan2(y,x)*180/Math.PI);}
+  if(s.type==='reference'){if(!refs)throw new Error('Les références nécessitent un export ZIP.');add(...refs.emit(s,owner,layer,color));}
+  else if(s.type==='block'){const x=s.b.x-s.a.x,y=-(s.b.y-s.a.y),scale=Math.hypot(x,y),det=(s.b.x-s.a.x)*(s.yAxis.y-s.a.y)-(s.b.y-s.a.y)*(s.yAxis.x-s.a.x);entity('INSERT','AcDbBlockReference');add(2,blockNames.get(s.definitionId)!);point(10,s.a);add(41,scale,42,det<0?-scale:scale,43,1,50,Math.atan2(y,x)*180/Math.PI);}
   else if(s.type==='hatch'){const data=hatchDxf(s,layer,handle());data.splice(4,0,330,owner);add(...data);}
   else if(s.type==='text'){
    if(s.text.includes('\n')){entity('MTEXT','AcDbMText');const angle=(s.rotation||0)*Math.PI/180,baseline=s.vertical==='baseline',origin=baseline?{x:s.a.x+Math.sin(angle)*s.height*.8,y:s.a.y-Math.cos(angle)*s.height*.8}:s.a;point(10,origin);add(40,s.height,41,0,71,(s.vertical==='middle'?3:s.vertical==='bottom'?6:0)+(s.align==='center'?2:s.align==='right'?3:1),1,s.text.split('\n').map(textValue).join('\\P'),7,'STANDARD',11,Math.cos(angle),21,-Math.sin(angle),31,0);}
@@ -51,5 +57,5 @@ export function toModernDxf(shapes:Shape[],layers:Layer[],displayUnit:'m'|'cm'|'
  emit(blocks.find(b=>b.id===s.definitionId)?.shapes||s.entities.map(child=>mapItem(child,p=>({x:((p.x-s.a.x)*y.y-(p.y-s.a.y)*y.x)/det,y:(x.x*(p.y-s.a.y)-x.y*(p.x-s.a.x))/det}),1/Math.hypot(x.x,x.y),det<0)));
  add(0,'ENDBLK',5,handle(),330,record,100,'AcDbEntity',8,'0',100,'AcDbBlockEnd');}
  add(0,'ENDSEC',0,'SECTION',2,'ENTITIES');owner=modelSpace;emit(ordered);
- add(0,'ENDSEC',0,'EOF');return pairs.join('\r\n')+'\r\n';
+ add(0,'ENDSEC');if(refs)add(...refs.finish());add(0,'EOF');return pairs.join('\r\n')+'\r\n';
 }

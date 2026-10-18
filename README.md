@@ -128,6 +128,28 @@ Un [plan de vérification](tests/fixtures/import-2d.dxf) est fourni : contour de
 
 `bun test` vérifie le format natif et l’export. `bun run build` vérifie TypeScript et produit le bundle.
 
+### Images attachées, sous-jacents PDF et transmission
+
+Le menu **Références** propose **Attacher une image**, **Attacher un PDF** et le gestionnaire **Références**. Les commandes `IMAGEATTACH`, `PDFATTACH`, `EXTERNALREFERENCES` et `XREF` donnent accès aux mêmes parcours. Les sources acceptées sont PNG, JPEG et PDF, avec une limite de 20 Mo par fichier et 100 pages par PDF. Un PDF protégé par mot de passe n’est pas pris en charge.
+
+Comme dans AutoCAD, choisir le fichier, les pages PDF, le point d’insertion, le facteur d’échelle et la rotation. Chaque paramètre peut être renseigné ou **spécifié à l’écran**. Plusieurs pages sont placées successivement ; Échap annule le placement en préparation et conserve les pages confirmées. Les images utilisent leur résolution PNG/JFIF lorsqu’elle est disponible, sinon une base de 96 ppp ; la taille résultante est indiquée avant l’insertion. Le point d’insertion est le coin inférieur gauche visuel. Les coordonnées et les dimensions suivent les unités habituelles de JLGCAD.
+
+Les références peuvent être attachées dans Objet ou sur une présentation. Sélectionner leur cadre pour les déplacer, les copier ou les modifier ; les poignées déplacent l’occurrence ou la redimensionnent proportionnellement. Les propriétés proposent dimensions, rotation, estompage, contraste, réglages propres au type, visibilité et ordre d’affichage. Le verrouillage passe par le calque. Les cadres sont masqués/non imprimés, affichés/imprimés ou affichés/non imprimés (valeur initiale).
+
+**Calibrer l’échelle** demande deux points puis la distance réelle à saisir dans la commande. Avec `SCALE`, après le point de base, `R` puis Entrée lance la même calibration en conservant ce point de base. Le menu contextuel propose aussi la calibration et le découpage. **Délimiter** accepte un rectangle ou un polygone simple dans les limites du document ; la limite peut être désactivée ou supprimée sans modifier la source. `CLIP`, `IMAGECLIP` et `PDFCLIP` lancent le découpage rectangulaire de la référence sélectionnée. `PDFADJUST` et `IMAGEADJUST` ouvrent ses propriétés.
+
+Pour les PDF vectoriels, les extrémités et milieux des tracés exploitables peuvent servir d’accrochages, indépendamment des objets JLGCAD. Ce réglage se trouve dans les propriétés du PDF. Les centres et intersections du contenu PDF ne sont pas pris en charge. Un scan ne fournit aucun accrochage aux pixels. Attacher un PDF ne convertit pas son contenu en objets modifiables.
+
+Le gestionnaire permet de sélectionner une occurrence, décharger/recharger une source, choisir une nouvelle version du fichier ou détacher la référence avec toutes ses occurrences. Remplacer une source conserve les placements ; l’opération est refusée si une page utilisée disparaît. Les fichiers locaux ne sont pas surveillés automatiquement. Les références ne peuvent pas être incorporées à une définition de bloc.
+
+Le format natif **v11** conserve les sources et leurs occurrences dans un `.jlgcad` autonome ; il ouvre les versions 1 à 10. Copier-coller des références entre dessins transporte leurs sources. La sauvegarde de session est limitée par le quota du navigateur : en cas d’échec, un message invite à enregistrer un fichier `.jlgcad`.
+
+**Exporter en DXF** conserve le téléchargement d’un DXF seul lorsque le dessin exporté n’a aucune référence. Avec des références, une fenêtre propose un **ZIP contenant le DXF, les sources et un récapitulatif**. Cocher **Ne plus afficher ce message** puis confirmer mémorise ce choix dans le navigateur : les prochains exports concernés téléchargent directement le ZIP. **Paramètres → Général** permet de réactiver l’avertissement. Annuler ne mémorise pas le choix.
+
+Le ZIP contient les références de l’espace Objet, même masquées, sur un calque masqué ou déchargées, avec des chemins relatifs et des noms sans collision. Extraire tout le ZIP avant d’ouvrir le DXF. Le DXF avec références est en **R2010** : les images restent des `IMAGE` et les PDF restent des `PDFUNDERLAY` avec leur fichier PDF original. Les présentations restent exclues du DXF. Les réglages de cadre individuels n’ont pas d’équivalence exacte avec les réglages globaux AutoCAD ; le récapitulatif indique les limites. Une validation visuelle dans AutoCAD sur les documents réels de l’agence reste à effectuer, notamment pour les PDF recadrés ou pivotés à la source. Aucun export DWG n’est prévu.
+
+L’export PDF inclut les références visibles, leurs transformations et leurs découpages. Les PDF attachés sont rendus depuis la source pour l’impression, avec une cible de 300 ppp, limitée à 8 192 pixels par côté et 32 millions de pixels ; ce rendu est raster. Les sources originales restent intactes dans le projet et le ZIP de transmission.
+
 ## Outils d’architecture
 
 - **Décalage (O)** : sélectionner une ligne ou un contour, saisir par exemple `10 cm`, puis cliquer du côté voulu. L’original reste en place.

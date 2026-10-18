@@ -20,6 +20,7 @@ export function gripLengthFactor(s:PaperItem,key:string):number{
  return segment.radius*Math.abs(segment.sweep)/distance(segment.a,segment.b);
 }
 export function objectGrips(s:PaperItem):Grip[]{
+ if(s.type==='reference')return [{key:'center-0',kind:'center',index:0,point:s.a},{key:'reference-size',kind:'control',index:1,point:{x:s.b.x+s.c.x-s.a.x,y:s.b.y+s.c.y-s.a.y}}];
  if(s.type==='block')return [{key:"center-0",kind:"center",index:0,point:s.a}];
  if(s.type==='polyline'||s.type==='bezier'){
   const vertices=s.nodes.map((n,index):Grip=>({key:`vertex-${index}`,point:n.p,kind:'vertex',index}));
@@ -41,6 +42,7 @@ export function objectGrips(s:PaperItem):Grip[]{
 export function moveGrip(s:PaperItem,key:string,p:Point):PaperItem{
  const grip=objectGrips(s).find(g=>g.key===key);if(!grip)throw new Error('Poignée inconnue.');
  const delta=sub(p,grip.point);
+ if(s.type==='reference'&&key==='reference-size'){const d=sub(grip.point,s.a),factor=Math.max(.000001,dot(sub(p,s.a),d)/dot(d,d));return {...s,b:add(s.a,mulReference(sub(s.b,s.a),factor)),c:add(s.a,mulReference(sub(s.c,s.a),factor))};}
  if(s.type==='dimension'&&s.points){const points=s.points.map(q=>({...q}));points[grip.index]=p;return {...s,points};}
  if(s.type==='dimension'&&s.kind==='linear'){const angle=s.linearAngle??Math.atan2(s.b.y-s.a.y,s.b.x-s.a.x),n={x:-Math.sin(angle),y:Math.cos(angle)};return {...s,offset:s.offset+dot(delta,n)};}
  if(s.type==='dimension'&&s.circleId){const center={x:(s.a.x+s.b.x)/2,y:(s.a.y+s.b.y)/2};return {...diameterDimension({id:s.circleId,type:'circle',a:center,b:s.a,color:s.color},p,s,s.height),circleId:s.circleId};}
@@ -59,3 +61,5 @@ export function moveGrip(s:PaperItem,key:string,p:Point):PaperItem{
  if(s.type==='circle'){if(distance(s.a,p)<.001)throw new Error('Le rayon doit être positif.');return {...s,b:p};}
  return s;
 }
+
+const mulReference=(p:Point,n:number):Point=>({x:p.x*n,y:p.y*n});

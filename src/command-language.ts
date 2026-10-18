@@ -10,6 +10,7 @@ export function setCommandLanguage(next:Language){if(next===language)return;lang
 export function useCommandLanguage(){return useSyncExternalStore(listener=>{listeners.add(listener);return()=>{listeners.delete(listener);};},getCommandLanguage,()=> 'en' as Language);}
 // Display names only. Command IDs, aliases, bindings and saved drawings remain independent.
 export const commandNames:Record<string,readonly [string,string]>={
+ imageattach:['ATTACHERIMAGE','IMAGEATTACH'],pdfattach:['ATTACHERPDF','PDFATTACH'],references:['REFERENCES','EXTERNALREFERENCES'],
  block:['BLOC','BLOCK'],insert:['INSERER','INSERT'],explode:['DECOMPOS','EXPLODE'],bedit:['MODIFBLOC','BEDIT'],bclose:['FERMERBLOC','BCLOSE'],
  line:['LIGNE','LINE'],polyline:['POLYLIGNE','PLINE'],rect:['RECTANGLE','RECTANG'],circle:['CERCLE','CIRCLE'],arc:['ARC','ARC'],bezier:['BÉZIER','BEZIER'],
  move:['DÉPLACER','MOVE'],copy:['COPIER','COPY'],offset:['DÉCALER','OFFSET'],trim:['AJUSTER','TRIM'],extend:['PROLONGER','EXTEND'],scale:['ECHELLE','SCALE'],rotate:['ROTATION','ROTATE'],mirror:['MIROIR','MIRROR'],join:['JOINDRE','JOIN'],fillet:['RACCORD','FILLET'],

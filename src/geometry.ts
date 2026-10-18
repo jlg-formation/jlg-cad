@@ -1,3 +1,4 @@
+import {referenceCorners} from './references';
 import {textCorners} from './model';
 import {dimensionTextAbove} from './dimension-text-placement';
 import {specializedDimensionGeometry} from './dimension-kinds';
@@ -48,6 +49,7 @@ export function threePointArc(a:Point,through:Point,b:Point,base:BaseShape):ArcS
  return {...base,type:'arc',a,b,bulge};
 }
 export function segments(shape:Shape):Segment[] {
+ if(shape.type==='reference')return referenceCorners(shape).map((a,i,ps)=>({kind:'line' as const,a,b:ps[(i+1)%ps.length]}));
  if(shape.type==='block')return shape.entities.flatMap(s=>s.type==='text'?textCorners(s).map((a,i,ps):Segment=>({kind:'line',a,b:ps[(i+1)%ps.length]})):segments(s));
  if(shape.type==='text')return[];
  if(shape.type==='hatch')return shape.regions.flatMap(r=>r.loops.flatMap(loop=>loop.map((a,i):Segment=>({kind:'line',a,b:loop[(i+1)%loop.length]}))));
@@ -131,6 +133,7 @@ export function shapeFromSegments(source:Shape,segs:Segment[],closed=false):Shap
  return{id:source.id,type:cubic?'bezier':'polyline',a:nodes[0].p,b:nodes[nodes.length-1].p,color:source.color,layerId:source.layerId,nodes,closed};
 }
 export function trimShape(shape:Shape,boundaries:Shape[],click:Point,preview=false):Shape[]{
+ if(shape.type==='reference')throw new Error('Une référence attachée ne peut pas être ajustée. Utilisez Délimiter.');
  if(shape.type==='block')throw new Error('Décomposez le bloc ou ouvrez son éditeur pour modifier ses objets.');
  if(shape.type==='text')throw new Error('Cette opération ne s’applique pas aux textes.');
  if(shape.type==='hatch')throw new Error('Cette opération ne s’applique pas aux hachures. Modifiez leur contour.');
@@ -139,7 +142,7 @@ export function trimShape(shape:Shape,boundaries:Shape[],click:Point,preview=fal
  return trimPositions(shape,boundaries,[hit.index+hit.t],preview);
 }
 function trimPositions(shape:Shape,boundaries:Shape[],positions:number[],preview=false,strict=false):Shape[]{
- if(shape.type==='block')return [shape];
+ if(shape.type==='block'||shape.type==='reference')return [shape];
  const all=segments(shape);
  const closed=shape.type==='circle'||shape.type==='rect'||('closed'in shape&&shape.closed);
  const limiting=boundaries.filter(s=>s.id!==shape.id&&s.type!=='dimension'&&s.type!=='hatch').flatMap(segments),count=all.length;
@@ -198,6 +201,7 @@ export function trimSweep(shapes:Shape[],boundaries:Shape[],points:Point[],edges
  });
 }
 export function extendShape(shape:Shape,boundaries:Shape[],click:Point):Shape {
+ if(shape.type==='reference')throw new Error('Une référence attachée ne peut pas être prolongée.');
  if(shape.type==='text')throw new Error('Cette opération ne s’applique pas aux textes.');
  if(shape.type==='hatch')throw new Error('Cette opération ne s’applique pas aux hachures. Modifiez leur contour.');
  if(shape.type==='dimension'||shape.type==='circle'||shape.type==='rect'||('closed'in shape&&shape.closed))throw new Error('Prolonger exige une ligne ou un chemin ouvert.');
@@ -231,6 +235,7 @@ export function joinCorner(a:Shape,b:Shape,clickA:Point,clickB:Point):[Shape,Sha
 export function offsetShape(shape:Shape,amount:number,side:Point,tolerance=.1):Shape {
  if(shape.type==='text')throw new Error('Cette opération ne s’applique pas aux textes.');
  if(shape.type==='hatch')throw new Error('Cette opération ne s’applique pas aux hachures. Modifiez leur contour.');
+ if(shape.type==='reference')throw new Error('Une référence attachée ne peut pas être décalée.');
  if(amount<=0||!Number.isFinite(amount))throw new Error('Le décalage doit être positif.');
  if(shape.type==='dimension')throw new Error('Décalez une ligne ou un contour.');
  if(shape.type==='circle'){const radius=distance(shape.a,shape.b)+(distance(side,shape.a)<distance(shape.a,shape.b)?-amount:amount);if(radius<=EPS)throw new Error('Le décalage supprimerait le cercle.');return{...shape,b:add(shape.a,{x:radius,y:0})};}
@@ -265,6 +270,7 @@ export function offsetShape(shape:Shape,amount:number,side:Point,tolerance=.1):S
 
 export function mapItem<T extends PaperItem>(shape:T,fn:(p:Point)=>Point,scale=1,flip=false):T {
  const common={...shape,a:fn(shape.a),b:fn(shape.b)};
+ if(shape.type==='reference')return {...common,c:fn(shape.c)} as T;
  if(shape.type==='block')return {...common,yAxis:fn(shape.yAxis),entities:shape.entities.map(s=>mapItem(s,fn,scale,flip))} as T;
  if(shape.type==='arc')return {...common,bulge:shape.bulge*(flip?-1:1)} as T;
  if(shape.type==='hatch'){
@@ -351,7 +357,7 @@ export function arcCubics(s:Extract<Segment,{kind:'arc'}>):Extract<Segment,{kind
 export type Snap = {point:Point;kind:'Extrémité'|'Milieu'|'Centre'|'Intersection'};
 export function snapPoint(p:Point,shapes:Shape[],tolerance:number,kinds:readonly Snap['kind'][]=['Extrémité','Milieu','Centre','Intersection']):Snap|null {
  const candidates:Snap[]=[],nearby:Segment[]=[];
- for(const shape of shapes){if(shape.type==='dimension'||shape.type==='hatch')continue;if(shape.type==='circle')candidates.push({point:shape.a,kind:'Centre'});
+ for(const shape of shapes){if(shape.type==='dimension'||shape.type==='hatch'||shape.type==='reference')continue;if(shape.type==='circle')candidates.push({point:shape.a,kind:'Centre'});
    for(const s of segments(shape)){candidates.push({point:s.a,kind:'Extrémité'},{point:s.b,kind:'Extrémité'},{point:at(s,.5),kind:'Milieu'});if(s.kind==='arc')candidates.push({point:s.center,kind:'Centre'});if(distance(closestSegment(p,s).point,p)<=tolerance*2)nearby.push(s);}
  }
  for(let i=0;i<nearby.length;i++)for(let j=i+1;j<nearby.length;j++)for(const point of intersections(nearby[i],nearby[j]))candidates.push({point,kind:'Intersection'});

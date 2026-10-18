@@ -38,6 +38,7 @@ export function blockName(name:string,blocks:BlockDefinition[]):string{
 }
 export function createBlock(doc:Drawing,ids:string[],name:string,base:Point,makeId:()=>string,replace=true):Drawing{
  const selected=doc.shapes.filter(s=>ids.includes(s.id));
+ if(selected.some(s=>s.type==='reference'))throw new Error('Les références ne peuvent pas être incluses dans un bloc.');
  if(!selected.length)throw new Error('Sélectionnez les objets du bloc.');
  if(selected.some(s=>lockedShape(doc,s)))throw new Error('Le calque est verrouillé.');
  const shapes=plainShapes(selected).map(s=>{const item=s.type==='dimension'?detachDimension(s):s.type==='hatch'?detachHatch(s):s;return translateItem(rotateShape(item,{x:0,y:0},0),-base.x,-base.y);});

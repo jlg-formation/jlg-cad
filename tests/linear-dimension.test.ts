@@ -5,7 +5,7 @@ import {resolveCommand} from '../src/drafting';
 const base={id:'d',color:'#abcdef',a:{x:0,y:0},b:{x:0,y:0}};
 const a={x:0,y:0},b={x:4000,y:3000};
 test('DIMLINEAR et DLI activent uniquement la cotation linéaire',()=>{
- expect(resolveCommand('DIMLINEAR')?.id).toBe('linearDimension');expect(resolveCommand('dli')?.id).toBe('linearDimension');expect(resolveCommand('DAL')).toBeUndefined();
+ expect(resolveCommand('DIMLINEAR')?.id).toBe('linearDimension');expect(resolveCommand('dli')?.id).toBe('linearDimension');expect(resolveCommand('DAL')?.id).toBe('alignedDimension');
 });
 test('placement horizontal ou vertical mesure la projection, pas la diagonale',()=>{
  const horizontal=linearDimension(a,b,{x:2000,y:-1000},base,500),vertical=linearDimension(a,b,{x:5000,y:1500},base,500);

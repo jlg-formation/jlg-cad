@@ -52,3 +52,5 @@ header .architecture-toolbar .dimension-split-button>button:first-child{border-r
 header .architecture-toolbar .dimension-split-button>.dimension-menu-trigger{width:14px;min-width:14px;padding:3px;border-left:0;border-radius:0 4px 4px 0}
 header .architecture-toolbar .dimension-menu-trigger svg{width:7px;height:5px}
 .dimension-tools-menu{min-width:248px}
+
+.dimension-tools-menu{max-height:calc(100vh - 110px);overflow-y:auto}.dimension-tools-menu button svg{width:24px;height:24px;flex-shrink:0}.dimension-tools-menu button:last-child{border-top:1px solid #415360;margin-top:4px}

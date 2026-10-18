@@ -21,7 +21,7 @@ export function copySelection(doc:Drawing,ids:string[],base:Point,end:Point,make
 }
 export function encodeClipboard(doc:Drawing, shapes:Shape[], base?:Point):string {
  if(!shapes.length)throw new Error('Sélectionnez des objets à copier.');
- const selected=new Set(shapes.map(s=>s.id));shapes=synchronizeDimensions(doc.shapes).filter(s=>selected.has(s.id)).map(s=>s.type==='hatch'&&s.regions.some(r=>r.sourceIds.some(id=>!selected.has(id)))?detachHatch(s):s.type==='dimension'&&s.circleId&&!selected.has(s.circleId)?detachDimension(s):s);
+ const selected=new Set(shapes.map(s=>s.id));shapes=synchronizeDimensions(doc.shapes).filter(s=>selected.has(s.id)).map(s=>s.type==='hatch'&&s.regions.some(r=>r.sourceIds.some(id=>!selected.has(id)))?detachHatch(s):s.type==='dimension'?{...s,...(s.circleId&&!selected.has(s.circleId)?{circleId:undefined}:{}),references:s.references?.filter(r=>selected.has(r.id)),angleSources:s.angleSources?.every(r=>selected.has(r.id))?s.angleSources:undefined}:s);
  const used=new Set(shapes.map(s=>s.layerId||'0'));
  const boxes=shapes.map(bounds);
  const data:CadClipboard={format:'jlg-cad-clipboard',version:1,units:'mm',base:base??{x:Math.min(...boxes.map(b=>b.x)),y:Math.min(...boxes.map(b=>b.y))},drawing:documentOf('Copie',shapes,[],doc.layers.filter(l=>l.id==='0'||used.has(l.id)))};
@@ -44,7 +44,7 @@ export function pasteClipboard(doc:Drawing,data:CadClipboard,point:Point,makeId:
   const layer={...source,id:makeId(),name,visible:true,locked:false};layers.push(layer);mapping.set(source.id,layer.id);
  }
  const ids=new Map(data.drawing.shapes.map(s=>[s.id,makeId()]));
- const shapes=data.drawing.shapes.map(s=>({...translateItem(s,point.x-data.base.x,point.y-data.base.y),id:ids.get(s.id)!,layerId:mapping.get(s.layerId||'0')!,...(s.type==='hatch'?{regions:s.regions.map(r=>({...r,seed:{x:r.seed.x+point.x-data.base.x,y:r.seed.y+point.y-data.base.y},loops:r.loops.map(loop=>loop.map(p=>({x:p.x+point.x-data.base.x,y:p.y+point.y-data.base.y}))),boundaryLoops:r.boundaryLoops?.map(loop=>loop.map(p=>({x:p.x+point.x-data.base.x,y:p.y+point.y-data.base.y}))),outerSourceIds:r.outerSourceIds?.map(id=>ids.get(id)!),sourceIds:r.sourceIds.map(id=>ids.get(id)!)}))}:{}),...(s.type==='dimension'&&s.circleId?{circleId:ids.get(s.circleId)!}:{})}));
+ const shapes=data.drawing.shapes.map(s=>({...translateItem(s,point.x-data.base.x,point.y-data.base.y),id:ids.get(s.id)!,layerId:mapping.get(s.layerId||'0')!,...(s.type==='hatch'?{regions:s.regions.map(r=>({...r,seed:{x:r.seed.x+point.x-data.base.x,y:r.seed.y+point.y-data.base.y},loops:r.loops.map(loop=>loop.map(p=>({x:p.x+point.x-data.base.x,y:p.y+point.y-data.base.y}))),boundaryLoops:r.boundaryLoops?.map(loop=>loop.map(p=>({x:p.x+point.x-data.base.x,y:p.y+point.y-data.base.y}))),outerSourceIds:r.outerSourceIds?.map(id=>ids.get(id)!),sourceIds:r.sourceIds.map(id=>ids.get(id)!)}))}:{}),...(s.type==='dimension'?{circleId:s.circleId?ids.get(s.circleId):undefined,references:s.references?.map(r=>({...r,id:ids.get(r.id)!})),angleSources:s.angleSources?.map(r=>({...r,id:ids.get(r.id)!}))}:{})}));
  // Validate translated coordinates and the resulting document limits before committing.
  return parseDrawing(JSON.stringify({...doc,layers,shapes:[...doc.shapes,...shapes]}));
 }

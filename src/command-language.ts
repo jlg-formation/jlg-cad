@@ -13,6 +13,7 @@ export const commandNames:Record<string,readonly [string,string]>={
  line:['LIGNE','LINE'],polyline:['POLYLIGNE','PLINE'],rect:['RECTANGLE','RECTANG'],circle:['CERCLE','CIRCLE'],arc:['ARC','ARC'],bezier:['BÉZIER','BEZIER'],
  move:['DÉPLACER','MOVE'],copy:['COPIER','COPY'],offset:['DÉCALER','OFFSET'],trim:['AJUSTER','TRIM'],extend:['PROLONGER','EXTEND'],scale:['ECHELLE','SCALE'],rotate:['ROTATION','ROTATE'],mirror:['MIROIR','MIRROR'],join:['JOINDRE','JOIN'],fillet:['RACCORD','FILLET'],
  delete:['EFFACER','ERASE'],undo:['ANNULER','UNDO'],redo:['RÉTABLIR','REDO'],pan:['PANORAMIQUE','PAN'],zoom:['ZOOM','ZOOM'],select:['SÉLECTION','SELECT'],
+alignedDimension:['COTALIGNEE','DIMALIGNED'],angularDimension:['COTANGULAIRE','DIMANGULAR'],arcDimension:['COTARC','DIMARC'],radius:['COTRAYON','DIMRADIUS'],ordinate:['COTORDONNEE','DIMORDINATE'],jogged:['COTRACCOURCI','DIMJOGGED'],
  hatch:['HACHURES','HATCH'],dimension:['COTATION','DIMENSION'],linearDimension:['COTLIN','DIMLINEAR'],diameter:['COTDIA','DIMDIAMETER'],measure:['DISTANCE','DIST'],text:['TEXTE','TEXT'],viewport:['FENÊTRE','VIEWPORT'],
  copyClip:['COPIERCLIP','COPYCLIP'],cutClip:['COUPERCLIP','CUTCLIP'],pasteClip:['COLLERCLIP','PASTECLIP'],copyBase:['COPIERBASE','COPYBASE'],
  new:['NOUVEAU','NEW'],open:['OUVRIR','OPEN'],save:['SAUVEGARDER','SAVE'],properties:['PROPRIÉTÉS','PROPERTIES'],settings:['OPTIONS','OPTIONS'],addLayout:['PRÉSENTATION','LAYOUT'],

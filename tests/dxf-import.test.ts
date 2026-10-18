@@ -28,7 +28,7 @@ describe('Import DXF 2D',()=>{
  test('invalid native text fields and legacy model text are refused; v5 still migrates',()=>{
   const t:TextItem={id:'t',type:'text',a:{x:0,y:0},b:{x:0,y:0},color:'#123456',text:'x',height:3};
   for(const patch of [{height:0},{rotation:Infinity},{align:'unsupported'},{vertical:'unsupported'}])expect(()=>parseDrawing(JSON.stringify(documentOf('x',[{...t,...patch} as TextItem])))).toThrow();
-  expect(()=>parseDrawing(JSON.stringify({...documentOf('x',[t]),version:5}))).toThrow();expect(parseDrawing(JSON.stringify({...documentOf('x',[]),version:5})).version).toBe(7);
+  expect(()=>parseDrawing(JSON.stringify({...documentOf('x',[t]),version:5}))).toThrow();expect(parseDrawing(JSON.stringify({...documentOf('x',[]),version:5})).version).toBe(9);
  });
  test('converts units, preserves origin, reflects Y, saves native and restores',()=>{
   const {drawing,report}=importDxf(file(line(),6),'maison.dxf');expect(drawing.name).toBe('maison');expect(drawing.shapes[0].a).toEqual({x:1000,y:-2000});expect(drawing.shapes[0].b).toEqual({x:3000,y:-4000});expect(report.objects).toBe(1);expect(parseDrawing(JSON.stringify(drawing))).toEqual(drawing);

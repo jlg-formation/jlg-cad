@@ -1,3 +1,4 @@
+import {specializedDimensionGeometry} from './dimension-kinds';
 import {hatchBounds} from './hatch';
 import { type Point, type Shape, type PathShape, type Node, type PaperItem, type Dimension, type BaseShape, type ArcShape } from './model';
 
@@ -267,7 +268,7 @@ export function mapItem<T extends PaperItem>(shape:T,fn:(p:Point)=>Point,scale=1
  }
 
  if(shape.type==='polyline'||shape.type==='bezier'){const nodes=shape.nodes.map(n=>({...n,p:fn(n.p),in:n.in?fn(n.in):undefined,out:n.out?fn(n.out):undefined,bulge:n.bulge!==undefined?n.bulge*(flip?-1:1):undefined}));return{...common,a:nodes[0].p,b:nodes[nodes.length-1].p,nodes} as T;}
- if(shape.type==='dimension'){const angle=shape.linearAngle,axis=angle===undefined?undefined:sub(fn(add(shape.a,{x:Math.cos(angle),y:Math.sin(angle)})),fn(shape.a));return{...common,...(axis?{linearAngle:Math.atan2(axis.y,axis.x)}:{}),offset:shape.offset*scale*(flip&&shape.kind!=='diameter'?-1:1),height:shape.height*scale} as T;}
+ if(shape.type==='dimension'){const angle=shape.linearAngle,axis=angle===undefined?undefined:sub(fn(add(shape.a,{x:Math.cos(angle),y:Math.sin(angle)})),fn(shape.a));return{...common,...(axis?{linearAngle:Math.atan2(axis.y,axis.x)}:{}),offset:shape.offset*scale*(flip&&shape.kind!=='diameter'?-1:1),height:shape.height*scale,...(shape.points?{points:shape.points.map(fn),basisHandedness:(shape.basisHandedness||1)*(flip?-1:1),basis:shape.basis?unit(sub(fn(add(shape.a,shape.basis)),fn(shape.a))):undefined,sweep:shape.sweep===undefined?undefined:shape.sweep*(flip?-1:1)}:{})} as T;}
  if(shape.type==='text'){const angle=(shape.rotation||0)*Math.PI/180,axis=sub(fn(add(shape.a,{x:Math.cos(angle),y:Math.sin(angle)})),fn(shape.a));return{...common,height:shape.height*scale,rotation:Math.atan2(axis.y,axis.x)*180/Math.PI} as T;}
  return common;
 }
@@ -295,7 +296,9 @@ export function linearDimension(a:Point,b:Point,pointer:Point,base:BaseShape,hei
  const linearAngle=horizontal?0:Math.PI/2,n={x:-Math.sin(linearAngle),y:Math.cos(linearAngle)};
  return {...base,type:'dimension',kind:'linear',a,b,linearAngle,offset:dot(sub(pointer,a),n),height};
 }
-export function dimensionGeometry(s:Dimension,displayUnit:'m'|'cm'|'mm'='mm'){
+export function dimensionGeometry(s:Dimension,displayUnit:'m'|'cm'|'mm'='mm'):{lines:[Point,Point][];arrows:Point[][];label:Point;text:string;angle:number}{
+ if(s.paperLink){const {paperLink,...paper}=s;return {...dimensionGeometry(paper,displayUnit),text:dimensionGeometry(paperLink.model,displayUnit).text};}
+ if(s.points)return specializedDimensionGeometry(s,displayUnit);
  const axis=s.linearAngle===undefined?unit(sub(s.b,s.a)):{x:Math.cos(s.linearAngle),y:Math.sin(s.linearAngle)},length=s.kind==='diameter'?distance(s.a,s.b):Math.abs(dot(sub(s.b,s.a),axis));
  const measuredText=displayUnit==='mm'?formatLength(length):Number((length/({m:1000,cm:10,mm:1}[displayUnit])).toFixed(4)).toLocaleString('fr-FR',{maximumFractionDigits:4,useGrouping:false})+' '+displayUnit;
  if(s.kind==='diameter'){
@@ -307,7 +310,14 @@ export function dimensionGeometry(s:Dimension,displayUnit:'m'|'cm'|'mm'='mm'){
  }
 
  const u=axis,n=normal(u),a=add(s.a,mul(n,s.offset)),b=add(s.b,mul(n,s.offset-dot(sub(s.b,s.a),n))),tick=mul(add(u,n),s.height*.4);
- if(s.linearAngle!==undefined){const forward=dot(sub(b,a),u)>=0?u:mul(u,-1),arrow=(tip:Point,direction:Point):Point[]=>{const base=add(tip,mul(direction,s.height*.8)),side=mul(n,s.height*.16);return[tip,add(base,side),sub(base,side)];};return{arrows:[arrow(a,forward),arrow(b,mul(forward,-1))],lines:[[s.a,add(a,mul(n,Math.sign(s.offset)*s.height*.3))],[s.b,add(b,mul(n,Math.sign(s.offset-dot(sub(s.b,s.a),n))*s.height*.3))],[a,b]] as [Point,Point][],label:sub(lerp(a,b,.5),mul(n,s.height*.25)),text:measuredText,angle:-Math.atan2(u.y,u.x)*180/Math.PI};}
+ if(s.linearAngle!==undefined&&s.kind!=='linear'){const forward=dot(sub(b,a),u)>=0?u:mul(u,-1),arrow=(tip:Point,direction:Point):Point[]=>{const base=add(tip,mul(direction,s.height*.8)),side=mul(n,s.height*.16);return[tip,add(base,side),sub(base,side)];};return{arrows:[arrow(a,forward),arrow(b,mul(forward,-1))],lines:[[s.a,add(a,mul(n,Math.sign(s.offset)*s.height*.3))],[s.b,add(b,mul(n,Math.sign(s.offset-dot(sub(s.b,s.a),n))*s.height*.3))],[a,b]] as [Point,Point][],label:sub(lerp(a,b,.5),mul(n,s.height*.25)),text:measuredText,angle:-Math.atan2(u.y,u.x)*180/Math.PI};}
+ if(s.kind==='linear'){
+  const forward=dot(sub(b,a),u)>=0?u:mul(u,-1);
+  const outside=length<s.height*(measuredText.length*.6+2),sign=outside?-1:1;
+  const arrow=(tip:Point,direction:Point):Point[]=>{const base=add(tip,mul(direction,s.height*.8*sign)),side=mul(n,s.height*.16);return [tip,add(base,side),sub(base,side)];};
+  let angle=-Math.atan2(u.y,u.x)*180/Math.PI;if(angle>90)angle-=180;if(angle<-90)angle+=180;
+  return {arrows:[arrow(a,forward),arrow(b,mul(forward,-1))],lines:[[s.a,add(a,mul(n,Math.sign(s.offset)*s.height*.3))],[s.b,add(b,mul(n,Math.sign(s.offset)*s.height*.3))],[sub(a,mul(forward,outside?s.height*2:0)),add(b,mul(forward,outside?s.height*2:0))]] as [Point,Point][],label:sub(outside?add(b,mul(forward,s.height*(measuredText.length*.3+2))):lerp(a,b,.5),mul(n,s.height*.4)),text:measuredText,angle};
+ }
  return{arrows:[] as Point[][],lines:[[s.a,add(a,mul(n,Math.sign(s.offset)*s.height*.3))],[s.b,add(b,mul(n,Math.sign(s.offset)*s.height*.3))],[a,b],[sub(a,tick),add(a,tick)],[sub(b,tick),add(b,tick)]] as [Point,Point][],label:sub(lerp(a,b,.5),mul(n,s.height*.25)),text:measuredText,angle:-Math.atan2(u.y,u.x)*180/Math.PI};
 }
 export function smoothNodes(nodes:Node[],closed=false):Node[]{return nodes.map((n,i)=>{const prev=nodes[i-1]?.p||(closed?nodes[nodes.length-1].p:n.p),next=nodes[i+1]?.p||(closed?nodes[0].p:n.p),t=mul(sub(next,prev),1/6);return{...n,in:sub(n.p,t),out:add(n.p,t),smooth:true};});}

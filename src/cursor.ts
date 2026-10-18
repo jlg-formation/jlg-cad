@@ -11,7 +11,7 @@ export function cursorMode(state: {
  if(state.choosingBoundaries)return 'object';
  if(state.tool==='select')return 'idle';
  if(['trim','extend','join','fillet'].includes(state.tool))return 'object';
- if(['offset','move','copy','scale','rotate','mirror','diameter'].includes(state.tool))return state.hasSource?'point':'object';
- if((state.tool==='dimension'||state.tool==='linearDimension')&&state.selectingDimension)return 'object';
+ if(['offset','move','copy','scale','rotate','mirror','diameter','radius','arcDimension','jogged'].includes(state.tool))return state.hasSource?'point':'object';
+ if((state.tool==='dimension'||state.tool==='linearDimension'||state.tool==='alignedDimension')&&state.selectingDimension)return 'object';
  return 'point';
 }

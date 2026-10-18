@@ -1,9 +1,11 @@
+import {synchronizeDrawing} from './associations';
 import {hatchLines} from './hatch';
 import { jsPDF } from 'jspdf';
 import { bounds, modelToPaper, paperSize, visibleShapes,textLineOffset, type Drawing, type Layout, type Shape, type TextItem } from './model';
 import { mapItem, segments, arcCubics, dimensionGeometry } from './geometry';
 
 export function createPdf(drawing: Drawing, layouts: Layout[],displayUnit:'m'|'cm'|'mm'='mm') {
+  const resolved=synchronizeDrawing(drawing);layouts=layouts.map(l=>resolved.layouts.find(r=>r.id===l.id)||l);drawing=resolved;
   if (!layouts.length) throw new Error('Créez une présentation avant d’exporter.');
   const size = paperSize(layouts[0]);
   const pdf = new jsPDF({ unit:'mm', format:[size.x,size.y], orientation:layouts[0].orientation, compress:true });
@@ -14,6 +16,7 @@ export function createPdf(drawing: Drawing, layouts: Layout[],displayUnit:'m'|'c
     pdf.saveGraphicsState();
     pdf.rect(0,0,size.x,size.y,null);pdf.clip();pdf.discardPath();
     const draw=(s:Shape|TextItem,dimensionLabel?:string)=>{
+      if(s.type==='dimension'&&s.paperHidden)return;
       const color=layout.monochrome?'#17242a':s.color;
       pdf.setDrawColor(color);pdf.setTextColor(color);pdf.setLineWidth(.25);
       if(s.type==='text'){const offset=textLineOffset(s),angle=(s.rotation||0)*Math.PI/180;pdf.setFont('helvetica');pdf.setFontSize(s.height*72/25.4);pdf.text(s.text,s.a.x-Math.sin(angle)*offset,s.a.y+Math.cos(angle)*offset,{baseline:s.vertical==='baseline'?'alphabetic':s.vertical==='middle'?'middle':s.vertical==='bottom'?'bottom':'top',align:s.align||'left',angle:-(s.rotation||0),lineHeightFactor:1.2});}
@@ -23,7 +26,7 @@ export function createPdf(drawing: Drawing, layouts: Layout[],displayUnit:'m'|'c
       }
       else if(s.type==='line')pdf.line(s.a.x,s.a.y,s.b.x,s.b.y);
       else if(s.type==='circle')pdf.circle(s.a.x,s.a.y,Math.hypot(s.b.x-s.a.x,s.b.y-s.a.y),'S');
-      else if(s.type==='dimension'){const d=dimensionGeometry(s,displayUnit);d.lines.forEach(([a,b])=>pdf.line(a.x,a.y,b.x,b.y));pdf.setFillColor(color);d.arrows.forEach(ps=>pdf.triangle(ps[0].x,ps[0].y,ps[1].x,ps[1].y,ps[2].x,ps[2].y,'F'));pdf.setFontSize(s.height*72/25.4);pdf.text(dimensionLabel||d.text,d.label.x,d.label.y,{align:'center',angle:d.angle});}
+      else if(s.type==='dimension'){const d=dimensionGeometry(s,displayUnit);d.lines.forEach(([a,b])=>pdf.line(a.x,a.y,b.x,b.y));pdf.setFillColor(color);d.arrows.forEach(ps=>pdf.triangle(ps[0].x,ps[0].y,ps[1].x,ps[1].y,ps[2].x,ps[2].y,'F'));pdf.setFontSize(s.height*72/25.4);const label=dimensionLabel||d.text;if(label.startsWith('⌒ ')){const x=d.label.x-pdf.getTextWidth(label.slice(2))/2-s.height*.8,y=d.label.y-s.height*.3;pdf.path([{op:'m',c:[x-s.height*.3,y]},{op:'c',c:[x-s.height*.2,y-s.height*.5,x+s.height*.2,y-s.height*.5,x+s.height*.3,y]}]);pdf.stroke();}pdf.text(label.replace(/^⌒ /,''),d.label.x,d.label.y,{align:'center',angle:d.angle});}
       else if(s.type==='arc'||s.type==='polyline'||s.type==='bezier'){
         const parts=segments(s);if(!parts.length)return;const path:{op:string;c:number[]}[]=[{op:'m',c:[parts[0].a.x,parts[0].a.y]}];
         for(const part of parts){for(const seg of part.kind==='arc'?arcCubics(part):[part])path.push(seg.kind==='line'?{op:'l',c:[seg.b.x,seg.b.y]}:{op:'c',c:[seg.c1.x,seg.c1.y,seg.c2.x,seg.c2.y,seg.b.x,seg.b.y]});}if('closed'in s&&s.closed)path.push({op:'h',c:[]});pdf.path(path);pdf.stroke();

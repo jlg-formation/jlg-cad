@@ -16,6 +16,7 @@ export function scaleSelection(doc:Drawing,ids:string[],base:Point,factor:number
  const transform=(s:Shape):Shape=>{
   const next=mapItem(s,p=>({x:base.x+(p.x-base.x)*factor,y:base.y+(p.y-base.y)*factor}),factor);
   next.id=copies.get(s.id)!;
+  if(copyId&&next.type==='dimension'){next.references=next.references?.filter(r=>copies.has(r.id)).map(r=>({...r,id:copies.get(r.id)!}));next.angleSources=next.angleSources?.every(r=>copies.has(r.id))?next.angleSources.map(r=>({...r,id:copies.get(r.id)!})):undefined;}
   if(copyId&&next.type==='dimension'&&next.circleId)next.circleId=copies.get(next.circleId);
   if(copyId&&next.type==='hatch'){next.associative=false;next.regions=next.regions.map(r=>({...r,sourceIds:[],outerSourceIds:[]}));}
   return next;

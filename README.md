@@ -88,7 +88,7 @@ La traduction est centralisée dans src/locales/en.json. Les textes non encore t
 
 ## Formats et limites
 
-Le format natif version 7 conserve le dessin, les arcs natifs, les chemins, les cotations, les hachures et leurs liaisons aux contours, les calques et les présentations. Les fichiers versions 1 à 6 sont migrés à l’ouverture. Les unités sont des millimètres. Les coordonnées affichées dans l’espace objet utilisent Y vers le haut, comme le DXF.
+Le format natif version 9 conserve le dessin, les arcs natifs, les chemins, les cotations, les hachures et leurs liaisons aux contours, les calques et les présentations. Les fichiers versions 1 à 8 sont migrés à l’ouverture. Les unités sont des millimètres. Les coordonnées affichées dans l’espace objet utilisent Y vers le haut, comme le DXF.
 
 ## Espace papier et PDF
 
@@ -138,10 +138,10 @@ Un [plan de vérification](tests/fixtures/import-2d.dxf) est fourni : contour de
 - Longueur et angle précis contraignent les lignes et segments de polyligne. **F8** active l’orthogonal ; le guidage polaire propose 15°, 30°, 45° ou 90°. Les accrochages reconnaissent extrémités, milieux, centres et intersections.
 - **Polyligne (P)** : cliquer les sommets, choisir Ligne ou Arc circulaire pour le prochain segment, puis Entrée ou Terminer. Le contour peut être fermé. Les propriétés permettent de déplacer, insérer et supprimer les sommets et de modifier les arcs.
 - **Bézier (B)** : cliquer les points de passage, puis terminer. Les sommets et poignées se déplacent dans le dessin ou par coordonnées. Les poignées peuvent être alignées et un sommet peut être lissé.
-- **Mesurer** affiche distance, écarts X/Y et angle. **Cotation (D)** prend deux points puis la position de la cote ; régler hauteur imprimée et échelle prévue. Les cotes mesurent leurs propres points et ne suivent pas automatiquement les modifications d’un mur.
+- **Mesurer** affiche distance, écarts X/Y et angle. **Cotation (D)** prend deux points puis la position de la cote ; régler hauteur imprimée et échelle prévue. Les nouvelles cotations explicites suivent les extrémités et centres reconnus ; les anciennes cotations générales restent indépendantes.
 - Les **calques** proposent visibilité, verrouillage, couleur, renommage et ajout. Le verrouillage protège les modifications géométriques ; les calques masqués sont exclus des fenêtres et exports PDF/DXF.
 
-Les décalages des lignes et arcs sont géométriques. Un décalage de Bézier produit une polyligne approchée à 0,1 mm ; ses intersections utilisent une approximation de 0,05 mm. Les décalages qui écrasent ou croisent un contour sont refusés. Raccords arrondis, blocs et cotations associatives restent à développer.
+Les décalages des lignes et arcs sont géométriques. Un décalage de Bézier produit une polyligne approchée à 0,1 mm ; ses intersections utilisent une approximation de 0,05 mm. Les décalages qui écrasent ou croisent un contour sont refusés. Raccords arrondis, blocs et liaisons de cotation aux intersections et aux points arbitraires restent à développer.
 
 Voir le [guide des commandes, unités et poignées](docs/drafting.md) pour la saisie dynamique et les modifications par points remarquables.
 
@@ -170,3 +170,38 @@ Les nouvelles cotations de diamètre (DIAMÈTRE / DDI puis Entrée) suivent le r
 - Les nouveaux arcs créés avec ARC ou importés depuis un DXF sont enregistrés comme arcs dans le format natif v7 et exportés comme ARC dans le DXF. Les anciennes polylignes courbes restent des polylignes : aucune conversion fondée seulement sur leur apparence. Les Bézier, ellipses, splines AutoCAD et objets 3D ne sont pas pris en charge par JOIN.
 
 Les tests de jonction couvrent les lignes avec espaces et superpositions, les ordres et sens des segments, les contours séparés et fermés, les sources, les arcs passant par zéro degré, les calques verrouillés, les hachures avec îlots et les échanges natif/presse-papiers/DXF. La comparaison interactive sur les fichiers réels de l’agence avec AutoCAD reste à effectuer.
+
+## Cotations
+
+La flèche du bouton Cotation ouvre les huit familles, dans l’ordre du menu AutoCAD. Le bouton principal relance la dernière famille choisie. La commande générale **D / DIMENSION** reste disponible en bas du menu.
+
+| Outil | Commande / alias | Parcours |
+| --- | --- | --- |
+| Linéaire | DIMLINEAR / DLI | Deux points, puis placement horizontal/vertical ; Entrée avant le premier point permet de choisir un côté. Une direction précise en degrés est disponible dans les réglages. |
+| Alignée | DIMALIGNED / DAL | Deux points, ou Entrée puis sélection d’un côté droit ; placement parallèle au côté. |
+| Angulaire | DIMANGULAR / DAN | Deux côtés droits puis placement dans le secteur souhaité ; le réglage « Sommet et deux points » permet le parcours à trois points. Un arc circulaire peut aussi être sélectionné. |
+| Longueur d’arc | DIMARC / DAR | Un arc natif ou un segment circulaire de polyligne, puis placement ; mesure le chemin circulaire avec symbole d’arc. |
+| Rayon | DIMRADIUS / DRA | Cercle ou arc, puis placement ; préfixe R. |
+| Diamètre | DIMDIAMETER / DDI | Cercle ou arc, puis placement ; préfixe Ø. |
+| Ordonnée | DIMORDINATE / DOR | Point puis rappel de cote ; origine X/Y dans l’unité active, axe automatique ou X/Y imposé. Y est positif vers le haut. |
+| Rayon raccourci | DIMJOGGED / DJO | Cercle ou arc, centre de remplacement, placement du texte, puis position de la brisure. La valeur reste le rayon réel. |
+
+Les réglages proposent hauteur imprimée et échelle de cote ; les saisies acceptent la virgule et les unités explicites. Entrée valide les paramètres, Tab change de champ, Échap quitte la commande. Les valeurs mesurées sont calculées depuis le dessin. Les nouvelles commandes restent actives après création pour enchaîner les cotes. Une poignée permet de replacer les cotations circulaires, angulaires et par ordonnées.
+
+Les nouvelles cotes se lient aux extrémités et centres exacts reconnus lors de la création. Les angles créés par sélection de deux lignes suivent ces lignes. Copier les cotes avec leurs sources recrée les liens ; copier une cote seule conserve une mesure indépendante. Une source supprimée ou un segment devenu incompatible détache les nouvelles liaisons en conservant la géométrie disponible ; le diamètre lié à un cercle conserve son comportement de suppression en cascade. Les points libres, milieux et intersections ne sont pas liés automatiquement ; les remaniements de topologie d’une polyligne peuvent nécessiter de recréer une cote.
+
+Le format natif conserve les définitions et les liaisons. Le PDF est vectoriel. Le DXF conserve l’apparence en traits, flèches et textes ; il ne produit pas encore des entités DIMENSION éditables et associatives dans AutoCAD. Les styles DIMSTYLE, les tolérances, les unités alternatives et les cotes annotatives ne sont pas implémentés. Les cotes se créent dans Objet et directement sur les présentations, sans activer les fenêtres.
+
+### Cotations sur les présentations
+
+Les huit outils sont accessibles dans l’espace papier par le même bouton Cotation et leurs alias. Restez sur la feuille : cliquez les points du bâtiment visibles dans une fenêtre, puis placez la cote, même hors de son cadre. Un double-clic pendant la cotation n’active pas la fenêtre. Une fenêtre verrouillée reste utilisable pour coter.
+
+La première sélection détermine la fenêtre de référence ; les points suivants doivent appartenir à la même vue. Les extrémités, centres, milieux et intersections bénéficient des accrochages du dessin à travers la fenêtre. Le réglage Angulaire propose deux lignes ou un sommet et deux points. Les cotes restent des objets de la présentation ; aucune cote n’est ajoutée dans Objet et les autres présentations restent indépendantes.
+
+La valeur affichée est la mesure réelle du bâtiment dans l’unité active du dessin. Un mur de 5 m affiché au 1:50 est coté 5 m, pas 100 mm. La hauteur du texte est directement exprimée en millimètres imprimés, 3 mm par défaut ; aucun facteur d’échelle de cote n’est à saisir. Changer l’échelle, le cadrage, la position ou les dimensions de la fenêtre reprojette les cotes en conservant cette hauteur et la taille des flèches.
+
+Modifier les éléments du bâtiment met à jour les valeurs et les points d’attache liés. Les milieux suivent leur position relative sur le segment ; les intersections sont recalculées tant que les deux segments se croisent. Les poignées et les propriétés permettent de déplacer la cote sur la feuille sans déplacer le bâtiment ni perdre ses liens.
+
+Si une source sort entièrement du cadre, sa cote est masquée et revient lorsqu’elle redevient visible. Une source supprimée ou devenue incompatible détache la cote en conservant la dernière géométrie et la dernière valeur valides, avec une indication dans ses propriétés. Supprimer la fenêtre conserve également une cote détachée sur la feuille. Annuler/rétablir restaure les liens, la fenêtre et les sources avec leur état précédent.
+
+Le fichier natif v9 conserve ces liaisons entre espaces ; les anciens formats restent lisibles. Le PDF utilise les mesures réelles, les tailles papier et le masquage des cotes hors cadre. Les mesures entre fenêtres différentes, les fenêtres tournées ou non rectangulaires, la réassociation manuelle et la conservation des associations dans un DWG/DXF AutoCAD ne sont pas pris en charge. Les remaniements de topologie et les intersections disparues peuvent nécessiter de recréer la cote. La comparaison sur des plans réels de l’agence reste à effectuer.

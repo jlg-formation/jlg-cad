@@ -96,6 +96,12 @@ export const DiameterDimensionIcon = icon('diameter-dimension', <>
  <path d="m6.35 17.65 1-3.8m-1 3.8 3.8-1m7.5-10.3-3.8 1m3.8-1-1 3.8" stroke={gold}/>
  <path d="M10.5 12h3M12 10.5v3" strokeWidth="1"/>
 </>);
+export const AlignedDimensionIcon = icon('aligned-dimension', <><path d="m3 11 7-7m4 17 7-7"/><path d="m6 8 12 10m-12-10 1 4m-1-4 4 .3m8 9-4-.3m4 .3-1-4" stroke={blue}/></>);
+export const AngularDimensionIcon = icon('angular-dimension', <><path d="M3 21h19M3 21 16 3"/><path d="M10 11a13 13 0 0 1 7 10m0 0-2-3m2 3 2-3m-9-10 4 1m-4-1 1 4" stroke={blue}/></>);
+export const ArcLengthDimensionIcon = icon('arc-length-dimension', <><path d="M6 21A16 16 0 0 1 21 6M3 21h7M21 3v7"/><path d="M3 18A18 18 0 0 1 18 3m-15 15 3-2m-3 2-1-4m16-11-3-1m3 1-2 3" stroke={blue}/></>);
+export const RadiusDimensionIcon = icon('radius-dimension', <><path d="M3 21A18 18 0 0 1 21 3"/><path d="m20 20-13-13m0 0 4 1m-4-1 1 4" stroke={blue}/></>);
+export const OrdinateDimensionIcon = icon('ordinate-dimension', <><path d="M3 3v18h18"/><path d="M4 13h14M11 20V4m-2 0 4 4m0-4-4 4m9 6 4-4m-4 0 4 4" stroke={blue}/></>);
+export const JoggedDimensionIcon = icon('jogged-dimension', <><path d="M3 21A18 18 0 0 1 21 3"/><path d="m21 20-7-7v4l-7-10m0 0 4 1m-4-1 1 4" stroke={blue}/></>);
 export const VisibleIcon = icon('visible', <><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3" stroke={blue}/></>);
 export const HiddenIcon = icon('hidden', <><path d="M3 9 2 12s4 7 10 7c2 0 4-1 6-3M7 6c7-4 13 3 15 6l-2 3" opacity=".65"/><path d="M3 3 21 21" stroke={gold}/></>);
 export const LockIcon = icon('lock', <><path d="M7 10V7a5 5 0 0 1 10 0v3"/><path d="M5 10h14v11H5z" fill={gold} fillOpacity=".2" stroke={gold}/><path d="M12 14v3"/></>);

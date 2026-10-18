@@ -1,3 +1,4 @@
+import {plainShapes} from '../src/blocks';
 import {describe,expect,test} from 'bun:test';
 import {importDxf,inspectDxf,decodeDxf,aciColor} from '../src/dxf-import';
 import {documentOf,parseDrawing,toDxf,bounds,type PathShape,type ArcShape,type TextItem} from '../src/model';
@@ -15,8 +16,8 @@ describe('Import DXF 2D',()=>{
  test('symbol names are case-insensitive and unusual unknown types are still counted',()=>{
   const body=pairs(0,'INSERT',2,'fenetre',8,'murs',0,'__proto__'),tables=pairs(0,'LAYER',2,'Murs',62,3,70,2),result=importDxf(file(body,4,block('Fenetre',line()),tables),'x');expect(result.report.objects).toBe(1);expect(result.drawing.layers.filter(l=>l.name.toUpperCase()==='MURS')).toHaveLength(1);expect(result.drawing.layers[0].visible).toBe(true);expect(result.report.skipped['__proto__']).toBe(1);expect(aciColor(11)).toBe('#ff7f7f');expect(aciColor(20)).toBe('#ff3f00');
  });
- test('sample architecture file has six objects, exact plan extent and a decomposed window',()=>{
-  const sample=readFileSync(new URL('./fixtures/import-2d.dxf',import.meta.url),'utf8'),result=importDxf(sample,'example.dxf');expect(result.report.objects).toBe(6);expect(result.report.blocks).toBe(1);const boxes=result.drawing.shapes.map(bounds);expect(Math.min(...boxes.map(b=>b.x))).toBeCloseTo(0);expect(Math.max(...boxes.map(b=>b.x+b.width))).toBeCloseTo(8000);expect(result.report.skipped).toEqual({});
+ test('sample architecture file has five objects, exact plan extent and a preserved window',()=>{
+  const sample=readFileSync(new URL('./fixtures/import-2d.dxf',import.meta.url),'utf8'),result=importDxf(sample,'example.dxf');expect(result.report.objects).toBe(5);expect(result.drawing.shapes.some(s=>s.type==='block')).toBe(true);expect(result.report.blocks).toBe(1);const boxes=result.drawing.shapes.map(bounds);expect(Math.min(...boxes.map(b=>b.x))).toBeCloseTo(0);expect(Math.max(...boxes.map(b=>b.x+b.width))).toBeCloseTo(8000);expect(result.report.skipped).toEqual({});
  });
  test('MTEXT rotations use radians and respect direction-vector precedence',()=>{
   const body=pairs(0,'MTEXT',10,0,20,0,40,2,1,'Note',50,Math.PI/2)+pairs(0,'MTEXT',10,0,20,0,40,2,1,'Note',50,Math.PI/2,11,1,21,0)+pairs(0,'MTEXT',10,0,20,0,40,2,1,'Note',11,1,21,0,50,Math.PI/2);const shapes=importDxf(file(body),'x').drawing.shapes as TextItem[];expect(shapes.map(s=>Math.round(s.rotation!))).toEqual([-90,0,-90]);
@@ -28,7 +29,7 @@ describe('Import DXF 2D',()=>{
  test('invalid native text fields and legacy model text are refused; v5 still migrates',()=>{
   const t:TextItem={id:'t',type:'text',a:{x:0,y:0},b:{x:0,y:0},color:'#123456',text:'x',height:3};
   for(const patch of [{height:0},{rotation:Infinity},{align:'unsupported'},{vertical:'unsupported'}])expect(()=>parseDrawing(JSON.stringify(documentOf('x',[{...t,...patch} as TextItem])))).toThrow();
-  expect(()=>parseDrawing(JSON.stringify({...documentOf('x',[t]),version:5}))).toThrow();expect(parseDrawing(JSON.stringify({...documentOf('x',[]),version:5})).version).toBe(9);
+  expect(()=>parseDrawing(JSON.stringify({...documentOf('x',[t]),version:5}))).toThrow();expect(parseDrawing(JSON.stringify({...documentOf('x',[]),version:5})).version).toBe(10);
  });
  test('converts units, preserves origin, reflects Y, saves native and restores',()=>{
   const {drawing,report}=importDxf(file(line(),6),'maison.dxf');expect(drawing.name).toBe('maison');expect(drawing.shapes[0].a).toEqual({x:1000,y:-2000});expect(drawing.shapes[0].b).toEqual({x:3000,y:-4000});expect(report.objects).toBe(1);expect(parseDrawing(JSON.stringify(drawing))).toEqual(drawing);
@@ -53,11 +54,11 @@ describe('Import DXF 2D',()=>{
  test('nested blocks apply base, rotation, scale and inherited layer/color',()=>{
   const blocks=block('inner',line(62,0),1,2)+block('outer',pairs(0,'INSERT',2,'inner',10,10,20,0,41,2,42,2,62,0));
   const body=pairs(0,'INSERT',2,'outer',10,100,20,100,50,90,8,'Furniture',62,3);
-  const {drawing,report}=importDxf(file(body,4,blocks),'x');expect(report.blocks).toBe(2);expect(drawing.shapes[0].a.x).toBeCloseTo(100);expect(drawing.shapes[0].a.y).toBeCloseTo(-110);expect(drawing.shapes[0].b.x).toBeCloseTo(96);expect(drawing.shapes[0].b.y).toBeCloseTo(-114);expect(drawing.shapes[0].color).toBe('#00ff00');expect(drawing.layers.find(l=>l.id===drawing.shapes[0].layerId)?.name).toBe('Furniture');
+  const {drawing,report}=importDxf(file(body,4,blocks),'x');expect(report.blocks).toBe(2);const geometry=plainShapes(drawing.shapes);expect(geometry[0].a.x).toBeCloseTo(100);expect(geometry[0].a.y).toBeCloseTo(-110);expect(geometry[0].b.x).toBeCloseTo(96);expect(geometry[0].b.y).toBeCloseTo(-114);expect(drawing.shapes[0].color).toBe('#00ff00');expect(drawing.layers.find(l=>l.id===drawing.shapes[0].layerId)?.name).toBe('Furniture');
  });
  test('block arrays and reflected arcs keep positions and bulge sign',()=>{
   const blocks=block('a',pairs(0,'ARC',10,0,20,0,40,2,50,0,51,90));const result=importDxf(file(pairs(0,'INSERT',2,'a',41,-1,42,1,70,2,44,10),4,blocks),'x');
-  expect(result.drawing.shapes).toHaveLength(2);const s=result.drawing.shapes as ArcShape[];expect(s[0].bulge).toBeGreaterThan(0);expect(s[1].a.x-s[0].a.x).toBe(10);
+  expect(result.drawing.shapes).toHaveLength(2);const s=plainShapes(result.drawing.shapes) as ArcShape[];expect(s[0].bulge).toBeGreaterThan(0);expect(s[1].a.x-s[0].a.x).toBe(10);
  });
  test('nonuniform blocks retain lines and report unsupported curved geometry',()=>{
   const result=importDxf(file(pairs(0,'INSERT',2,'a',41,2,42,1),4,block('a',line()+pairs(0,'CIRCLE',10,0,20,0,40,5))),'x');expect(result.drawing.shapes).toHaveLength(1);expect(result.report.skipped['CIRCLE : échelle non uniforme']).toBe(1);

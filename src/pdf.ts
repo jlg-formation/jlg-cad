@@ -16,6 +16,7 @@ export function createPdf(drawing: Drawing, layouts: Layout[],displayUnit:'m'|'c
     pdf.saveGraphicsState();
     pdf.rect(0,0,size.x,size.y,null);pdf.clip();pdf.discardPath();
     const draw=(s:Shape|TextItem,dimensionLabel?:string)=>{
+      if(s.type==='block'){s.entities.filter(child=>drawing.layers.find(l=>l.id===(child.layerId||'0'))?.visible!==false).forEach(child=>draw(child));return;}
       if(s.type==='dimension'&&s.paperHidden)return;
       const color=layout.monochrome?'#17242a':s.color;
       pdf.setDrawColor(color);pdf.setTextColor(color);pdf.setLineWidth(.25);

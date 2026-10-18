@@ -20,6 +20,7 @@ export function gripLengthFactor(s:PaperItem,key:string):number{
  return segment.radius*Math.abs(segment.sweep)/distance(segment.a,segment.b);
 }
 export function objectGrips(s:PaperItem):Grip[]{
+ if(s.type==='block')return [{key:"center-0",kind:"center",index:0,point:s.a}];
  if(s.type==='polyline'||s.type==='bezier'){
   const vertices=s.nodes.map((n,index):Grip=>({key:`vertex-${index}`,point:n.p,kind:'vertex',index}));
   const mids=s.type==='polyline'?segments(s).map((seg,index):Grip=>({key:`segment-${index}`,point:at(seg,.5),kind:'segment',index,angle:(seg.kind==='arc'?seg.start+seg.sweep/2+Math.PI/2:Math.atan2(seg.b.y-seg.a.y,seg.b.x-seg.a.x))*180/Math.PI})):[];

@@ -74,7 +74,8 @@ header .architecture-toolbar button{width:30px;min-width:30px;height:30px;paddin
 @media(max-width:760px){header{height:42px;padding:0 6px;gap:4px}header .header-menus{gap:4px}header .architecture-toolbar{padding:0 3px}}
 
 
-header .architecture-toolbar{flex:1 1 460px}
+header .architecture-toolbar{flex:0 1 auto;flex-wrap:nowrap}
+header .architecture-tool-group{flex-shrink:0}
 
 header .architecture-toolbar.concealed{visibility:hidden}
 

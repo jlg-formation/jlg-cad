@@ -1,9 +1,10 @@
-import {documentOf,parseDrawing,type Drawing,type Layer,type Node,type Point,type Shape} from './model';
+import {mapItem} from './geometry';
+import {documentOf,parseDrawing,type Drawing,type Layer,type Node,type Point,type Shape,type BlockDefinition,type BlockShape} from './model';
 
 // Deliberately bounded ASCII DXF reader. Unknown entities are counted, never silently accepted.
 type Pair={code:number;value:string};
 type Entity={type:string;pairs:Pair[];vertices?:Entity[]};
-type Block={base:Point;entities:Entity[];external:boolean};
+type Block={name:string;base:Point;entities:Entity[];external:boolean};
 type Matrix=[number,number,number,number,number,number];
 export const dxfUnits={mm:1,cm:10,m:1000,in:25.4,ft:304.8} as const;
 export type DxfUnit=keyof typeof dxfUnits;
@@ -60,8 +61,8 @@ export function importDxf(text:string,name:string,override?:DxfUnit):DxfImport{
  const ensureLayer=(name:string,e?:Entity)=>{const key=name.toUpperCase();let l=byName.get(key);if(!l){if(layers.length>=200)throw new Error('DXF trop complexe : plus de 200 calques.');const flags=e?num(e,70):0;l={id:name==='0'?'0':`dxf-layer-${layers.length}`,name,color:e?color(e,'#ffffff','#ffffff'):'#ffffff',visible:!e||num(e,62,7)>=0&&!(flags&1),locked:!!(flags&4)};layers.push(l);byName.set(key,l);}return l;};
  for(const e of entities(sections.get('TABLES')||[]))if(e.type==='LAYER'){ensureLayer(get(e,2,'0'),e);if(get(e,6)&&get(e,6)!=='CONTINUOUS'||num(e,370,-1)>0)warnings.add('Types de trait et épaisseurs remplacés par les traits JLG CAD.');}ensureLayer('0');
  const blocks=new Map<string,Block>(),bs=entities(sections.get('BLOCKS')||[]);
- for(let i=0;i<bs.length;i++)if(bs[i].type==='BLOCK'){const e=bs[i],block:Block={base:point(e),entities:[],external:!!(num(e,70)&(4|8|16))};while(bs[i+1]&&bs[i+1].type!=='ENDBLK')block.entities.push(bs[++i]);if(!bs[i+1])throw new Error('Bloc DXF incomplet.');i++;const key=get(e,2).toUpperCase();if(blocks.has(key))throw new Error('Nom de bloc DXF dupliqué.');blocks.set(key,block);}
- const shapes:Shape[]=[];let visits=0;
+ for(let i=0;i<bs.length;i++)if(bs[i].type==='BLOCK'){const e=bs[i],block:Block={name:get(e,2),base:point(e),entities:[],external:!!(num(e,70)&(4|8|16))};while(bs[i+1]&&bs[i+1].type!=='ENDBLK')block.entities.push(bs[++i]);if(!bs[i+1])throw new Error('Bloc DXF incomplet.');i++;const key=get(e,2).toUpperCase();if(blocks.has(key))throw new Error('Nom de bloc DXF dupliqué.');blocks.set(key,block);}
+ const shapes:Shape[]=[],definitions:BlockDefinition[]=[],definitionVariants=new Map<string,BlockDefinition>();let visits=0;
  const emit=(e:Entity,m:Matrix,parentLayer='0',parentColor='#ffffff',stack:string[]=[]):void=>{
   if(++visits>100000)throw new Error('DXF trop complexe : plus de 100 000 entités après développement des blocs.');
   if(num(e,67)||get(e,410)&&get(e,410)!=='Model'){skip('Espace papier');return;}
@@ -81,7 +82,22 @@ export function importDxf(text:string,name:string,override?:DxfUnit):DxfImport{
    const c=Math.cos(angle),s=Math.sin(angle);report.blocks++;
    for(let row=0;row<rows;row++)for(let column=0;column<cols;column++){
     const dx=column*num(e,44),dy=row*num(e,45),local:Matrix=[c*sx,s*sx,-s*sy,c*sy,p.x+c*dx-s*dy-c*sx*block.base.x+s*sy*block.base.y,p.y+s*dx+c*dy-s*sx*block.base.x-c*sy*block.base.y];
-    for(const child of block.entities)emit(child,compose(m,local),layer.name,col,[...stack,key]);
+    const start=shapes.length,total=compose(m,local);
+    for(const child of block.entities)emit(child,total,layer.name,col,[...stack,key]);
+    // Preserve top-level uniform inserts. Nested content is retained as ordinary geometry.
+    const sx0=total[0],sx1=-total[1],sy0=-total[2],sy1=total[3],det=sx0*sy1-sx1*sy0,scale=Math.hypot(sx0,sx1);
+    const uniform=scale>1e-10&&Math.abs(Math.hypot(sy0,sy1)-scale)<scale*1e-8&&Math.abs(sx0*sy0+sx1*sy1)<scale*scale*1e-8;
+    if(!stack.length&&uniform&&shapes.length>start){
+     const content=shapes.splice(start),a={x:(total[0]*block.base.x+total[2]*block.base.y+total[4])*factor,y:-(total[1]*block.base.x+total[3]*block.base.y+total[5])*factor};
+     // Color and layer inheritance are resolved per definition variant to preserve the imported appearance.
+     const localShapes=content.map(child=>mapItem(child,p=>({x:((p.x-a.x)*sy1-(p.y-a.y)*sy0)/det,y:(sx0*(p.y-a.y)-sx1*(p.x-a.x))/det}),1/scale,det<0));
+     const signatureOf=(items:Shape[])=>JSON.stringify(items.map(({id,...shape})=>shape),(_key,value)=>typeof value==='number'?Math.round(value*1e7)/1e7:value);
+     const signature=signatureOf(localShapes);
+     const variant=key+'\0'+signature;
+     let definition=definitionVariants.get(variant);
+     if(!definition){let name=block.name,n=2;while(definitions.some(d=>d.name===name))name=block.name+' ('+(n++)+')';definition={id:'dxf-block-'+definitions.length,name,shapes:localShapes};definitions.push(definition);definitionVariants.set(variant,definition);}
+     const instance:BlockShape={id:'dxf-'+start,type:'block',definitionId:definition.id,a,b:{x:a.x+sx0,y:a.y+sx1},yAxis:{x:a.x+sy0,y:a.y+sy1},color:col,layerId:layer.id,entities:content};shapes.push(instance);
+    }else if(!stack.length&&!uniform)warnings.add('Blocs à échelles non uniformes décomposés en objets indépendants.');
    }return;
   }
   const det=m[0]*m[3]-m[1]*m[2],scale=Math.hypot(m[0],m[1]),similar=Math.abs(Math.hypot(m[2],m[3])-scale)<=scale*1e-8&&Math.abs(m[0]*m[2]+m[1]*m[3])<=scale*scale*1e-8;
@@ -119,9 +135,9 @@ export function importDxf(text:string,name:string,override?:DxfUnit):DxfImport{
   shapes.push(shape);if(shapes.length>50000)throw new Error('DXF trop complexe : plus de 50 000 objets.');
  };
  for(const e of entities(sections.get('ENTITIES')||[]))emit(e,[1,0,0,1,0,0]);
- if(report.blocks)warnings.add('Blocs décomposés en objets indépendants ; leur structure n’est pas conservée.');
+ if(definitions.length)warnings.add('Blocs statiques conservés ; contenu des blocs imbriqués aplati.');
  if(sections.has('OBJECTS')||sections.has('CLASSES'))warnings.add('Présentations, références externes et objets personnalisés ne sont pas importés.');
  if(override)warnings.add(`Unité choisie : ${unit} (1 unité DXF = ${factor} mm).`);
  report.objects=shapes.length;report.warnings=[...warnings];
- return{drawing:parseDrawing(JSON.stringify(documentOf(name.replace(/\.dxf$/i,''),shapes,[],layers))),report};
+ return{drawing:parseDrawing(JSON.stringify({...documentOf(name.replace(/\.dxf$/i,''),shapes,[],layers),blocks:definitions})),report};
 }

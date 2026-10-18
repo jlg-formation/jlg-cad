@@ -15,15 +15,17 @@ export type Dimension = BaseShape & { type: 'dimension'; offset: number; height:
 export type HatchStyle = {pattern:'SOLID'|'ANSI31'|'CROSS'|'BRICK'|'CONCRETE'|'USER';scale:number;angle:number;spacing:number;double:boolean;origin:Point;islands:'normal'|'outer'|'ignore';associative:boolean;mirrored?:boolean};
 export type HatchRegion = {loops:Point[][];boundaryLoops?:Point[][];outerSourceIds?:string[];sourceIds:string[];seed:Point};
 export type HatchShape = BaseShape & HatchStyle & {type:'hatch';regions:HatchRegion[];boundaryVersion?:number;detachedReason?:string};
-export type Shape = SimpleShape | ArcShape | PathShape | Dimension | HatchShape | TextItem;
+export type BlockDefinition = {id:string;name:string;shapes:Shape[]};
+export type BlockShape = BaseShape & {type:"block";definitionId:string;yAxis:Point;entities:Shape[]};
+export type Shape = BlockShape | SimpleShape | ArcShape | PathShape | Dimension | HatchShape | TextItem;
 export type TextItem = BaseShape & { type: 'text'; text: string; height: number; rotation?:number; align?:'left'|'center'|'right'; vertical?:'top'|'baseline'|'middle'|'bottom' };
 export type Viewport = BaseShape & { type: 'viewport'; center: Point; denominator: number; locked: boolean; printBorder: boolean };
 export type PaperItem = Shape | TextItem | Viewport;
 export type Layout = { id: string; name: string; format: 'A4' | 'A3'; orientation: 'portrait' | 'landscape'; monochrome: boolean; items: PaperItem[] };
 export type Layer = { id: string; name: string; color: string; visible: boolean; locked: boolean };
 export const defaultLayers = (): Layer[] => [{id:'0',name:'Dessin',color:'#b5ddd6',visible:true,locked:false},{id:'murs',name:'Murs',color:'#a6e0cf',visible:true,locked:false},{id:'ouvertures',name:'Ouvertures',color:'#e6b776',visible:true,locked:false},{id:'cotes',name:'Cotations',color:'#94bfea',visible:true,locked:false}];
-export type Drawing = { format: 'jlg-cad'; version: 9; name: string; units: 'mm'; shapes: Shape[]; layouts: Layout[]; layers: Layer[]; grid?:DrawingGrid };
-export const documentOf = (name: string, shapes: Shape[], layouts: Layout[] = [], layers: Layer[] = defaultLayers()): Drawing => ({ format: 'jlg-cad', version: 9, name, units: 'mm', shapes, layouts, layers, grid:defaultGrid() });
+export type Drawing = { format: 'jlg-cad'; version: 10; blocks?:BlockDefinition[]; name: string; units: 'mm'; shapes: Shape[]; layouts: Layout[]; layers: Layer[]; grid?:DrawingGrid };
+export const documentOf = (name: string, shapes: Shape[], layouts: Layout[] = [], layers: Layer[] = defaultLayers()): Drawing => ({ format: 'jlg-cad', version: 10, blocks:[], name, units: 'mm', shapes, layouts, layers, grid:defaultGrid() });
 export const visibleShapes = (doc: Drawing) => doc.shapes.filter(s=>doc.layers.find(l=>l.id===(s.layerId||'0'))?.visible!==false);
 export const lockedShape = (doc: Drawing, s: Shape) => !!doc.layers.find(l=>l.id===(s.layerId||'0'))?.locked;
 export const newLayout = (id: string, name: string): Layout => ({ id, name, format: 'A4', orientation: 'landscape', monochrome: true, items: [] });
@@ -31,7 +33,8 @@ export function paperSize(layout: Layout): Point {
   const [short,long] = layout.format === 'A3' ? [297,420] : [210,297];
   return layout.orientation === 'landscape' ? { x:long,y:short } : { x:short,y:long };
 }
-export function bounds(item: PaperItem) {
+export function bounds(item: PaperItem):{x:number;y:number;width:number;height:number} {
+  if(item.type==='block'){const boxes=item.entities.map(bounds);if(!boxes.length)return{x:item.a.x,y:item.a.y,width:0,height:0};const x=Math.min(...boxes.map(b=>b.x)),y=Math.min(...boxes.map(b=>b.y));return{x,y,width:Math.max(...boxes.map(b=>b.x+b.width))-x,height:Math.max(...boxes.map(b=>b.y+b.height))-y};}
   if(item.type==='text'){const ps=textCorners(item),x=Math.min(...ps.map(p=>p.x)),y=Math.min(...ps.map(p=>p.y));return{x,y,width:Math.max(...ps.map(p=>p.x))-x,height:Math.max(...ps.map(p=>p.y))-y};}
   if(item.type==='hatch'){const {a,b}=hatchBounds(item.regions);return{x:a.x,y:a.y,width:b.x-a.x,height:b.y-a.y};}
   if(item.type==='arc'||item.type==='polyline'||item.type==='bezier') {
@@ -71,6 +74,11 @@ export function parseDrawing(text: string): Drawing {
   const d = JSON.parse(text);
   const point = (p: Point) => p && Number.isFinite(p.x) && Number.isFinite(p.y) && Math.abs(p.x) <= 1e7 && Math.abs(p.y) <= 1e7;
   const base = (s: PaperItem) => s && typeof s.id === 'string' && point(s.a) && point(s.b) && typeof s.color === 'string' && /^#[0-9a-f]{6}$/i.test(s.color);
+  const validBlockTransform=(s:BlockShape)=>{
+   if(!point(s.yAxis))return false;
+   const x={x:s.b.x-s.a.x,y:s.b.y-s.a.y},y={x:s.yAxis.x-s.a.x,y:s.yAxis.y-s.a.y},scale=Math.hypot(x.x,x.y);
+   return scale>=1e-6&&scale<=1e5&&Math.abs(Math.hypot(y.x,y.y)-scale)<=scale*1e-7&&Math.abs(x.x*y.x+x.y*y.y)<=scale*scale*1e-7;
+  };
   const unique = (items: {id:string}[]) => items.every(s=>s&&typeof s.id==='string') && new Set(items.map(s=>s.id)).size === items.length;
   const hatchValid=(s:HatchShape)=>{
     try{
@@ -110,11 +118,14 @@ export function parseDrawing(text: string): Drawing {
    }
    return true;
   };
-  const list = (items: PaperItem[], paper=false) => Array.isArray(items) && items.length <= 50000 && unique(items) && items.every(s => base(s) && (s.layerId===undefined||typeof s.layerId==='string') && ((s.type==='hatch'&&hatchValid(s)) || ['line','rect','circle'].includes(s.type) || (s.type==='arc'&&d.version>=7&&Number.isFinite(s.bulge)&&Math.abs(s.bulge)>1e-12&&Math.abs(s.bulge)<1e12&&Math.hypot(s.b.x-s.a.x,s.b.y-s.a.y)>1e-8) || ((s.type==='polyline'||s.type==='bezier') && Array.isArray(s.nodes) && s.nodes.length>=2 && s.nodes.length<=5000 && typeof s.closed==='boolean' && s.nodes.every(n=>point(n.p) && (n.bulge===undefined||Number.isFinite(n.bulge)&&Math.abs(n.bulge)<1e4) && (!n.in||point(n.in)) && (!n.out||point(n.out)) && (n.smooth===undefined||typeof n.smooth==='boolean'))) || (s.type==='dimension'&&(!s.paperLink||paper)&&(s.kind===undefined||['linear','diameter','angular','arcLength','radius','ordinate','jogged'].includes(s.kind))&&validDimensionData(s)&&(s.linearAngle===undefined||s.kind!=='diameter'&&Number.isFinite(s.linearAngle))&&(s.circleId===undefined||d.version>=4&&s.kind==='diameter'&&typeof s.circleId==='string'&&s.circleId.length>0)&&Number.isFinite(s.offset)&&Math.abs(s.offset)<=1e7&&Number.isFinite(s.height)&&s.height>0&&s.height<=1e5) || ((s.type==='text' && (paper||d.version>=6) && typeof s.text==='string' && s.text.length<=10000 && Number.isFinite(s.height) && s.height>0 && s.height<=1e5 && (s.rotation===undefined||Number.isFinite(s.rotation)) && (s.align===undefined||['left','center','right'].includes(s.align)) && (s.vertical===undefined||['top','baseline','middle','bottom'].includes(s.vertical))) || (paper && s.type==='viewport' && point(s.center) && Number.isFinite(s.denominator) && s.denominator>=.01 && s.denominator<=10000 && typeof s.locked==='boolean' && typeof s.printBorder==='boolean' && bounds(s).width>0 && bounds(s).height>0))));
-  if (!d || d.format !== 'jlg-cad' || ![1,2,3,4,5,6,7,8,9].includes(d.version) || d.units !== 'mm' || typeof d.name !== 'string' || !list(d.shapes)) throw new Error('Ce fichier n’est pas un projet JLG CAD valide.');
+  const list = (items: PaperItem[], paper=false):boolean => Array.isArray(items) && items.length <= 50000 && unique(items) && items.every(s => base(s) && (s.layerId===undefined||typeof s.layerId==='string') && ((s.type==='block'&&d.version>=10&&typeof s.definitionId==='string'&&validBlockTransform(s)&&Array.isArray(s.entities)&&!s.entities.some((e:Shape)=>e.type==='block')&&list(s.entities)) || (s.type==='hatch'&&hatchValid(s)) || ['line','rect','circle'].includes(s.type) || (s.type==='arc'&&d.version>=7&&Number.isFinite(s.bulge)&&Math.abs(s.bulge)>1e-12&&Math.abs(s.bulge)<1e12&&Math.hypot(s.b.x-s.a.x,s.b.y-s.a.y)>1e-8) || ((s.type==='polyline'||s.type==='bezier') && Array.isArray(s.nodes) && s.nodes.length>=2 && s.nodes.length<=5000 && typeof s.closed==='boolean' && s.nodes.every(n=>point(n.p) && (n.bulge===undefined||Number.isFinite(n.bulge)&&Math.abs(n.bulge)<1e4) && (!n.in||point(n.in)) && (!n.out||point(n.out)) && (n.smooth===undefined||typeof n.smooth==='boolean'))) || (s.type==='dimension'&&(!s.paperLink||paper)&&(s.kind===undefined||['linear','diameter','angular','arcLength','radius','ordinate','jogged'].includes(s.kind))&&validDimensionData(s)&&(s.linearAngle===undefined||s.kind!=='diameter'&&Number.isFinite(s.linearAngle))&&(s.circleId===undefined||d.version>=4&&s.kind==='diameter'&&typeof s.circleId==='string'&&s.circleId.length>0)&&Number.isFinite(s.offset)&&Math.abs(s.offset)<=1e7&&Number.isFinite(s.height)&&s.height>0&&s.height<=1e5) || ((s.type==='text' && (paper||d.version>=6) && typeof s.text==='string' && s.text.length<=10000 && Number.isFinite(s.height) && s.height>0 && s.height<=1e5 && (s.rotation===undefined||Number.isFinite(s.rotation)) && (s.align===undefined||['left','center','right'].includes(s.align)) && (s.vertical===undefined||['top','baseline','middle','bottom'].includes(s.vertical))) || (paper && s.type==='viewport' && point(s.center) && Number.isFinite(s.denominator) && s.denominator>=.01 && s.denominator<=10000 && typeof s.locked==='boolean' && typeof s.printBorder==='boolean' && bounds(s).width>0 && bounds(s).height>0))));
+  if (!d || d.format !== 'jlg-cad' || ![1,2,3,4,5,6,7,8,9,10].includes(d.version) || d.units !== 'mm' || typeof d.name !== 'string' || !list(d.shapes)) throw new Error('Ce fichier n’est pas un projet JLG CAD valide.');
   if(d.version===1) return documentOf(d.name,d.shapes);
   if(!Array.isArray(d.layouts) || d.layouts.length>100 || !unique(d.layouts) || !d.layouts.every((l:Layout)=>l && typeof l.id==='string' && typeof l.name==='string' && ['A4','A3'].includes(l.format) && ['portrait','landscape'].includes(l.orientation) && typeof l.monochrome==='boolean' && list(l.items,true))) throw new Error('Les présentations du fichier sont invalides.');
   if(d.version>=3&&(!Array.isArray(d.layers)||!d.layers.length||d.layers.length>200||!unique(d.layers)||!d.layers.some((l:Layer)=>l.id==='0')||!d.layers.every((l:Layer)=>typeof l.name==='string'&&/^#[0-9a-f]{6}$/i.test(l.color)&&typeof l.visible==='boolean'&&typeof l.locked==='boolean')||d.shapes.some((s:Shape)=>s.layerId&&!d.layers.some((l:Layer)=>l.id===s.layerId))))throw new Error('Les calques du fichier sont invalides.');
+  if(d.blocks!==undefined&&(!Array.isArray(d.blocks)||d.blocks.length>5000||!unique(d.blocks)||new Set(d.blocks.map((b:BlockDefinition)=>b.name?.toLocaleUpperCase())).size!==d.blocks.length||!d.blocks.every((b:BlockDefinition)=>typeof b.name==='string'&&b.name.trim().length>0&&b.name.length<=255&&!/[\x00-\x1f]/.test(b.name)&&list(b.shapes)&&b.shapes.length>0&&!b.shapes.some(s=>s.type==='block'))))throw new Error('Les définitions de blocs sont invalides.');
+  const all=[...d.shapes,...d.layouts.flatMap((l:Layout)=>l.items)];
+  if(all.some((s:PaperItem)=>s.type==='block'&&!(d.blocks||[]).some((b:BlockDefinition)=>b.id===s.definitionId)))throw new Error('Définition de bloc manquante.');
   const validateLinks=(items:PaperItem[])=>{
    const byId=new Map(items.map(s=>[s.id,s])),modelById=new Map<string,PaperItem>(d.shapes.map((s:Shape)=>[s.id,s]));
    const dimensionSource=(sources:Map<string,PaperItem>,id:string,segment:number)=>{const target=sources.get(id);return target&&!['dimension','hatch','text','viewport'].includes(target.type)?segments(target as Shape)[segment]:undefined;};
@@ -137,11 +148,14 @@ export function parseDrawing(text: string): Drawing {
     return s.type!=='hatch'||!s.associative||s.regions.every(r=>r.sourceIds.length>0&&r.sourceIds.every(id=>{const source=byId.get(id);return source&&!['hatch','dimension','text','viewport'].includes(source.type);}));
    });
   };
-  if(!validateLinks(d.shapes)||!d.layouts.every((l:Layout)=>validateLinks(l.items)))throw new Error('La liaison d’une cotation à son cercle est invalide.');
-  return synchronizeDrawing({...documentOf(d.name,d.shapes,d.layouts,d.version>=3?d.layers:defaultLayers()),grid:readGrid(d.grid)});
+  if((d.blocks||[]).some((b:BlockDefinition)=>!validateLinks(b.shapes))||!validateLinks(d.shapes)||!d.layouts.every((l:Layout)=>validateLinks(l.items)))throw new Error('La liaison d’une cotation à son cercle est invalide.');
+  const resolved=synchronizeDrawing({...documentOf(d.name,d.shapes,d.layouts,d.version>=3?d.layers:defaultLayers()),blocks:d.blocks||[],grid:readGrid(d.grid)});
+  if(!list(resolved.shapes)||!resolved.layouts.every(l=>list(l.items,true)))throw new Error('La géométrie des blocs dépasse les limites du dessin.');
+  if((d.blocks||[]).some((b:BlockDefinition)=>b.shapes.some(s=>s.layerId&&!resolved.layers.some(l=>l.id===s.layerId))))throw new Error('Calque de bloc manquant.');
+  return resolved;
 }
-export function toDxf(shapes: Shape[], layers: Layer[] = defaultLayers(),displayUnit:'m'|'cm'|'mm'='mm') {
-  return toModernDxf(shapes,layers,displayUnit);
+export function toDxf(shapes: Shape[], layers: Layer[] = defaultLayers(),displayUnit:'m'|'cm'|'mm'='mm',blocks:BlockDefinition[] = []) {
+  return toModernDxf(shapes,layers,displayUnit,blocks);
 }
 
 export function layoutDisplayName(name:string){return name.replace(/^Présentation (\d+)$/,'Layout $1');}

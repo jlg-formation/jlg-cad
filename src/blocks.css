@@ -1,0 +1,9 @@
+.block-dialog { width: min(480px, 90vw); }
+.block-dialog label { display: grid; gap: 6px; margin: 12px 0; }
+.block-dialog .block-check { display: flex; align-items: center; gap: 8px; }
+.block-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.block-preview { display: block; width: 100%; height: 140px; color: #b5ddd6; background: #15232b; border: 1px solid #43535c; border-radius: 4px; margin: 12px 0; }
+.block-edit-banner { display: flex; gap: 12px; align-items: center; padding: 8px 16px; background: #233c50; border-bottom: 1px solid #5684a2; flex-wrap: wrap; }
+.block-edit-banner strong { margin-right: auto; }
+/* The block toolbar and popup reuse the dimension tool styles. */
+

@@ -5,7 +5,12 @@ import {commands, type Bindings} from './shortcuts';
 
 export type PaletteCommand={id:string;name:string;label:string;aliases:readonly string[]};
 export const paletteCommands:PaletteCommand[]=[
- ...commands.map(([id,label])=>draftingCommands.find(c=>c.id===id)||(id==='scale'?{id,name:'SCALE',label,aliases:['SC','ECHELLE']}:undefined)||{id,name:id.toUpperCase(),label,aliases:[]}),
+ {id:'block',name:'BLOCK',label:'Créer un bloc',aliases:['B','BLOC']},
+ {id:'insert',name:'INSERT',label:'Insérer un bloc',aliases:['I','INSERER','INSÉRER']},
+ {id:'explode',name:'EXPLODE',label:'Décomposer un bloc',aliases:['X','DECOMPOS','DÉCOMPOS']},
+ {id:'bedit',name:'BEDIT',label:'Éditer un bloc',aliases:['BE','MODIFBLOC']},
+ {id:'bclose',name:'BCLOSE',label:'Fermer l’éditeur de bloc',aliases:['FERMERBLOC']},
+ ...commands.filter(([id])=>!['block','insert','explode','bedit','bclose'].includes(id)).map(([id,label])=>draftingCommands.find(c=>c.id===id)||(id==='scale'?{id,name:'SCALE',label,aliases:['SC','ECHELLE']}:undefined)||{id,name:id.toUpperCase(),label,aliases:[]}),
  {id:'zoom',name:'ZOOM',label:'Navigation du dessin',aliases:['Z']},
  {id:'settings',name:'PARAMETRES',label:'Paramètres de l’application',aliases:['CONFIGURATION']},
  {id:'properties',name:'PROPRIETES',label:'Afficher / masquer la barre de droite',aliases:['BARRE','SIDEBAR']},

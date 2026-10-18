@@ -1,3 +1,4 @@
+import {textCorners} from './model';
 import {dimensionTextAbove} from './dimension-text-placement';
 import {specializedDimensionGeometry} from './dimension-kinds';
 import {hatchBounds} from './hatch';
@@ -47,6 +48,7 @@ export function threePointArc(a:Point,through:Point,b:Point,base:BaseShape):ArcS
  return {...base,type:'arc',a,b,bulge};
 }
 export function segments(shape:Shape):Segment[] {
+ if(shape.type==='block')return shape.entities.flatMap(s=>s.type==='text'?textCorners(s).map((a,i,ps):Segment=>({kind:'line',a,b:ps[(i+1)%ps.length]})):segments(s));
  if(shape.type==='text')return[];
  if(shape.type==='hatch')return shape.regions.flatMap(r=>r.loops.flatMap(loop=>loop.map((a,i):Segment=>({kind:'line',a,b:loop[(i+1)%loop.length]}))));
  if(shape.type==='arc')return[arcSegment(shape.a,shape.b,shape.bulge,true)];
@@ -129,6 +131,7 @@ export function shapeFromSegments(source:Shape,segs:Segment[],closed=false):Shap
  return{id:source.id,type:cubic?'bezier':'polyline',a:nodes[0].p,b:nodes[nodes.length-1].p,color:source.color,layerId:source.layerId,nodes,closed};
 }
 export function trimShape(shape:Shape,boundaries:Shape[],click:Point,preview=false):Shape[]{
+ if(shape.type==='block')throw new Error('Décomposez le bloc ou ouvrez son éditeur pour modifier ses objets.');
  if(shape.type==='text')throw new Error('Cette opération ne s’applique pas aux textes.');
  if(shape.type==='hatch')throw new Error('Cette opération ne s’applique pas aux hachures. Modifiez leur contour.');
  if(shape.type==='dimension')throw new Error('Les cotations ne se découpent pas.');
@@ -136,6 +139,7 @@ export function trimShape(shape:Shape,boundaries:Shape[],click:Point,preview=fal
  return trimPositions(shape,boundaries,[hit.index+hit.t],preview);
 }
 function trimPositions(shape:Shape,boundaries:Shape[],positions:number[],preview=false,strict=false):Shape[]{
+ if(shape.type==='block')return [shape];
  const all=segments(shape);
  const closed=shape.type==='circle'||shape.type==='rect'||('closed'in shape&&shape.closed);
  const limiting=boundaries.filter(s=>s.id!==shape.id&&s.type!=='dimension'&&s.type!=='hatch').flatMap(segments),count=all.length;
@@ -180,7 +184,7 @@ export type TrimSweepResult={sourceId:string;remaining:Shape[];removed:Shape[]};
 /** Every cut uses the original drawing; returning over a portion never cuts it twice. */
 export function trimSweep(shapes:Shape[],boundaries:Shape[],points:Point[],edges?:Point[][]):TrimSweepResult[]{
  const fence:Segment[]=(edges||points.slice(1).map((p,i)=>[points[i],p])).flatMap(([a,b])=>distance(a,b)>EPS?[{kind:'line' as const,a,b}]:[]);
- return shapes.filter(s=>!['text','dimension','hatch'].includes(s.type)).flatMap(shape=>{
+ return shapes.filter(s=>!['text','dimension','hatch','block'].includes(s.type)).flatMap(shape=>{
   const all=segments(shape);
   const positions=all.flatMap((segment,index)=>fence.flatMap(line=>intersections(segment,line).flatMap(p=>{
    const t=closestSegment(p,segment).t;
@@ -261,6 +265,7 @@ export function offsetShape(shape:Shape,amount:number,side:Point,tolerance=.1):S
 
 export function mapItem<T extends PaperItem>(shape:T,fn:(p:Point)=>Point,scale=1,flip=false):T {
  const common={...shape,a:fn(shape.a),b:fn(shape.b)};
+ if(shape.type==='block')return {...common,yAxis:fn(shape.yAxis),entities:shape.entities.map(s=>mapItem(s,fn,scale,flip))} as T;
  if(shape.type==='arc')return {...common,bulge:shape.bulge*(flip?-1:1)} as T;
  if(shape.type==='hatch'){
   const origin=fn(shape.origin),angle=-shape.angle*Math.PI/180,axis=fn({x:shape.origin.x+Math.cos(angle),y:shape.origin.y+Math.sin(angle)}),mappedAngle=-Math.atan2(axis.y-origin.y,axis.x-origin.x)*180/Math.PI;
@@ -335,6 +340,7 @@ export function deleteNode(s:PathShape,index:number):PathShape {
  const nodes=s.nodes.filter((_,i)=>i!==index).map(n=>({...n}));if(s.type==='polyline'){const before=(index-1+nodes.length)%nodes.length;nodes[before].bulge=0;}return syncPath({...s,nodes});
 }
 export function svgPath(shape:Shape):string {
+ if(shape.type==='block')return shape.entities.map(svgPath).join(' ');
  const ss=segments(shape);if(!ss.length)return'';return `M ${ss[0].a.x} ${ss[0].a.y} `+ss.map(s=>s.kind==='line'?`L ${s.b.x} ${s.b.y}`:s.kind==='cubic'?`C ${s.c1.x} ${s.c1.y} ${s.c2.x} ${s.c2.y} ${s.b.x} ${s.b.y}`:`A ${s.radius} ${s.radius} 0 ${Math.abs(s.sweep)>Math.PI?1:0} ${s.sweep>0?1:0} ${s.b.x} ${s.b.y}`).join(' ')+((shape.type==='rect'||shape.type==='circle'||('closed'in shape&&shape.closed))?' Z':'');
 }
 export function arcCubics(s:Extract<Segment,{kind:'arc'}>):Extract<Segment,{kind:'cubic'}>[] {

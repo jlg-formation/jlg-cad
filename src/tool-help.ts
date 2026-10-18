@@ -3,6 +3,7 @@ import type {Language} from './i18n';
 
 type Text = readonly [string, string];
 const descriptions = {
+ block:["Réutilisez un ensemble d’objets dans le dessin.","Reuse a collection of objects in the drawing."],
  select:['Sélectionnez des objets pour consulter ou modifier leurs propriétés.','Select objects to inspect or edit their properties.'],
  pan:['Déplacez la vue sur le dessin.','Move the view across the drawing.'],
  line:['Tracez une suite de segments indépendants.','Draw a series of independent line segments.'],
@@ -54,6 +55,7 @@ export function toolHelp(state:HelpState, language:Language='fr') {
  const hint=(key:HelpHint['key'],fr:string,en:string,literal?:string)=>hints.push({key,text:text(fr,en),literal});
  let instruction='';
  switch(tool){
+ case 'block':instruction=text('Utilisez le menu Blocs pour créer, insérer ou modifier un bloc.','Use the Blocks menu to create, insert or edit a block.');break;
  case 'select': instruction=state.hatchOrigin?text('Cliquez la nouvelle origine du motif.','Click the new pattern origin.'):state.selectingArea?text('Terminez la zone de sélection. Maj retire des objets de la sélection.','Complete the selection area. Shift removes objects from the selection.'):state.selection?text('Consultez les propriétés de la sélection ci-dessous.','Inspect the selection properties below.'):text('Cliquez un objet ou définissez une zone de sélection.','Click an object or define a selection area.');break;
  case 'pan': instruction=text('Maintenez le bouton gauche et faites glisser pour déplacer la vue.','Hold the left mouse button and drag to pan.');break;
  case 'line': instruction=state.hasDraft?text('Cliquez le point suivant, ou saisissez une longueur puis Entrée.','Click the next point, or enter a length and press Enter.'):text('Cliquez le premier point.','Click the first point.');break;

@@ -133,3 +133,11 @@ export const SettingsIcon = icon('settings', <><path d="m9 3-.5 3-2 1-3-.5-2 4 2
 export const HelpIcon = icon('help', <><circle cx="12" cy="12" r="9"/><path d="M9 8a3 3 0 1 1 4 3c-1 1-1 2-1 3" stroke={blue}/><Grip x={12} y={17}/></>);
 
 export const ScaleIcon = icon('scale', <><path d="M3 14h7v7H3z" stroke={blue}/><path d="M3 3h18v18H3z" strokeDasharray="2 2"/><path d="m10 14 10-10m-6 0h6v6" stroke={gold}/><Grip x={3} y={21}/></>);
+
+// Block tools share the drawing language of the dimension and modification icons.
+export const BlockIcon = icon('block', <><path d="M4 7 12 3l8 4v10l-8 4-8-4Z"/><path d="m4 7 8 4 8-4M12 11v10" stroke={blue}/><Grip x={12} y={11}/></>);
+export const CreateBlockIcon = icon('create-block', <><path d="M3 5h12v12H3Z" stroke={blue} strokeDasharray="2 2"/><path d="m6 8 6-3 6 3v7l-6 3-6-3Z"/><path d="m6 8 6 3 6-3M12 11v7" stroke={blue}/><path d="M19 16v6m-3-3h6" stroke={gold}/></>);
+export const InsertBlockIcon = icon('insert-block', <><path d="m3 10 6-3 6 3v8l-6 3-6-3Z"/><path d="m3 10 6 3 6-3M9 13v8" stroke={blue}/><path d="M14 3h7v8m-7-1 7 1-1-7" stroke={gold}/><Grip x={3} y={18}/></>);
+export const EditBlockIcon = icon('edit-block', <><path d="m3 7 6-3 6 3v9l-6 3-6-3Z"/><path d="m3 7 6 3 6-3M9 10v9" stroke={blue}/><path d="m12 18 7-10 3 2-7 10-4 2Z" stroke={gold}/></>);
+export const ExplodeBlockIcon = icon('explode-block', <><path d="m3 7 5-3 4 2M3 7v6m0-6 5 3M16 4l5 3v6m-5-3 5-3M5 18l6 3 6-3m-6-3v6" stroke={blue}/><path d="m9 11-3 3m9-3 3 3M12 7v4" stroke={gold}/><Grip x={3} y={7}/><Grip x={21} y={7}/><Grip x={11} y={21}/></>);
+export const CloseBlockIcon = icon('close-block', <><path d="M3 4h13v16H3Z" stroke={blue}/><path d="M8 12h13m-4-4 4 4-4 4" stroke={gold}/></>);

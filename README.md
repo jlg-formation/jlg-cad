@@ -88,7 +88,7 @@ La traduction est centralisée dans src/locales/en.json. Les textes non encore t
 
 ## Formats et limites
 
-Le format natif version 9 conserve le dessin, les arcs natifs, les chemins, les cotations, les hachures et leurs liaisons aux contours, les calques et les présentations. Les fichiers versions 1 à 8 sont migrés à l’ouverture. Les unités sont des millimètres. Les coordonnées affichées dans l’espace objet utilisent Y vers le haut, comme le DXF.
+Le format natif version 10 conserve le dessin, les arcs natifs, les chemins, les cotations, les hachures et leurs liaisons aux contours, les calques et les présentations. Les fichiers versions 1 à 9 sont migrés à l’ouverture. Les unités sont des millimètres. Les coordonnées affichées dans l’espace objet utilisent Y vers le haut, comme le DXF.
 
 ## Espace papier et PDF
 
@@ -110,9 +110,9 @@ Le DWG direct n’est pas implémenté. Autodesk propose [RealDWG](https://forge
 
 ## Import DXF 2D
 
-Dans **Fichiers → Ouvrir…**, choisir un `.dxf`, vérifier l’unité puis cliquer **Analyser le fichier**. Le bilan présente le nombre d’objets et de calques, les blocs décomposés, l’enveloppe du dessin en millimètres et les éléments non importés. Vérifier l’échelle avant d’ouvrir le résultat. En cas de modifications du dessin courant, une sauvegarde téléchargeable est proposée avant son remplacement. Annuler ou une erreur conserve le dessin courant ; un fichier sans objet compatible ne peut pas le remplacer.
+Dans **Fichiers → Ouvrir…**, choisir un `.dxf`, vérifier l’unité puis cliquer **Analyser le fichier**. Le bilan présente le nombre d’objets et de calques, les insertions de blocs analysées, l’enveloppe du dessin en millimètres et les éléments non importés. Vérifier l’échelle avant d’ouvrir le résultat. En cas de modifications du dessin courant, une sauvegarde téléchargeable est proposée avant son remplacement. Annuler ou une erreur conserve le dessin courant ; un fichier sans objet compatible ne peut pas le remplacer.
 
-Cette première version lit les DXF **texte**, notamment les structures R12 et R2004 : LINE, CIRCLE, ARC, POLYLINE 2D, LWPOLYLINE, TEXT, MTEXT simplifié, ATTRIB et INSERT. Les arcs sont conservés exactement. Les blocs statiques sont décomposés, avec point de base, rotation, échelle, miroir géométrique, imbrication et répétitions. Les calques gardent leur nom, leur visibilité et leur verrouillage ; les couleurs ACI, RGB, ByLayer et ByBlock sont résolues en couleurs individuelles.
+Cette première version lit les DXF **texte**, notamment les structures R12 et R2004 : LINE, CIRCLE, ARC, POLYLINE 2D, LWPOLYLINE, TEXT, MTEXT simplifié, ATTRIB et INSERT. Les arcs sont conservés exactement. Les blocs statiques à échelle uniforme sont conservés avec leur point de base, rotation, miroir et répétitions. Le contenu imbriqué est aplati dans la définition extérieure. Les insertions à échelles non uniformes sont décomposées ; les courbes incompatibles sont signalées. Les calques gardent leur nom, leur visibilité et leur verrouillage ; les couleurs ACI, RGB, ByLayer et ByBlock sont résolues en couleurs individuelles.
 
 Le choix d’unité est obligatoire si `$INSUNITS` est absent, sans unité ou non reconnu. Les unités proposées sont mm, cm, m, pouces et pieds ; le stockage reste en mm. Les DXF modernes (R2007+) sont décodés en UTF-8 ; les anciens utilisent leur encodage ANSI déclaré, ou Windows-1252 en son absence. Un encodage non reconnu produit une erreur.
 
@@ -209,3 +209,27 @@ Modifier les éléments du bâtiment met à jour les valeurs et les points d’a
 Si une source sort entièrement du cadre, sa cote est masquée et revient lorsqu’elle redevient visible. Une source supprimée ou devenue incompatible détache la cote en conservant la dernière géométrie et la dernière valeur valides, avec une indication dans ses propriétés. Supprimer la fenêtre conserve également une cote détachée sur la feuille. Annuler/rétablir restaure les liens, la fenêtre et les sources avec leur état précédent.
 
 Le fichier natif v9 conserve ces liaisons entre espaces ; les anciens formats restent lisibles. Le PDF utilise les mesures réelles, les tailles papier et le masquage des cotes hors cadre. Les mesures entre fenêtres différentes, les fenêtres tournées ou non rectangulaires, la réassociation manuelle et la conservation des associations dans un DWG/DXF AutoCAD ne sont pas pris en charge. Les remaniements de topologie et les intersections disparues peuvent nécessiter de recréer la cote. La comparaison sur des plans réels de l’agence reste à effectuer.
+
+## Blocs statiques 2D
+
+Le menu **Blocs**, le clic droit et la ligne de commande donnent accès aux mêmes parcours, en français et en anglais :
+
+| Opération | Commandes et alias |
+| --- | --- |
+| Créer | `BLOCK`, `BLOC`, `B` |
+| Insérer | `INSERT`, `INSERER`, `I` |
+| Décomposer | `EXPLODE`, `DECOMPOS`, `X` |
+| Éditer | `BEDIT`, `MODIFBLOC`, `BE` ou double-clic sur une insertion |
+| Fermer l’éditeur | `BCLOSE`, `FERMERBLOC` |
+
+Créer : sélectionner les objets avant la commande, ou lancer B puis sélectionner et valider par Entrée. Nommer le bloc, choisir si les objets doivent être remplacés par une insertion, puis cliquer son point de base. Échap annule la préparation.
+
+Insérer : choisir un bloc avec aperçu, régler son échelle uniforme et sa rotation, puis cliquer son point d’insertion. Le bloc suit le curseur avant placement. **Récupérer des blocs depuis un plan** charge les définitions d’un `.jlgcad` ou d’un DXF avec unité déclarée, sans remplacer le dessin courant. Les conflits de noms créent un nom distinct ; les définitions existantes ne sont pas écrasées.
+
+Une insertion se sélectionne et se transforme comme un seul objet. Sa poignée marque le point d’insertion ; ses propriétés donnent accès à la position, la rotation, l’échelle et l’édition. Les accrochages voient sa géométrie. Copier/coller entre dessins transporte aussi ses définitions et calques.
+
+Éditer ouvre un espace isolé, centré sur la définition du bloc et utilisant les outils habituels. **Enregistrer le bloc** actualise toutes ses insertions, avec une seule annulation dans le dessin principal. Fermer propose d’enregistrer, d’abandonner ou de poursuivre. Les commandes de fichier et le changement d’espace demandent de fermer l’éditeur. Pendant l’édition, la sauvegarde de session conserve le dessin principal ; recharger abandonne les modifications non validées du bloc.
+
+Décomposer remplace seulement les insertions sélectionnées par leurs objets ; la définition reste disponible. Création, insertion et décomposition sont annulables. Entrée/Espace répète la dernière commande de bloc au repos. Les anciens alias par défaut B (Bézier) et X (Ajuster) deviennent BEZ et TR pour libérer les alias AutoCAD ; les préférences personnalisées restent configurables.
+
+Le format natif v10 conserve les définitions et insertions ; les anciens dessins sont migrés. Le DXF exporte les blocs utilisés sous forme BLOCK/INSERT. Les couleurs importées sont résolues : des variantes de calque ou couleur peuvent créer des définitions distinctes. Les blocs imbriqués sont aplatis, les attributs deviennent des textes et les blocs dynamiques ne sont pas gérés. L’édition de blocs est limitée à l’espace Objet. L’import direct DWG reste indisponible : enregistrer les anciens plans en DXF depuis AutoCAD.

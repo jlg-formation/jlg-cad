@@ -85,7 +85,7 @@ test('placement grips edit the paper annotation without moving or detaching the 
  expect(doc.shapes).toEqual([wall]);expect(paperDimension(doc).offset).toBeCloseTo(d.offset-10);expect(paperDimension(doc).paperLink?.model.references).toHaveLength(2);
 });
 test('native validation checks the viewport, model anchors and nested definition',()=>{
- const d=dimension();expect(parseDrawing(JSON.stringify(withDimension())).version).toBe(9);
+ const d=dimension();expect(parseDrawing(JSON.stringify(withDimension())).version).toBe(10);
  for(const paperLink of [{...d.paperLink,viewportId:'missing'},{...d.paperLink,model:{...d.paperLink!.model,paperLink:d.paperLink}},{...d.paperLink,model:{...d.paperLink!.model,references:[{id:'missing',point:0,segment:0,feature:'a'}]}}])expect(()=>parseDrawing(JSON.stringify(withDimension({...d,paperLink} as Dimension)))).toThrow();
  expect(()=>parseDrawing(JSON.stringify(documentOf('invalid',[d])))).toThrow();
 });

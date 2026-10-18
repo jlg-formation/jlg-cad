@@ -1,3 +1,4 @@
+import {synchronizeBlocks} from './blocks';
 import {resolveDimensionReference,projectPaperDimension,paperDimensionOutside} from './paper-dimensions';
 import {lineAngleDefinition} from './dimension-kinds';
 import {synchronizeHatches} from './hatch';
@@ -49,6 +50,7 @@ function dimensionResolver(shapes:Shape[],previous:Shape[]=[]){
 }
 export function synchronizeDimensions(shapes:Shape[],previous:Shape[]=[]):Shape[]{return shapes.flatMap(dimensionResolver(shapes,previous));}
 export function synchronizeDrawing(next:Drawing,previous?:Drawing):Drawing {
+ next=synchronizeBlocks(next);
  const resolveModelDimension=dimensionResolver(next.shapes,previous?.shapes),modelById=new Map(next.shapes.map(s=>[s.id,s]));
  return {...next,shapes:synchronizeHatches(synchronizeDimensions(next.shapes,previous?.shapes),previous?.shapes),layouts:next.layouts.map(l=>{
   const onlyShapes=(items:PaperItem[])=>items.filter((s):s is Shape=>s.type!=='text'&&s.type!=='viewport');

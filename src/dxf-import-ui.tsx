@@ -14,7 +14,7 @@ export function DxfImportDialog({text,name,changed,onBackup,onCancel,onImport}:{
   <p>{info.unit?'Unité indiquée dans le DXF, modifiable si nécessaire.':'Unité absente ou non prise en charge : choisissez-la avant de continuer.'}{unit&&` 1 unité DXF = ${dxfUnits[unit]} mm.`}</p>
   <button disabled={!unit} onClick={analyze}>{t("Analyser le fichier")}</button>
   {error&&<p role="alert">{error}</p>}
-  {result&&<><h3>{t("Bilan de l’import")}</h3><p>{result.report.objects} {t("objets éditables ·")} {result.drawing.layers.length} {t("calques ·")} {result.report.blocks} {t("blocs décomposés")}</p><DrawingExtent drawing={result.drawing}/>
+  {result&&<><h3>{t("Bilan de l’import")}</h3><p>{result.report.objects} {t("objets éditables ·")} {result.drawing.layers.length} {t("calques ·")} {result.report.blocks} {t("insertions de blocs analysées")}</p><DrawingExtent drawing={result.drawing}/>
    {Object.keys(result.report.skipped).length>0&&<><h4>{t("Éléments non importés")}</h4><ul>{Object.entries(result.report.skipped).map(([type,count])=><li key={type}>{type} : {count}</li>)}</ul></>}
    {result.report.warnings.length>0&&<><h4>{t("Conversions et limites")}</h4><ul>{result.report.warnings.map(w=><li key={w}>{w}</li>)}</ul></>}
    <p>{t("Le résultat sera à sauvegarder en .jlgcad. Les présentations et la structure des blocs ne sont pas conservées.")}</p>

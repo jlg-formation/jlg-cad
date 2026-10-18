@@ -299,10 +299,6 @@ function App() {
      confirmScale(cursor,factor);
    });return true;
  };
- useEffect(()=>{
-   if(tool!=='scale'||!source||!commandPoints.length)return;
-   try{const ids=selectedIds.length?selectedIds:[source.id];const next=scaleSelection(doc,ids,commandPoints[0],currentScale());setCommandPreview(next.shapes.filter(s=>ids.includes(s.id)));}catch{setCommandPreview([]);}
- },[tool,source,commandPoints,selectedIds,doc,cursor,settings.scaleFactor,settings.scaleReference,settings.scaleTarget,scaleReference,commandText]);
  const confirmRotation=(point=cursor)=>safe(()=>{
    if(!source||!commandPoints.length)throw new Error('Choisissez le point de base.');
    const ids=selectedIds.length?selectedIds:[source.id];

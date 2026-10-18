@@ -142,7 +142,7 @@ Le geste avec un cercle est donc : **SC → point de base → R → premier poin
 
 À l’étape de la nouvelle longueur, **P — Points** permet de choisir deux points indépendants pour mesurer la distance cible. Un clic direct mesure au contraire la distance depuis le point de base, même si la référence a été mesurée ailleurs. Les longueurs sans suffixe utilisent l’unité active ; les suffixes mm, cm et m sont acceptés. Entrée sans valeur reprend la dernière longueur de référence ou cible utilisée dans la session.
 
-Les étapes sont indiquées dans la barre de commande et dans l’aide contextuelle. L’aperçu utilise les objets d’origine jusqu’à la validation ; les points de référence ne redimensionnent pas prématurément le dessin. Échap abandonne la commande sans modification. Ctrl+Z annule l’opération validée en une seule fois. **Copier les objets**, ou **C** avant R, conserve les originaux. Les calques verrouillés restent protégés.
+Les étapes sont indiquées dans la barre de commande et dans l’aide contextuelle. Les objets restent immobiles pendant le choix des points, sans aperçu animé de la mise à l’échelle. La transformation s’applique uniquement au clic final ou à la validation de la valeur saisie. Échap abandonne la commande sans modification. Ctrl+Z annule l’opération validée en une seule fois. **Copier les objets**, ou **C** avant R, conserve les originaux. Les calques verrouillés restent protégés.
 
 ### Images attachées, sous-jacents PDF et transmission
 

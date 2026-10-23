@@ -27,10 +27,15 @@ test('self intersection preview matches exactly the removed tail',()=>{
  expect(distance(preview[0].b,{x:0,y:0})).toBeLessThan(.001);
 });
 
-test('ordinary polyline vertices do not create cut boundaries',()=>{
- expect(()=>trimShape(path([{x:0,y:0},{x:1000,y:0},{x:500,y:h}]),[],{x:500,y:0})).toThrow('Aucune intersection');
+test('isolated polylines use vertices to remove only the targeted segment',()=>{
+ const open=trimShape(path([{x:0,y:0},{x:1000,y:0},{x:500,y:h}]),[],{x:500,y:0});
+ expect(open).toHaveLength(1);
+ expect(segments(open[0])).toHaveLength(1);
+ expect(open[0].a).toEqual({x:1000,y:0});
  const closed={...path([{x:0,y:0},{x:1000,y:0},{x:500,y:h}]),closed:true};
- expect(()=>trimShape(closed,[],{x:500,y:0})).toThrow('Aucune intersection');
+ const result=trimShape(closed,[],{x:500,y:0});
+ expect(result).toHaveLength(1);
+ expect(segments(result[0])).toHaveLength(2);
 });
 
 test('self intersection with an arc preserves the remaining arc',()=>{

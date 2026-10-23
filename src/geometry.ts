@@ -160,6 +160,10 @@ function trimPositions(shape:Shape,boundaries:Shape[],positions:number[],preview
  }
  const raw=[...external,...internal].map(t=>closed&&Math.abs(t-count)<EPS?0:t).sort((a,b)=>a-b);
  const cuts=raw.filter((t,i)=>!i||Math.abs(t-raw[i-1])>1e-6);
+ // With no intersections, trim the targeted segment up to its vertices.
+ // Circles have no vertices: their two implementation arcs are not cut limits.
+ // Once intersections exist, retain the usual intersection-based trimming.
+ if(shape.type!=='circle'&&!cuts.length&&count)for(let i=0;i<=count;i++)cuts.push(i);
  if(!cuts.length)throw new Error('Aucune intersection : choisissez une limite de coupe.');
  if(closed&&cuts.length<2)throw new Error('Deux intersections sont nécessaires pour découper ce contour fermé.');
  const slice=(from:number,to:number)=>{const ss:Segment[]=[];for(let i=Math.floor(from);i<Math.ceil(to);i++){const a=Math.max(0,from-i),b=Math.min(1,to-i);if(b-a>EPS)ss.push(portion(all[(i%count+count)%count],a,b));}return ss;};

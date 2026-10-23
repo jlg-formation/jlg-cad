@@ -31,9 +31,12 @@ test('closed circle wraps across arc seam and ignores tangency',()=>{
  expect(length(result.remaining)).toBeCloseTo(Math.PI*10,5);expect(length(result.removed)).toBeCloseTo(Math.PI*10,5);
  expect(trimSweep([circle],[vertical(0)],[{x:10,y:-20},{x:10,y:20}])).toEqual([]);
 });
-test('no limits, exact boundary contacts and collinear strokes do nothing',()=>{
+test('no limits removes a line; exact boundary contacts and collinear strokes do nothing',()=>{
  const shape=line('a',{x:-10,y:0},{x:10,y:0});
- expect(trimSweep([shape],[],[{x:5,y:-5},{x:5,y:5}])).toEqual([]);
+ const isolated=trimSweep([shape],[],[{x:5,y:-5},{x:5,y:5}]);
+ expect(isolated).toHaveLength(1);
+ expect(isolated[0].remaining).toEqual([]);
+ expect(isolated[0].removed).toEqual([shape]);
  expect(trimSweep([shape],[vertical(0)],[{x:0,y:-5},{x:0,y:5}])).toEqual([]);
  expect(trimSweep([shape],[vertical(0)],[{x:-5,y:0},{x:5,y:0}])).toEqual([]);
 });

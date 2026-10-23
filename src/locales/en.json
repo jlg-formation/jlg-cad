@@ -615,5 +615,7 @@
   "La longueur doit être strictement positive.": "The length must be strictly positive.",
   "Cliquez le premier point de la nouvelle longueur.": "Click the first point of the new length.",
   "Définissez les points de référence avant de redimensionner.": "Define the reference points before scaling.",
-  "Saisissez un facteur positif ou R — Référence.": "Enter a positive scale factor or R — Reference."
+  "Saisissez un facteur positif ou R — Référence.": "Enter a positive scale factor or R — Reference.",
+  "Placer une ou plusieurs pages PDF en fond de dessin.": "Place one or more PDF pages as a drawing underlay.",
+  "Placer une image en fond de dessin.": "Place an image as a drawing underlay."
 }

@@ -11,7 +11,7 @@ export const paletteCommands:PaletteCommand[]=[
  {id:'bedit',name:'BEDIT',label:'Éditer un bloc',aliases:['BE','MODIFBLOC']},
  {id:'bclose',name:'BCLOSE',label:'Fermer l’éditeur de bloc',aliases:['FERMERBLOC']},
  ...commands.filter(([id])=>!['block','insert','explode','bedit','bclose'].includes(id)).map(([id,label])=>draftingCommands.find(c=>c.id===id)||(id==='scale'?{id,name:'SCALE',label,aliases:['SC','ECHELLE']}:undefined)||{id,name:id.toUpperCase(),label,aliases:[]}),
- {id:'imageattach',name:'IMAGEATTACH',label:'Attacher une image',aliases:['ATTACHERIMAGE']},
+ {id:'imageattach',name:'IMAGEATTACH',label:'Attacher une image',aliases:['IAT','ATTACHERIMAGE']},
  {id:'pdfattach',name:'PDFATTACH',label:'Attacher un PDF',aliases:['ATTACHERPDF']},
  {id:'referenceclip',name:'CLIP',label:'Délimiter une référence',aliases:['IMAGECLIP','PDFCLIP','DELIMITER']},
  {id:'referenceadjust',name:'PDFADJUST',label:'Régler une référence',aliases:['IMAGEADJUST']},

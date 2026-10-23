@@ -15,6 +15,9 @@ function icon(name:string, drawing:ReactNode):CadIconComponent {
  };
 }
 
+export const ReferencesIcon = icon('references', <><path d="M4 16H2V2h14v2" stroke={blue}/><path d="M6 6h15v16H6Z"/><path d="m9 18 4-5 3 3 2-2" stroke={blue}/><circle cx="11" cy="10" r="1" stroke={gold}/></>);
+export const AttachImageIcon = icon('attach-image', <><rect x="3" y="4" width="18" height="16"/><path d="m4 18 6-7 5 6 3-4 3 4" stroke={blue}/><circle cx="16" cy="8" r="1.5" stroke={gold}/></>);
+export const AttachPdfIcon = icon('attach-pdf', <><path d="M5 2h10l5 5v15H5Z"/><path d="M15 2v6h5" stroke={blue}/><g stroke={gold} strokeWidth="1"><path d="M7 17v-5h2v2H7m4 3v-5h1.5l1 1v3l-1 1Zm5 0v-5h2m-2 2h1.5"/></g></>);
 export const LineIcon = icon('line', <><path d="M4 20 20 4"/><Grip x={4} y={20}/><Grip x={20} y={4}/></>);
 export const OtherToolsIcon = icon('other-tools', <>
  <g stroke={gold} transform="rotate(45 12 12)"><rect x="10" y="1" width="4" height="7" rx="1"/><path d="M12 8v11m-1 0v3h2v-3"/></g>

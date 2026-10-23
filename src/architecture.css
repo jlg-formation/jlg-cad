@@ -53,4 +53,9 @@ header .architecture-toolbar .dimension-split-button>.dimension-menu-trigger{wid
 header .architecture-toolbar .dimension-menu-trigger svg{width:7px;height:5px}
 .dimension-tools-menu{min-width:248px}
 
+.reference-tools-menu{min-width:300px;max-height:calc(100vh - 110px);overflow-y:auto}
+.reference-tools-menu button svg{width:24px;height:24px;flex-shrink:0}
+.reference-tools-menu button:hover,.reference-tools-menu button:focus-visible{background:#2b443f;color:#a6e0cf}
+.reference-tools-menu kbd{white-space:nowrap}
+
 .dimension-tools-menu{max-height:calc(100vh - 110px);overflow-y:auto}.dimension-tools-menu button svg{width:24px;height:24px;flex-shrink:0}.dimension-tools-menu button:last-child{border-top:1px solid #415360;margin-top:4px}

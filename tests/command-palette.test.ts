@@ -30,6 +30,13 @@ test('recent commands are unique, limited to two and ordered by last use',()=>{
  history=rememberCommand(history,'line');expect(history).toEqual(['line','save']);
  history=rememberCommand(history,'circle');expect(history).toEqual(['circle','line']);
 });
+
+test('reference attachment accepts AutoCAD commands and the image alias',()=>{
+ for(const [query,id] of [['IAT','imageattach'],['IMAGEATTACH','imageattach'],['PDFATTACH','pdfattach']]){
+  expect(resolvePaletteCommand(query)?.id).toBe(id);
+  expect(paletteSuggestions(query)[0].id).toBe(id);
+ }
+});
 test('recent groups filter against available matches and separate only nonempty groups',()=>{
  const matches=paletteSuggestions('',{},true);
  const empty=groupPaletteCommands(matches,[],'');

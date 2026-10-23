@@ -165,13 +165,16 @@ function trimPositions(shape:Shape,boundaries:Shape[],positions:number[],preview
  // Once intersections exist, retain the usual intersection-based trimming.
  if(shape.type!=='circle'&&!cuts.length&&count)for(let i=0;i<=count;i++)cuts.push(i);
  if(!cuts.length)throw new Error('Aucune intersection : choisissez une limite de coupe.');
- if(closed&&cuts.length<2)throw new Error('Deux intersections sont nécessaires pour découper ce contour fermé.');
+ if(closed&&cuts.length<2&&shape.type!=='polyline')throw new Error('Deux intersections sont nécessaires pour découper ce contour fermé.');
  const slice=(from:number,to:number)=>{const ss:Segment[]=[];for(let i=Math.floor(from);i<Math.ceil(to);i++){const a=Math.max(0,from-i),b=Math.min(1,to-i);if(b-a>EPS)ss.push(portion(all[(i%count+count)%count],a,b));}return ss;};
  const ranges:[number,number][]=[];
  for(const position of positions){
   if(strict&&cuts.some(t=>Math.abs(t-position)<1e-6))continue;
-  const lo=[...cuts].reverse().find(t=>t<=position+EPS)??(closed?cuts[cuts.length-1]-count:0);
-  const hi=cuts.find(t=>t>position+EPS)??(closed?cuts[0]+count:count);
+  let lo=[...cuts].reverse().find(t=>t<=position+EPS)??(closed?cuts[cuts.length-1]-count:0);
+  let hi=cuts.find(t=>t>position+EPS)??(closed?cuts[0]+count:count);
+  // A polyline trim stays on the targeted segment even when the nearest
+  // intersection belongs to a different segment of the same path.
+  if(shape.type==='polyline'){lo=Math.max(lo,Math.floor(position));hi=Math.min(hi,Math.floor(position)+1);}
   if(lo<0)ranges.push([0,hi],[lo+count,count]);
   else if(hi>count)ranges.push([lo,count],[0,hi-count]);
   else ranges.push([lo,hi]);

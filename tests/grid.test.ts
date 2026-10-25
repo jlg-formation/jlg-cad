@@ -28,6 +28,6 @@ test('snapping follows visible intersections through zooms and hidden grid uses 
 });
 test('legacy independent resolution and arbitrary major lines migrate to shared natural grid',()=>{
  const g=readGrid({model:{visible:false,snap:true,gridX:25,snapX:3,major:7,style:'dots'}}).model;
- expect(g).toEqual({...defaultGrid().model,visible:false,style:'dots'});expect(gridSnap({x:27,y:38},g,10)).toEqual({x:30,y:40});
+ expect(g).toEqual({...defaultGrid().model,visible:false,snap:true,style:'dots'});expect(gridSnap({x:27,y:38},g,10)).toEqual({x:30,y:40});
  expect(readGrid({model:{minimum:0,style:'bad'}})).toEqual(defaultGrid());
 });

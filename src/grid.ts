@@ -7,7 +7,7 @@ export type GridSettings = {
 };
 export type DrawingGrid = {model: GridSettings; paper: GridSettings};
 export const GRID_MAJOR_INTERVALS = 5;
-const spaceGrid = (minimum: number): GridSettings => ({visible:true, snap:true, minimum, style:'lines', adaptive:true});
+const spaceGrid = (minimum: number): GridSettings => ({visible:false, snap:false, minimum, style:'lines', adaptive:true});
 export const defaultGrid = (): DrawingGrid => ({model:spaceGrid(10), paper:spaceGrid(1)});
 
 // Older drawings can contain independent snap steps and arbitrary major intervals.

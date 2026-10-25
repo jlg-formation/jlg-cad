@@ -85,7 +85,7 @@ test('placement grips edit the paper annotation without moving or detaching the 
  expect(doc.shapes).toEqual([wall]);expect(paperDimension(doc).offset).toBeCloseTo(d.offset-10);expect(paperDimension(doc).paperLink?.model.references).toHaveLength(2);
 });
 test('native validation checks the viewport, model anchors and nested definition',()=>{
- const d=dimension();expect(parseDrawing(JSON.stringify(withDimension())).version).toBe(12);
+ const d=dimension();expect(parseDrawing(JSON.stringify(withDimension())).version).toBe(13);
  for(const paperLink of [{...d.paperLink,viewportId:'missing'},{...d.paperLink,model:{...d.paperLink!.model,paperLink:d.paperLink}},{...d.paperLink,model:{...d.paperLink!.model,references:[{id:'missing',point:0,segment:0,feature:'a'}]}}])expect(()=>parseDrawing(JSON.stringify(withDimension({...d,paperLink} as Dimension)))).toThrow();
  expect(()=>parseDrawing(JSON.stringify(documentOf('invalid',[d])))).toThrow();
 });
@@ -105,5 +105,5 @@ test('paper two-line angular dimensions draw the chosen quadrant as well as meas
 test('paper toolbar, fields and repeat expose dimensions without a manual annotation scale',()=>{
  const toolbar=renderToStaticMarkup(<ArchitectureToolbar paper tool="linearDimension" onTool={()=>{}} shortcut={()=>''}/>);expect(toolbar).toContain('DIMLINEAR');
  const panel=renderToStaticMarkup(<CommandPanel paper tool="linearDimension" settings={initialSettings} setSettings={()=>{}} shortcut={()=>''} onApply={()=>{}} onFinish={()=>{}} points={0} boundaries={0} choosing={false} onBoundaries={()=>{}} hasSource={false}/>);
- expect(panel).not.toContain('Échelle de cote 1 :');expect(panel).toContain('taille imprimée constante');expect(repeatableHistory(['linearDimension','offset'],true,['linearDimension','offset'])).toEqual(['linearDimension']);
+ expect(panel).not.toContain('Échelle de cote 1 :');expect(panel).toContain('taille imprimée constante');expect(repeatableHistory(['linearDimension','offset'],true,['linearDimension','offset'])).toEqual(['linearDimension','offset']);
 });

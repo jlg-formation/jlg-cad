@@ -7,3 +7,10 @@
 .block-edit-banner strong { margin-right: auto; }
 /* The block toolbar and popup reuse the dimension tool styles. */
 
+
+.block-attributes,.attribute-definition{border:1px solid #35434c;border-radius:5px;margin:14px 0;padding:10px;min-width:0}
+.block-attributes legend,.attribute-definition legend{font-size:11px;color:#a6e0cf;padding:0 4px}
+.block-attributes .text-label{margin:8px 0}
+.block-attributes textarea{min-height:42px}
+.attribute-definition>label{display:grid;gap:6px;margin:9px 0;font-size:11px}
+.attribute-definition input:not([type=checkbox]){width:100%;min-width:0;background:#11191e;color:#d0d9dc;border:1px solid #35434c;padding:7px;border-radius:4px}

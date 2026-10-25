@@ -8,6 +8,25 @@ import {segments,flatten,dimensionGeometry} from './geometry';
 import {hatchDxf} from './hatch-dxf';
 
 export function toModernDxf(shapes:Shape[],layers:Layer[],displayUnit:'m'|'cm'|'mm',blocks:import('./model').BlockDefinition[]=[],references:ReferenceSource[]=[],referencePaths:Map<string,string>=new Map()){
+ // The DXF writer exports static blocks. Materialize attribute values per occurrence
+ // so different sheet titles cannot silently turn into a shared default on export.
+ const materialized:import('./model').BlockDefinition[]=[];
+ shapes=shapes.map((s,index)=>{
+  if(s.type!=='block')return s;
+  const definition=blocks.find(b=>b.id===s.definitionId);
+  if(!definition?.shapes.some(e=>e.type==='text'&&e.attribute))return s;
+  const id=s.definitionId+':values:'+index;
+  let name=definition.name+'_'+(index+1),n=2;
+  while([...blocks,...materialized].some(b=>b.name.toLocaleUpperCase()===name.toLocaleUpperCase()))name=definition.name+'_'+(index+1)+'_'+n++;
+  materialized.push({...definition,id,name,shapes:definition.shapes.map(e=>{
+   if(e.type!=='text'||!e.attribute)return e;
+   const rendered=s.entities.find(child=>child.id===s.id+':'+e.id);
+   const text=Object.hasOwn(s.attributes||{},e.attribute.tag)?s.attributes![e.attribute.tag]:rendered?.type==='text'?rendered.text:e.text;
+   return {...e,text,attribute:undefined};
+  })});
+  return {...s,definitionId:id};
+ });
+ blocks=[...blocks,...materialized];
  const refs=shapes.some(s=>s.type==='reference')?referenceDxf(references,referencePaths):null;
  const inserts=shapes.filter((s):s is import('./model').BlockShape=>s.type==='block');
  const definitions=[...new Map(inserts.map(s=>[s.definitionId,s])).values()];

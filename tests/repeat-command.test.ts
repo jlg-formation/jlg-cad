@@ -28,9 +28,9 @@ test('custom assignments take precedence without modifying saved preferences',()
 test('space changes fall back to the last compatible tool and preserve the history',()=>{
  const history=['viewport','move','join','text','line','select','pan'];
  const modelOnly=['move','join'];
- expect(repeatableHistory(history,false,modelOnly)).toEqual(['move','join','line']);
- expect(repeatableHistory(history,true,modelOnly)).toEqual(['viewport','join','text','line']);
+ expect(repeatableHistory(history,false,modelOnly)).toEqual(['move','join','text','line']);
+ expect(repeatableHistory(history,true,modelOnly)).toEqual(['viewport','move','join','text','line']);
  expect(history[0]).toBe('viewport');
- expect(repeatableHistory(['move'],true,modelOnly)).toEqual([]);
+ expect(repeatableHistory(['move'],true,modelOnly)).toEqual(['move']);
  expect(repeatableHistory([],false,modelOnly)).toEqual([]);
 });

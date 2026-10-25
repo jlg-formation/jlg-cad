@@ -7,7 +7,7 @@ import {add,sub,mul,distance,diameterDimension,segments,at} from './geometry';
 
 export function detachDimension<T extends Shape>(shape:T):T {
  if(shape.type!=='dimension')return shape;
- const {circleId,references,angleSources,...rest}=shape;return rest as T;
+ const {circleId,references,angleSources,paperLink,paperHidden,associationWarning,...rest}=shape;return rest as T;
 }
 function dimensionResolver(shapes:Shape[],previous:Shape[]=[]){
  const byId=new Map(shapes.map(s=>[s.id,s])),oldById=new Map(previous.map(s=>[s.id,s]));

@@ -125,7 +125,7 @@ describe('Hachures : associativité, transformations et fichiers',()=>{
   const next=pasteClipboard(doc,decodeClipboard(encodeClipboard(doc,[r,h])),{x:200,y:200},()=>`copy-${++i}`),pair=next.shapes.slice(-2);expect((pair[1] as HatchShape).associative).toBe(true);expect((pair[1] as HatchShape).regions[0].sourceIds).toEqual([pair[0].id]);expect(hatchContains(pair[1] as HatchShape,{x:210,y:210})).toBe(true);expect(pair[0].a).toEqual({x:200,y:200});
  });
  test('format natif v5 roundtrip, anciens fichiers et validation des paramètres / liaisons',()=>{
-  const r=rect(),h=hatch([r]),doc=documentOf('Plan',[r,h]);expect(parseDrawing(JSON.stringify(doc))).toEqual(doc);expect(parseDrawing(JSON.stringify({...documentOf('Old',[r]),version:4})).version).toBe(12);
+  const r=rect(),h=hatch([r]),doc=documentOf('Plan',[r,h]);expect(parseDrawing(JSON.stringify(doc))).toEqual(doc);expect(parseDrawing(JSON.stringify({...documentOf('Old',[r]),version:4})).version).toBe(13);
   for(const bad of [{...h,scale:0},{...h,pattern:'INVALID'},{...h,origin:{x:1e9,y:0}},{...h,regions:[{...h.regions[0],loops:[[{x:0,y:0},{x:1,y:0},{x:2,y:0}]]}]},{...h,regions:[{...h.regions[0],sourceIds:['missing']}]}])expect(()=>parseDrawing(JSON.stringify(documentOf('Bad',[r,bad as HatchShape])))).toThrow();
  });
  test('présentations : hachures papier, liaisons et motif à l’échelle des fenêtres',()=>{

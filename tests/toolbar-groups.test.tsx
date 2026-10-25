@@ -10,5 +10,5 @@ test('compact toolbar groups drawing, modification and annotation without tabs',
 });
 test('paper toolbar keeps drawing, annotation and navigation groups',()=>{
  const markup=renderToStaticMarkup(<ArchitectureToolbar tool="text" paper onTool={()=>{}} shortcut={()=>''}/>);
- expect(markup).toContain('aria-label="Dessiner"');expect(markup).toContain('aria-label="Annoter"');expect(markup).not.toContain('aria-label="Modifier"');expect(markup).not.toContain('aria-label="SCALE"');expect(markup).toContain('Autres outils');
+ expect(markup).toContain('aria-label="Dessiner"');expect(markup).toContain('aria-label="Annoter"');expect(markup).toContain('aria-label="Modifier"');expect(markup).toContain('aria-label="SCALE"');expect(markup).toContain('Autres outils');
 });

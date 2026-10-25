@@ -19,3 +19,12 @@ header .architecture-toolbar .layer-tools>.layer-current-trigger{--layer-trigger
 @media(max-width:760px){header .architecture-toolbar .layer-tools>.layer-current-trigger{--layer-trigger-width:144px;gap:5px}}
 
 .layer-current-trigger>.cad-icon,.layer-current-trigger>.other-tools-chevron{flex-shrink:0}
+
+.layer-dialog button{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:32px}
+.layer-dialog button.layer-icon-button{width:32px;height:32px;padding:6px;flex-shrink:0}
+.layer-dialog footer .layer-footer-spacer{flex:1}
+.layer-dialog button:not(:disabled):hover{background:#304853;border-color:#819da8}
+.layer-dialog button.layer-delete-button:not(:disabled):hover{color:#ffb5a0;background:#493038;border-color:#ba807d}
+.layer-dialog button:focus-visible{outline:2px solid #a6e0cf;outline-offset:2px}
+.layer-dialog .layer-action-cell{width:120px;min-width:120px;vertical-align:middle}
+.layer-dialog .layer-status{display:inline-flex;align-items:center;height:32px;box-sizing:border-box;white-space:nowrap;color:#a6e0cf;font-size:12px;line-height:1}

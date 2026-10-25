@@ -3,7 +3,7 @@ import {createPortal} from 'react-dom';
 import type {Drawing,Layer,PaperItem} from './model';
 import {appearance,layerDefaults,lineWeights,lineTypes,onLayer,usedLayer,type LineType} from './layers';
 import {t} from './i18n';
-import {LayersIcon,LayerPropertiesIcon,LockIcon,HiddenIcon} from './cad-icons';
+import {LayersIcon,LayerPropertiesIcon,LockIcon,HiddenIcon,AddIcon,DeleteIcon,CloseIcon,ConfirmIcon} from './cad-icons';
 import './layers.css';
 
 export function LayerTools({doc,current,onCurrent,onConfigure}:{doc:Drawing;current:string;onCurrent:(id:string)=>void;onConfigure:()=>void}){
@@ -58,21 +58,21 @@ export function LayerManager({doc,current,onApply,onClose}:{doc:Drawing;current:
  };
  return createPortal(<dialog ref={dialog} className="layer-dialog" aria-labelledby="layer-manager-title" onCancel={onClose}>
   <form onSubmit={e=>{e.preventDefault();apply();}}>
-   <header><h2 id="layer-manager-title">{t('Configurer les calques')}</h2><button type="button" aria-label={t('Fermer')} onClick={onClose}>×</button></header>
+   <header><h2 id="layer-manager-title">{t('Configurer les calques')}</h2><button type="button" className="layer-icon-button" aria-label={t('Fermer')} title={t('Fermer')} onClick={onClose}><CloseIcon size={18}/></button></header>
    <p>{t('Les propriétés « Du calque » des objets suivent automatiquement ces réglages.')}</p>
    <div className="layer-table-scroll"><table><thead><tr>{['Nom','Couleur','Type de trait','Épaisseur (mm)','Visible','Verrouillé','Imprimable','Transparence (%)','Description',''].map((name,i)=><th key={i} scope="col">{t(name)}</th>)}</tr></thead>
     <tbody>{layers.map(l=><tr key={l.id}>
-     <td><input aria-label={t('Nom du calque')+' '+l.name} value={l.name} maxLength={255} disabled={l.id==='0'} onChange={e=>patch(l.id,{name:e.target.value})}/>{current===l.id&&<small>{t('Courant')}</small>}</td>
+     <td><input aria-label={t('Nom du calque')+' '+l.name} value={l.name} maxLength={255} disabled={l.id==='0'} onChange={e=>patch(l.id,{name:e.target.value})}/></td>
      <td><input type="color" aria-label={t('Couleur du calque')+' '+l.name} value={l.color} onChange={e=>patch(l.id,{color:e.target.value})}/></td>
      <td><select aria-label={t('Type de trait')+' '+l.name} value={l.linetype} onChange={e=>patch(l.id,{linetype:e.target.value as LineType})}>{Object.entries(lineTypes).map(([v,n])=><option key={v} value={v}>{t(n)}</option>)}</select></td>
      <td><select aria-label={t('Épaisseur (mm)')+' '+l.name} value={l.lineweight} onChange={e=>patch(l.id,{lineweight:Number(e.target.value)})}>{[...new Set([...lineWeights,l.lineweight])].sort((a,b)=>a-b).map(n=><option key={n} value={n}>{n.toFixed(2)}</option>)}</select></td>
      {(['visible','locked','printable'] as const).map((k,i)=><td key={k}><input type="checkbox" aria-label={t(['Visible','Verrouillé','Imprimable'][i])+' '+l.name} checked={l[k]} onChange={e=>patch(l.id,{[k]:e.target.checked})}/></td>)}
      <td><input type="number" aria-label={t('Transparence (%)')+' '+l.name} min={0} max={90} required value={l.transparency} onChange={e=>patch(l.id,{transparency:e.target.valueAsNumber})}/></td>
      <td><input aria-label={t('Description')+' '+l.name} maxLength={255} value={l.description} onChange={e=>patch(l.id,{description:e.target.value})}/></td>
-     <td><button type="button" aria-label={t('Supprimer le calque')+' '+l.name} title={t('Seuls les calques vides, autres que 0 et le calque courant, peuvent être supprimés.')} disabled={l.id==='0'||l.id===current||usedLayer(doc,l.id)} onClick={()=>setLayers(ls=>ls.filter(x=>x.id!==l.id))}>{t('Supprimer')}</button></td>
+     <td className="layer-action-cell">{l.id===current||l.id==='0'||usedLayer(doc,l.id)?<span className="layer-status" title={t(l.id===current?(l.id==='0'?'Le calque courant ne peut pas être supprimé. Le calque 0 est également conservé comme calque par défaut.':'Le calque courant ne peut pas être supprimé.'):l.id==='0'?'Le calque 0 est conservé comme calque par défaut et ne peut pas être supprimé.':'Ce calque contient des objets dans le dessin, une présentation ou une définition de bloc et ne peut pas être supprimé.')}>{t(l.id===current?'Calque courant':l.id==='0'?'Calque de base':'Calque utilisé')}</span>:<button type="button" className="layer-icon-button layer-delete-button" aria-label={t('Supprimer le calque')+' '+l.name} title={t('Supprimer le calque')+' '+l.name} onClick={()=>setLayers(ls=>ls.filter(x=>x.id!==l.id))}><DeleteIcon size={18}/></button>}</td>
     </tr>)}</tbody></table></div>
    {error&&<p role="alert">{t(error)}</p>}
-   <footer><button type="button" disabled={layers.length>=200} onClick={()=>{let n=layers.length+1;while(layers.some(l=>l.name===`Calque ${n}`))n++;setLayers(ls=>[...ls,{...layerDefaults,id:crypto.randomUUID(),name:`Calque ${n}`,color:'#ffffff',visible:true,locked:false}]);}}>{t('Ajouter un calque')}</button><span/><button type="button" onClick={onClose}>{t('Annuler')}</button><button type="submit">{t('Appliquer')}</button></footer>
+   <footer><button type="button" disabled={layers.length>=200} onClick={()=>{let n=layers.length+1;while(layers.some(l=>l.name===`Calque ${n}`))n++;setLayers(ls=>[...ls,{...layerDefaults,id:crypto.randomUUID(),name:`Calque ${n}`,color:'#ffffff',visible:true,locked:false}]);}}><AddIcon size={16}/>{t('Ajouter un calque')}</button><span className="layer-footer-spacer"/><button type="button" onClick={onClose}><CloseIcon size={16}/>{t('Annuler')}</button><button type="submit"><ConfirmIcon size={16}/>{t('Appliquer')}</button></footer>
   </form>
  </dialog>,document.body);
 }

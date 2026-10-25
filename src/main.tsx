@@ -69,6 +69,7 @@ function App() {
  const language=useLanguage();
  const commandLanguage=useCommandLanguage();
  const [initialDocument]=useState(load);
+ const initialLayer=initialDocument.fileName===null?initialDocument.drawing.layers.find(l=>l.id==='tres-fin'&&l.visible&&!l.locked):undefined;
  const [fileName,setFileName]=useState<string|null>(initialDocument.fileName),[saved,setSaved]=useState<Drawing|null>(initialDocument.saved);
  const [bindings,setBindings]=useState<Bindings>(()=>{try{return readBindings(localStorage.getItem(storageKey));}catch{return readBindings(null);}});
  const [dxfFile,setDxfFile]=useState<{text:string;name:string}|null>(null);
@@ -85,7 +86,7 @@ function App() {
  const [blockFlow,setBlockFlow]=useState<{kind:'select';action:'block'|'explode'|'bedit'}|{kind:'base';name:string;ids:string[];replace:boolean}|{kind:'insert';definitionId:string;scale:number;angle:number}|null>(null);
  const [blockEditor,setBlockEditor]=useState<{drawing:Drawing;definitionId:string;past:Drawing[];future:Drawing[];view:View;layer:string}|null>(null);
  const currentDoc=useRef(doc);currentDoc.current=doc;
- const [tool,setTool]=useState<Tool>('select'),[selected,selectSingle]=useState<string|null>(null),[draft,setDraft]=useState<PaperItem|null>(null),[color,setColor]=useState('#b5ddd6'),[view,setView]=useState<View>(initialModelView(1000,700)),[cursor,setCursor]=useState<Point>({x:0,y:0}),[message,setMessage]=useState('Prêt à dessiner'),[past,setPast]=useState<Drawing[]>([]),[future,setFuture]=useState<Drawing[]>([]);
+ const [tool,setTool]=useState<Tool>('select'),[selected,selectSingle]=useState<string|null>(null),[draft,setDraft]=useState<PaperItem|null>(null),[color,setColor]=useState(initialLayer?.color||'#b5ddd6'),[view,setView]=useState<View>(initialModelView(1000,700)),[cursor,setCursor]=useState<Point>({x:0,y:0}),[message,setMessage]=useState('Prêt à dessiner'),[past,setPast]=useState<Drawing[]>([]),[future,setFuture]=useState<Drawing[]>([]);
  const [rectWidth,setRectWidth]=useState(''),[rectHeight,setRectHeight]=useState('');
  const [osnapKinds,setOsnapKinds]=useState<Snap['kind'][]>(objectSnapKinds);
  const rectWidthInput=useRef<HTMLInputElement>(null);
@@ -112,7 +113,7 @@ function App() {
  const offsetInput=useRef<HTMLInputElement>(null);
  useEffect(()=>{if(tool!=='offset'||offsetReady)return;const frame=requestAnimationFrame(()=>{offsetInput.current?.focus();offsetInput.current?.select();});return()=>cancelAnimationFrame(frame);},[tool,offsetReady]);
  const [dimensionLines,setDimensionLines]=useState<{id:string;segment:number;position:number}[]>([]);
- const [settings,setSettings]=useState(initialSettings),[currentLayer,setCurrentLayer]=useState('0'),[sourceId,setSourceId]=useState<string|null>(null),[commandPoints,setCommandPoints]=useState<Point[]>([]),[pathNodes,setPathNodes]=useState<Node[]>([]),[boundaryIds,setBoundaryIds]=useState<string[]>([]),[choosingBoundaries,setChoosingBoundaries]=useState(false),[commandPreview,setCommandPreview]=useState<Shape[]>([]),[snapHit,setSnapHit]=useState<Snap|null>(null),[nodeIndex,setNodeIndex]=useState(0),[measurement,setMeasurement]=useState('');
+ const [settings,setSettings]=useState(initialSettings),[currentLayer,setCurrentLayer]=useState(initialLayer?.id||'0'),[sourceId,setSourceId]=useState<string|null>(null),[commandPoints,setCommandPoints]=useState<Point[]>([]),[pathNodes,setPathNodes]=useState<Node[]>([]),[boundaryIds,setBoundaryIds]=useState<string[]>([]),[choosingBoundaries,setChoosingBoundaries]=useState(false),[commandPreview,setCommandPreview]=useState<Shape[]>([]),[snapHit,setSnapHit]=useState<Snap|null>(null),[nodeIndex,setNodeIndex]=useState(0),[measurement,setMeasurement]=useState('');
  const [unit,setUnit]=useState<LengthUnit>(()=>{try{return readUnit(localStorage.getItem('jlg-cad-unit'));}catch{return 'm';}}),[configuration,setConfiguration]=useState(false);
  const [layerManagerOpen,setLayerManagerOpen]=useState(false);
  const [propertiesOpen,setPropertiesOpen]=useState(()=>window.innerWidth>760);
@@ -812,7 +813,7 @@ function App() {
 
  const changed=documentChanged(blockEditor?.drawing||doc,saved),fileLabel=fileName?documentLabel(fileName,changed):t('nouveau fichier')+(changed?' *':'');
  useEffect(()=>{document.title=fileLabel+' — JLG CAD';},[fileLabel,language]);
- const replaceDrawing=(next:Drawing,name:string|null=null)=>{setLastBlockCommand(null);setToolHistory([]);setRecentCommands([]);setFileName(name);setDoc(next);setPast([]);setFuture([]);setSaved(next);switchSpace(null);setMessage('Prêt à dessiner');};
+ const replaceDrawing=(next:Drawing,name:string|null=null)=>{if(name===null){const fine=next.layers.find(l=>l.id==='tres-fin'&&l.visible&&!l.locked);if(fine){setCurrentLayer(fine.id);setColor(fine.color);}}setLastBlockCommand(null);setToolHistory([]);setRecentCommands([]);setFileName(name);setDoc(next);setPast([]);setFuture([]);setSaved(next);switchSpace(null);setMessage('Prêt à dessiner');};
  const requestReplacement=(next:Drawing,name:string|null=null)=>{if(changed)setReplacement({drawing:next,fileName:name});else replaceDrawing(next,name);};
  const runAction=(action:string)=>{if(['imageattach','pdfattach','references'].includes(action)){if(blockEditor){setMessage('Fermez l’éditeur de bloc avant de gérer les références.');return;}clear();setTool('select');if(action==='references')references.open();else references.attach(action==='pdfattach'?'pdf':'image');return;}if((blockCommands as readonly string[]).includes(action)){runBlockAction(action);return;}if(blockEditor&&['new','open','save','quickSave','dxf','pdf','pdfAll'].includes(action)){setBlockClose(true);setMessage('Fermez l’éditeur de bloc avant de gérer les fichiers.');return;}if(action==='undo')undo();else if(action==='redo')redo();else if(action==='save'||action==='quickSave'){if((tool==='polyline'||tool==='bezier')&&pathNodes.length>=2){if(!finishPath(false,true))return;clear();setTool('select');}if(action==='quickSave'&&fileName)setQuickSavePending(true);else setSaveRequested(true);}else if(action==='new')requestReplacement(documentOf('Sans titre',[]));else if(action==='open')input.current?.click();else if(action==='dxf'){if(!references.requestExport())download(toDxf(visible,doc.layers,unit,doc.blocks),'.dxf');}else if(action==='pdf'&&layout)pdf();else if(action==='pdfAll'&&doc.layouts.length)pdf(true);else if(action==='help')window.dispatchEvent(new Event('cad-shortcuts'));else if(action.startsWith('help:'))window.dispatchEvent(new CustomEvent('cad-help',{detail:action.slice(5)}));};
  const contextGroups=():ContextItem[][]=>{

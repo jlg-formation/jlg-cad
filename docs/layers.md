@@ -1,6 +1,6 @@
 # Calques
 
-Le bouton compact **Calques** réunit une icône de calques superposés, la couleur, le nom du calque courant et un chevron. Son menu permet de choisir un calque et indique le calque courant par une coche. Les calques masqués ou verrouillés restent affichés mais ne peuvent pas devenir courants. L’entrée **Configurer les calques…**, représentée par des calques et une fenêtre de propriétés, se trouve uniquement en bas de ce menu et ouvre le tableau du document. Les menus reprennent la présentation des outils Blocs et Modifier et acceptent les flèches du clavier, Début/Fin et Échap. La barre de droite affiche le calque et les propriétés d’un objet sélectionné ; elle ne contient plus la liste permanente des calques.
+Le bouton compact **Calques** réunit une icône de calques superposés, la couleur, le nom du calque courant et un chevron. Sa largeur reste fixe (176 px, ou 144 px sur petit écran) quel que soit le calque sélectionné. Un nom trop long est tronqué avec des points de suspension ; l’infobulle affiche toujours son nom complet. Son menu permet de choisir un calque et indique le calque courant par une coche. Les calques masqués ou verrouillés restent affichés mais ne peuvent pas devenir courants. L’entrée **Configurer les calques…**, représentée par des calques et une fenêtre de propriétés, se trouve uniquement en bas de ce menu et ouvre le tableau du document. Les menus reprennent la présentation des outils Blocs et Modifier et acceptent les flèches du clavier, Début/Fin et Échap. La barre de droite affiche le calque et les propriétés d’un objet sélectionné ; elle ne contient plus la liste permanente des calques.
 
 ## Configuration initiale
 
@@ -11,9 +11,10 @@ Le bouton compact **Calques** réunit une icône de calques superposés, la coul
 | Épais | Rouge | 0,50 mm |
 | Moyen | Jaune | 0,35 mm |
 | Fin | Vert | 0,18 mm |
-| Très fin | Terre de Sienne, `#a0522d` | 0,09 mm |
+| Très fin | Cyan (bleu clair turquoise), `#00ffff` | 0,09 mm |
+| Ultra fin | Magenta (rouge rose), `#ff00ff` | 0,05 mm |
 
-Ces préréglages s’appliquent aux nouveaux documents. Les documents existants conservent leurs calques et leurs couleurs individuelles.
+Ces préréglages s’appliquent aux nouveaux documents. Le calque **Très fin** (cyan, 0,09 mm) est sélectionné comme calque courant dès leur création. Les documents existants conservent leurs calques et leurs couleurs individuelles.
 
 Le calque **0** est le calque de base, présent dans tout dessin. Il reçoit aussi les objets sans affectation explicite. Il ne peut être ni supprimé ni renommé dans le gestionnaire. Des dessins anciens peuvent encore l’afficher sous le nom **Dessin** : son identifiant et son nom DXF restent `0`.
 

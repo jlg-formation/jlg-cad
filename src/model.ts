@@ -31,7 +31,8 @@ export const defaultLayers = (): Layer[] => [
  {id:'epais',name:'Épais',color:'#ff0000',lineweight:.50},
  {id:'moyen',name:'Moyen',color:'#ffff00',lineweight:.35},
  {id:'fin',name:'Fin',color:'#00ff00',lineweight:.18},
- {id:'tres-fin',name:'Très fin',color:'#a0522d',lineweight:.09},
+ {id:'tres-fin',name:'Très fin',color:'#00ffff',lineweight:.09},
+ {id:'ultra-fin',name:'Ultra fin',color:'#ff00ff',lineweight:.05},
 ].map(l=>({...l,visible:true,locked:false,printable:true,transparency:0,linetype:'CONTINUOUS',description:''}));
 const legacyLayers = ():Layer[] => [{id:'0',name:'Dessin',color:'#b5ddd6',visible:true,locked:false},{id:'murs',name:'Murs',color:'#a6e0cf',visible:true,locked:false},{id:'ouvertures',name:'Ouvertures',color:'#e6b776',visible:true,locked:false},{id:'cotes',name:'Cotations',color:'#94bfea',visible:true,locked:false}];
 export type Drawing = { format: 'jlg-cad'; version: 12; references?:ReferenceSource[]; blocks?:BlockDefinition[]; name: string; units: 'mm'; shapes: Shape[]; layouts: Layout[]; layers: Layer[]; grid?:DrawingGrid };

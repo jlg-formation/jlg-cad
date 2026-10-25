@@ -11,10 +11,10 @@ import {joinItems} from '../src/join';
 
 const line:Shape={id:'l',type:'line',a:{x:10,y:10},b:{x:80,y:30},color:'#abcdef',colorByLayer:true,layerId:'epais'};
 
-test('five presets plus layer 0, with the agreed paper widths and colors',()=>{
- const layers=defaultLayers();expect(layers.map(l=>l.name)).toEqual(['0','Très épais','Épais','Moyen','Fin','Très fin']);
- expect(layers.slice(1).map(l=>l.color)).toEqual(['#ffffff','#ff0000','#ffff00','#00ff00','#a0522d']);
- expect(layers.slice(1).map(l=>l.lineweight)).toEqual([.7,.5,.35,.18,.09]);
+test('six presets plus layer 0, with the agreed paper widths and colors',()=>{
+ const layers=defaultLayers();expect(layers.map(l=>l.name)).toEqual(['0','Très épais','Épais','Moyen','Fin','Très fin','Ultra fin']);
+ expect(layers.slice(1).map(l=>l.color)).toEqual(['#ffffff','#ff0000','#ffff00','#00ff00','#00ffff','#ff00ff']);
+ expect(layers.slice(1).map(l=>l.lineweight)).toEqual([.7,.5,.35,.18,.09,.05]);
  expect(layers.every(l=>l.visible&&!l.locked&&l.printable&&l.transparency===0)).toBe(true);
 });
 test('live inheritance, individual overrides, and changing layers resets every override',()=>{

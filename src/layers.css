@@ -4,8 +4,8 @@
 
 /* Reuse the toolbar buttons and popup surface used by Blocks and Modify. */
 .layer-tools{display:inline-flex;align-items:center;gap:2px;flex-shrink:0}
-header .architecture-toolbar .layer-tools>.layer-current-trigger{width:auto;min-width:0;max-width:196px;gap:7px;padding:3px 6px}
-.layer-current-name{min-width:0;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px}
+header .architecture-toolbar .layer-tools>.layer-current-trigger{--layer-trigger-width:176px;width:var(--layer-trigger-width);min-width:var(--layer-trigger-width);max-width:var(--layer-trigger-width);box-sizing:border-box;gap:7px;padding:3px 6px}
+.layer-current-name{flex:1;min-width:0;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px}
 .layer-tools .layer-swatch,.layer-tools-menu .layer-swatch{width:10px;height:10px;border:1px solid #83959e80;border-radius:1px;box-sizing:border-box}
 .layer-tools-menu{width:264px;min-width:0;display:flex;flex-direction:column;overflow:hidden}
 .layer-menu-list{min-height:0;overflow-y:auto;overscroll-behavior:contain}
@@ -16,4 +16,6 @@ header .architecture-toolbar .layer-tools>.layer-current-trigger{width:auto;min-
 .layer-tools-menu button:disabled{opacity:.45;cursor:default}
 .layer-tools-menu>.menu-separator,.layer-tools-menu>button{flex-shrink:0}
 .layer-tools-menu>button>svg{flex-shrink:0}
-@media(max-width:760px){header .architecture-toolbar .layer-tools>.layer-current-trigger{gap:5px;max-width:150px}.layer-current-name{max-width:80px}}
+@media(max-width:760px){header .architecture-toolbar .layer-tools>.layer-current-trigger{--layer-trigger-width:144px;gap:5px}}
+
+.layer-current-trigger>.cad-icon,.layer-current-trigger>.other-tools-chevron{flex-shrink:0}

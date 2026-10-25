@@ -1,4 +1,9 @@
 import type { Tool } from './architecture';
+import type {Point} from './model';
+
+export function panCursorPosition(point:Point,before:Point,after:Point):Point{
+ return{x:point.x+after.x-before.x,y:point.y+after.y-before.y};
+}
 
 export type CursorMode = 'idle' | 'point' | 'object' | 'text' | 'pan';
 export function cursorMode(state: {

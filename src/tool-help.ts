@@ -84,7 +84,8 @@ export function toolHelp(state:HelpState, language:Language='fr') {
  case 'dimension': case 'diameter': case 'linearDimension':
  instruction=state.sourceIsCircle?text('Cliquez pour placer la cote de diamètre.','Click to place the diameter dimension.'):n>=2?text('Déplacez le pointeur puis cliquez pour placer la cote.','Move the pointer, then click to place the dimension.'):n===1?text('Cliquez le second point à coter.','Click the second point to dimension.'):tool==='diameter'?text('Cliquez la circonférence d’un cercle.','Click a circle circumference.'):state.linearSelectObject?text('Cliquez un côté droit à coter. Avec Cotation, vous pouvez aussi choisir un cercle.','Click a straight side to dimension. With Dimension, you may also choose a circle.'):text('Cliquez le premier point à coter, ou choisissez un côté avec Entrée.','Click the first point to dimension, or press Enter to select a side.');break;
  }
- if(state.pendingOption==='close')instruction=text('Appuyez sur Entrée pour confirmer la fermeture du contour.','Press Enter to confirm closing the path.');
+   if(n>=2&&!state.sourceIsCircle&&['dimension','linearDimension','alignedDimension'].includes(tool))instruction+=' '+text('Pour aligner, survolez une ligne de cote parallèle puis suivez son guide OSnap.','To align, hover over a parallel dimension line, then follow its OSnap guide.');
+   if(state.pendingOption==='close')instruction=text('Appuyez sur Entrée pour confirmer la fermeture du contour.','Press Enter to confirm closing the path.');
  if(state.pendingOption==='undo')instruction=text('Appuyez sur Entrée pour annuler le dernier segment.','Press Enter to undo the last segment.');
  if(tool==='line'){
   hint('finish','terminer la suite de lignes','finish the line series');

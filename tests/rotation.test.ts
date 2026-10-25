@@ -3,7 +3,7 @@ import {documentOf,type Shape} from '../src/model';
 import {rotationAngle,rotateSelection} from '../src/rotation';
 
 const base={x:10,y:20};
-const line:Shape={id:'a',type:'line',a:base,b:{x:110,y:20},color:'#ffffff',layerId:'murs'};
+const line:Shape={id:'a',type:'line',a:base,b:{x:110,y:20},color:'#ffffff',layerId:'epais'};
 
 test('signed degrees, French decimals and typed angle override pointer movement',()=>{
  expect(rotationAngle(base,{x:10,y:-80},'')).toBe(90);
@@ -33,7 +33,7 @@ test('selection rotates around the chosen pivot without mutating the original do
 
 test('a locked member blocks the entire rotation',()=>{
  const doc=documentOf('Plan',[line,{...line,id:'b',layerId:'0'}]);
- doc.layers.find(l=>l.id==='murs')!.locked=true;
+ doc.layers.find(l=>l.id==='epais')!.locked=true;
  expect(()=>rotateSelection(doc,['a','b'],base,90)).toThrow('verrouillé');
  expect(doc.shapes[1].b).toEqual(line.b);
  expect(()=>rotateSelection(doc,[],base,90)).toThrow();

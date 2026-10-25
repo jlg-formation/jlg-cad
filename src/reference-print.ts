@@ -1,3 +1,4 @@
+import {appearance,linePatterns} from './layers';
 import type {Drawing,Layout} from './model';
 import type {jsPDF} from 'jspdf';
 import {referenceShapes,referenceDisplayed,referenceSource,referenceCorners,type ReferenceShape} from './references';
@@ -46,5 +47,5 @@ export function printReference(pdf:jsPDF,s:ReferenceShape,doc:Drawing,prepared:M
   p.setCurrentTransformationMatrix(p.Matrix(x.x,x.y,y.x,y.y,s.a.x,s.a.y));
   p.addImage(prepared.get(s.id)||page.preview,'PNG',0,0,1,1,undefined,'FAST');p.restoreGraphicsState();
  });
- if(s.frame===1){pdf.setLineWidth(.25);pdf.setDrawColor(s.color);pdf.path(corners.map((q,i)=>({op:i?'l':'m',c:[q.x,q.y]})).concat([{op:'h',c:[]}]));pdf.stroke();}
+ if(s.frame===1){const style=appearance(s,doc.layers);pdf.setLineWidth(style.lineweight);pdf.setLineDashPattern(linePatterns[style.linetype],0);pdf.setDrawColor(style.color);pdf.path(corners.map((q,i)=>({op:i?'l':'m',c:[q.x,q.y]})).concat([{op:'h',c:[]}]));pdf.stroke();}
 }

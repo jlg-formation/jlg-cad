@@ -1,3 +1,4 @@
+import {layerDefaults,linePatterns} from './layers';
 import {referenceDxf} from './reference-dxf';
 import type {ReferenceSource} from './references';
 import {orderDrawing} from './references';
@@ -15,28 +16,32 @@ export function toModernDxf(shapes:Shape[],layers:Layer[],displayUnit:'m'|'cm'|'
  const pairs:(string|number)[]=[],add=(...p:(string|number)[])=>pairs.push(...p);
  let next=0x10;const handle=()=> (next++).toString(16).toUpperCase();
  const ltypeTable=handle(),layerTable=handle(),styleTable=handle(),blockTable=handle(),modelSpace=handle(),paperSpace=handle();
- const names=new Map(layers.map((l,i)=>[l.id,l.id==='0'?'0':`${l.name.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9_-]/g,'_').slice(0,80)}_${i}`]));
+ const usedNames=new Set<string>();
+ const names=new Map(layers.map(l=>{let name=l.id==='0'?'0':l.name.replace(/[<>/\\":;?*|=\x00-\x1f]/g,'_').slice(0,255)||'Calque',base=name,n=2;while(usedNames.has(name.toUpperCase()))name=base.slice(0,240)+'_'+n++;usedNames.add(name.toUpperCase());return [l.id,asciiName(name)];}));
  add(0,'SECTION',2,'HEADER',9,'$ACADVER',1,refs?'AC1024':'AC1018',9,'$INSUNITS',70,4,9,'$MEASUREMENT',70,1,0,'ENDSEC');
  if(refs)add(...refs.classes);
  add(0,'SECTION',2,'TABLES');
  const table=(name:string,id:string,count:number)=>add(0,'TABLE',2,name,5,id,330,'0',100,'AcDbSymbolTable',70,count);
- table('LTYPE',ltypeTable,1);add(0,'LTYPE',5,handle(),330,ltypeTable,100,'AcDbSymbolTableRecord',100,'AcDbLinetypeTableRecord',2,'CONTINUOUS',70,0,3,'Solid line',72,65,73,0,40,0,0,'ENDTAB');
- table('LAYER',layerTable,layers.length);for(const l of layers)add(0,'LAYER',5,handle(),330,layerTable,100,'AcDbSymbolTableRecord',100,'AcDbLayerTableRecord',2,names.get(l.id)!,70,l.locked?4:0,62,l.visible?7:-7,6,'CONTINUOUS');add(0,'ENDTAB');
+ table('APPID',handle(),2);for(const name of ['AcAecLayerStandard','AcCmTransparency'])add(0,'APPID',5,handle(),100,'AcDbSymbolTableRecord',100,'AcDbRegAppTableRecord',2,name,70,0);add(0,'ENDTAB');
+ table('LTYPE',ltypeTable,Object.keys(linePatterns).length);
+ for(const [name,pattern] of Object.entries(linePatterns)){const values=pattern.map((v,i)=>i%2?-v:v);add(0,'LTYPE',5,handle(),330,ltypeTable,100,'AcDbSymbolTableRecord',100,'AcDbLinetypeTableRecord',2,name,70,0,3,name,72,65,73,values.length,40,pattern.reduce((n,v)=>n+v,0));for(const v of values)add(49,v,74,0);}add(0,'ENDTAB');
+ table('LAYER',layerTable,layers.length);for(const source of layers){const l={...layerDefaults,...source};add(0,'LAYER',5,handle(),330,layerTable,100,'AcDbSymbolTableRecord',100,'AcDbLayerTableRecord',2,names.get(l.id)!,70,l.locked?4:0,62,l.visible?7:-7,420,parseInt(l.color.slice(1),16),6,l.linetype,290,l.printable?1:0,370,Math.round(l.lineweight*100),1001,'AcAecLayerStandard',1000,'',1000,asciiName(l.description),1001,'AcCmTransparency',1071,0x02000000|Math.floor((1-l.transparency/100)*255));}add(0,'ENDTAB');
  table('STYLE',styleTable,1);add(0,'STYLE',5,handle(),330,styleTable,100,'AcDbSymbolTableRecord',100,'AcDbTextStyleTableRecord',2,'STANDARD',70,0,40,0,41,1,50,0,71,0,42,2.5,3,'txt',4,'',0,'ENDTAB');
  const blockRecords=new Map(definitions.map(s=>[s.definitionId,handle()]));
  table('BLOCK_RECORD',blockTable,2+definitions.length);for(const [name,id] of [['*Model_Space',modelSpace],['*Paper_Space',paperSpace]])add(0,'BLOCK_RECORD',5,id,330,blockTable,100,'AcDbSymbolTableRecord',100,'AcDbBlockTableRecord',2,name);for(const s of definitions)add(0,'BLOCK_RECORD',5,blockRecords.get(s.definitionId)!,330,blockTable,100,'AcDbSymbolTableRecord',100,'AcDbBlockTableRecord',2,blockNames.get(s.definitionId)!);add(0,'ENDTAB',0,'ENDSEC');
  const ordered=orderDrawing(shapes);
- let layer='0',color='#ffffff',owner=modelSpace;
- const entity=(type:string,subclass:string)=>add(0,type,5,handle(),330,owner,100,'AcDbEntity',8,layer,420,parseInt(color.slice(1),16),100,subclass);
+ let layer='0',color='#ffffff',owner=modelSpace,style:Shape|undefined;
+ const properties=():(string|number)[]=>[...(style?.colorByLayer?[62,256]:[420,parseInt(color.slice(1),16)]),6,style?.linetype||'BYLAYER',370,style?.lineweight===undefined?-1:Math.round(style.lineweight*100),...(style?.transparency===undefined?[]:[440,0x02000000|Math.floor((1-style.transparency/100)*255)])];
+ const entity=(type:string,subclass:string)=>add(0,type,5,handle(),330,owner,100,'AcDbEntity',8,layer,...properties(),100,subclass);
  const point=(code:number,p:Point)=>add(code,p.x,code+10,-p.y,code+20,0);
  const line=(a:Point,b:Point)=>{entity('LINE','AcDbLine');point(10,a);point(11,b);};
  const polyline=(ps:{p:Point;bulge?:number}[],closed:boolean)=>{entity('LWPOLYLINE','AcDbPolyline');add(90,ps.length,70,closed?1:0);for(const n of ps)add(10,n.p.x,20,-n.p.y,42,-(n.bulge||0));};
  // R2004 text is ASCII with Unicode escapes, independent of the browser's UTF-8 download.
  const textValue=(value:string)=>value.replace(/[^\x20-\x7e]|[\\{}]/g,c=>'\\U+'+c.charCodeAt(0).toString(16).toUpperCase().padStart(4,'0'));
- const emit=(ordered:Shape[])=>{for(const s of ordered){layer=names.get(s.layerId||'0')||'0';color=s.color;
-  if(s.type==='reference'){if(!refs)throw new Error('Les références nécessitent un export ZIP.');add(...refs.emit(s,owner,layer,color));}
+ const emit=(ordered:Shape[])=>{for(const s of ordered){style=s;layer=names.get(s.layerId||'0')||'0';color=s.color;
+  if(s.type==='reference'){if(!refs)throw new Error('Les références nécessitent un export ZIP.');const data=refs.emit(s,owner,layer,color),rgb=data.indexOf(420);if(rgb>=0)data.splice(rgb,2,...properties());add(...data);}
   else if(s.type==='block'){const x=s.b.x-s.a.x,y=-(s.b.y-s.a.y),scale=Math.hypot(x,y),det=(s.b.x-s.a.x)*(s.yAxis.y-s.a.y)-(s.b.y-s.a.y)*(s.yAxis.x-s.a.x);entity('INSERT','AcDbBlockReference');add(2,blockNames.get(s.definitionId)!);point(10,s.a);add(41,scale,42,det<0?-scale:scale,43,1,50,Math.atan2(y,x)*180/Math.PI);}
-  else if(s.type==='hatch'){const data=hatchDxf(s,layer,handle());data.splice(4,0,330,owner);add(...data);}
+  else if(s.type==='hatch'){const data=hatchDxf(s,layer,handle());const rgb=data.indexOf(420);if(rgb>=0)data.splice(rgb,2,...properties());data.splice(4,0,330,owner);add(...data);}
   else if(s.type==='text'){
    if(s.text.includes('\n')){entity('MTEXT','AcDbMText');const angle=(s.rotation||0)*Math.PI/180,baseline=s.vertical==='baseline',origin=baseline?{x:s.a.x+Math.sin(angle)*s.height*.8,y:s.a.y-Math.cos(angle)*s.height*.8}:s.a;point(10,origin);add(40,s.height,41,0,71,(s.vertical==='middle'?3:s.vertical==='bottom'?6:0)+(s.align==='center'?2:s.align==='right'?3:1),1,s.text.split('\n').map(textValue).join('\\P'),7,'STANDARD',11,Math.cos(angle),21,-Math.sin(angle),31,0);}
    else{entity('TEXT','AcDbText');point(10,s.a);add(40,s.height,1,textValue(s.text),50,-(s.rotation||0),7,'STANDARD',72,s.align==='center'?1:s.align==='right'?2:0);point(11,s.a);add(100,'AcDbText',73,s.vertical==='top'||!s.vertical?3:s.vertical==='middle'?2:s.vertical==='bottom'?1:0);}

@@ -1,3 +1,4 @@
+import {appearanceFields} from './layers';
 import {referenceCorners} from './references';
 import {textCorners} from './model';
 import {dimensionTextAbove} from './dimension-text-placement';
@@ -130,7 +131,7 @@ export function shapeFromSegments(source:Shape,segs:Segment[],closed=false):Shap
  const nodes:Node[]=segs.map(s=>({p:s.a,...(s.kind==='arc'?{bulge:Math.tan(s.sweep/4)}:{}),...(s.kind==='cubic'?{out:s.c1}:{} )}));
  segs.forEach((s,i)=>{if(s.kind==='cubic'){if(i+1<nodes.length)nodes[i+1].in=s.c2;else if(closed)nodes[0].in=s.c2;}});
  if(!closed){const last=segs[segs.length-1];nodes.push({p:last.b,...(last.kind==='cubic'?{in:last.c2}:{})});}
- return{id:source.id,type:cubic?'bezier':'polyline',a:nodes[0].p,b:nodes[nodes.length-1].p,color:source.color,layerId:source.layerId,nodes,closed};
+ return{id:source.id,type:cubic?'bezier':'polyline',a:nodes[0].p,b:nodes[nodes.length-1].p,...appearanceFields(source),nodes,closed};
 }
 export function trimShape(shape:Shape,boundaries:Shape[],click:Point,preview=false):Shape[]{
  if(shape.type==='reference')throw new Error('Une référence attachée ne peut pas être ajustée. Utilisez Délimiter.');
@@ -361,7 +362,7 @@ export function arcCubics(s:Extract<Segment,{kind:'arc'}>):Extract<Segment,{kind
  for(let i=0;i<count;i++){const a=at(s,i/count),b=at(s,(i+1)/count),start=s.start+s.sweep*i/count,end=s.start+s.sweep*(i+1)/count,k=4/3*Math.tan((end-start)/4)*s.radius;out.push({kind:'cubic',a,b,c1:add(a,{x:-Math.sin(start)*k,y:Math.cos(start)*k}),c2:sub(b,{x:-Math.sin(end)*k,y:Math.cos(end)*k})});}return out;
 }
 
-export type Snap = {point:Point;kind:'Extrémité'|'Milieu'|'Centre'|'Intersection'};
+export type Snap = {point:Point;kind:'Extrémité'|'Milieu'|'Centre'|'Intersection'|'Alignement des cotations'};
 export function snapPoint(p:Point,shapes:Shape[],tolerance:number,kinds:readonly Snap['kind'][]=['Extrémité','Milieu','Centre','Intersection']):Snap|null {
  const candidates:Snap[]=[],nearby:Segment[]=[];
  for(const shape of shapes){if(shape.type==='dimension'||shape.type==='hatch'||shape.type==='reference')continue;if(shape.type==='circle')candidates.push({point:shape.a,kind:'Centre'});

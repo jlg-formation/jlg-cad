@@ -29,8 +29,8 @@ test('collinear lines with gaps, reversed endpoints, overlaps and duplicates bec
 });
 
 test('explicit line source keeps its properties and ignores angled lines and polylines',()=>{
- const a={...line('a',{x:0,y:0},{x:10,y:0}),color:'#abcdef',layerId:'murs'},b=line('b',{x:20,y:0},{x:30,y:0}),c=line('c',{x:10,y:0},{x:10,y:10}),p=poly('p',[{x:30,y:0},{x:40,y:0}]);
- const result=join([b,c,p,a],'a');expect(result.items).toHaveLength(3);expect(result.items.find(s=>s.id==='a')).toMatchObject({type:'line',a:a.a,b:b.b,color:a.color,layerId:'murs'});expect(result.ignored).toBe(2);
+ const a={...line('a',{x:0,y:0},{x:10,y:0}),color:'#abcdef',layerId:'epais'},b=line('b',{x:20,y:0},{x:30,y:0}),c=line('c',{x:10,y:0},{x:10,y:10}),p=poly('p',[{x:30,y:0},{x:40,y:0}]);
+ const result=join([b,c,p,a],'a');expect(result.items).toHaveLength(3);expect(result.items.find(s=>s.id==='a')).toMatchObject({type:'line',a:a.a,b:b.b,color:a.color,layerId:'epais'});expect(result.ignored).toBe(2);
 });
 
 test('an unordered chain reverses objects, closes a contour, and leaves closed objects untouched',()=>{
@@ -79,7 +79,7 @@ test('numerical endpoint tolerance is fixed in model millimetres',()=>{
 });
 
 test('locked objects and explicit locked sources remain protected; paper space is isolated',()=>{
- const a=line('a',{x:0,y:0},{x:10,y:0}),b={...line('b',{x:10,y:0},{x:10,y:10}),layerId:'murs'};const doc=documentOf('x',[a,b]);doc.layers=doc.layers.map(l=>l.id==='murs'?{...l,locked:true}:l);
+ const a=line('a',{x:0,y:0},{x:10,y:0}),b={...line('b',{x:10,y:0},{x:10,y:10}),layerId:'epais'};const doc=documentOf('x',[a,b]);doc.layers=doc.layers.map(l=>l.id==='epais'?{...l,locked:true}:l);
  expect(joinDrawing(doc,['a','b']).result.joined).toBe(0);expect(()=>joinDrawing(doc,['a','b'],'b')).toThrow();
  const layout={...newLayout('paper','Layout 1'),items:[a,{...b,layerId:undefined}]};doc.layouts=[layout];const result=joinDrawing(doc,['a','b'],undefined,false,'paper');expect(result.drawing.shapes).toBe(doc.shapes);expect(result.drawing.layouts[0].items).toHaveLength(1);
 });
@@ -138,8 +138,8 @@ test('outer and island hatch dependencies are remapped independently',()=>{
 });
 
 test('joined primitives preserve source colors and layer in DXF, including a closed arc',()=>{
- const a={...line('a',{x:0,y:0},{x:10,y:0}),color:'#abcdef',layerId:'murs'},b=line('b',{x:15,y:0},{x:20,y:0}),result=join([a,b],'a'),doc=documentOf('x',result.items as Shape[]),roundtrip=importDxf(toDxf(doc.shapes,doc.layers),'x').drawing;
- expect(roundtrip.shapes[0].color).toBe('#abcdef');expect(roundtrip.layers.find(l=>l.id===roundtrip.shapes[0].layerId)?.name).toContain('Murs');
+ const a={...line('a',{x:0,y:0},{x:10,y:0}),color:'#abcdef',layerId:'epais'},b=line('b',{x:15,y:0},{x:20,y:0}),result=join([a,b],'a'),doc=documentOf('x',result.items as Shape[]),roundtrip=importDxf(toDxf(doc.shapes,doc.layers),'x').drawing;
+ expect(roundtrip.shapes[0].color).toBe('#abcdef');expect(roundtrip.layers.find(l=>l.id===roundtrip.shapes[0].layerId)?.name).toContain('Épais');
  const closed=joinItems([{...arc('a',0,80),color:'#654321'}],['a'],'a',true),circle=importDxf(toDxf(closed.items as Shape[]),'x').drawing.shapes[0];expect(circle.type).toBe('circle');expect(circle.color).toBe('#654321');
 });
 

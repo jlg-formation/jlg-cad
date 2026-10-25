@@ -27,7 +27,7 @@ export function makeReference(source:ReferenceSource,page:ReferencePage,a:Point,
  const r=-angle*Math.PI/180,c=Math.cos(r),s=Math.sin(r),w=page.width*factor,h=page.height*factor;
  // The user places the visual bottom left, matching AutoCAD's insertion point.
  const top={x:a.x+s*h,y:a.y-c*h};
- return{id,type:'reference',sourceId:source.id,page:page.page,a:top,b:{x:top.x+c*w,y:top.y+s*w},c:a,color:'#b5ddd6',layerId,visible:true,frame:2,fade:0,contrast:source.kind==='pdf'?100:50,brightness:50,monochrome:false,transparent:true,clipEnabled:false,front:false,pdfSnap:source.kind==='pdf'};
+ return{id,type:'reference',sourceId:source.id,page:page.page,a:top,b:{x:top.x+c*w,y:top.y+s*w},c:a,color:'#b5ddd6',colorByLayer:true,layerId,visible:true,frame:2,fade:0,contrast:source.kind==='pdf'?100:50,brightness:50,monochrome:false,transparent:true,clipEnabled:false,front:false,pdfSnap:source.kind==='pdf'};
 }
 export function referenceShapes(doc:Drawing):ReferenceShape[]{return [...doc.shapes,...doc.layouts.flatMap(l=>l.items)].filter((s):s is ReferenceShape=>s.type==='reference');}
 export function referenceSource(doc:Drawing,s:ReferenceShape){return doc.references?.find(r=>r.id===s.sourceId);}

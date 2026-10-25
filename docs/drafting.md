@@ -98,6 +98,16 @@ Le bouton Cotation démarre directement la sélection d’un objet : cliquez un 
 
 Pour coter directement un côté, faites Entrée une seconde fois avant de placer le premier point, cliquez une ligne ou un segment droit de rectangle ou de polyligne, puis placez la cote. La valeur mesure la projection horizontale ou verticale, utilise l’unité du projet et conserve une hauteur de texte fixe selon les réglages de cotation. Les points de cette cotation sont indépendants de l’objet sélectionné.
 
+## Aligner plusieurs cotations
+
+Dans le menu OSnap, « Alignement des cotations » est activé par défaut. Pendant le placement final d’une cote droite, survolez la ligne d’une cote parallèle pendant 0,3 seconde : elle est mise en évidence et son prolongement apparaît en pointillés. Revenez près de la cote à placer, approchez le guide et cliquez lorsque l’indication « Alignement des cotations » apparaît. Le guide est acquis à 8 pixels et décroche au-delà de 12 pixels, indépendamment du zoom. Survoler une autre cote parallèle remplace la référence.
+
+Le même geste fonctionne en sélection avec la poignée « Déplacer la cote », y compris pour les anciennes cotations droites. Il aligne la ligne de cote, sans introduire le décalage du texte. Les points mesurés, la valeur et les associations aux objets sont conservés. Une seule action Ctrl+Z annule le repositionnement.
+
+Ce fonctionnement est commun à l’espace Objet, aux fenêtres de vue actives et à l’espace Papier. Sur une feuille, la référence est une cote visible du même layout et l’alignement est calculé sur le papier, même hors des fenêtres et entre des fenêtres d’échelles différentes. Une cote visible sur un calque verrouillé peut servir de référence. Les cotations masquées et la cote en cours de déplacement sont exclues.
+
+L’alignement actif est prioritaire sur la grille et les guidages. Une saisie numérique explicite, la désactivation d’OSnap ou de l’option, Échap et le changement d’outil retirent le guide. Aucun lien permanent n’est créé entre les cotes ; les guides ne sont ni enregistrés ni exportés.
+
 # Déplacer avec une distance précise
 
 Sélectionnez un ou plusieurs objets, puis activez Déplacer (`M`). Cliquez le point de base, indiquez la direction avec la souris, saisissez la distance puis Entrée, ou cliquez directement la destination. Le champ Distance près du curseur accepte les unités du dessin et les unités explicites (par exemple `50 cm`), ainsi que les décimales françaises. Le mode orthogonal et le guidage polaire fonctionnent comme pour Copier. La distance saisie est prioritaire sur la position accrochée.

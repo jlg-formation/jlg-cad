@@ -1,8 +1,9 @@
+import {appearance,linePatterns,printable} from './layers';
 import {printReference} from './reference-print';
 import {orderDrawing} from './references';
 import {synchronizeDrawing} from './associations';
 import {hatchLines} from './hatch';
-import { jsPDF } from 'jspdf';
+import { jsPDF, GState } from 'jspdf';
 import { bounds, modelToPaper, paperSize, visibleShapes,textLineOffset, type Drawing, type Layout, type Shape, type TextItem } from './model';
 import { mapItem, segments, arcCubics, dimensionGeometry } from './geometry';
 
@@ -18,11 +19,17 @@ export function createPdf(drawing: Drawing, layouts: Layout[],displayUnit:'m'|'c
     pdf.saveGraphicsState();
     pdf.rect(0,0,size.x,size.y,null);pdf.clip();pdf.discardPath();
     const draw=(s:Shape|TextItem,dimensionLabel?:string)=>{
+      if(!printable(s,drawing.layers))return;
+      const style=appearance(s,drawing.layers);
+      pdf.saveGraphicsState();pdf.setGState(new GState({opacity:1-style.transparency/100,'stroke-opacity':1-style.transparency/100}));
+      try {drawContent(s,dimensionLabel);} finally {pdf.restoreGraphicsState();}
+    };
+    const drawContent=(s:Shape|TextItem,dimensionLabel?:string)=>{
       if(s.type==='reference'){printReference(pdf,s,drawing,referencePrints);return;}
       if(s.type==='block'){s.entities.filter(child=>drawing.layers.find(l=>l.id===(child.layerId||'0'))?.visible!==false).forEach(child=>draw(child));return;}
       if(s.type==='dimension'&&s.paperHidden)return;
-      const color=layout.monochrome?'#17242a':s.color;
-      pdf.setDrawColor(color);pdf.setTextColor(color);pdf.setLineWidth(.25);
+      const style=appearance(s,drawing.layers),color=layout.monochrome?'#17242a':style.color;
+      pdf.setDrawColor(color);pdf.setTextColor(color);pdf.setLineWidth(style.lineweight);pdf.setLineDashPattern(linePatterns[style.linetype],0);
       if(s.type==='text'){const offset=textLineOffset(s),angle=(s.rotation||0)*Math.PI/180;pdf.setFont('helvetica');pdf.setFontSize(s.height*72/25.4);pdf.text(s.text,s.a.x-Math.sin(angle)*offset,s.a.y+Math.cos(angle)*offset,{baseline:s.vertical==='baseline'?'alphabetic':s.vertical==='middle'?'middle':s.vertical==='bottom'?'bottom':'top',align:s.align||'left',angle:-(s.rotation||0),lineHeightFactor:1.2});}
       else if(s.type==='hatch'){
         if(s.pattern==='SOLID'){pdf.setFillColor(color);for(const r of s.regions){pdf.path(r.loops.flatMap(loop=>[{op:'m',c:[loop[0].x,loop[0].y]},...loop.slice(1).map(p=>({op:'l',c:[p.x,p.y]})),{op:'h',c:[]}]));pdf.fillEvenOdd();}}
@@ -40,12 +47,13 @@ export function createPdf(drawing: Drawing, layouts: Layout[],displayUnit:'m'|'c
     // Match the editor: model windows are behind paper annotations.
     const ordered=[...layout.items.filter(s=>s.type==='viewport'),...orderDrawing(layout.items.filter(s=>s.type!=='viewport'))];
     for(const item of ordered) {
+      if(!printable(item,drawing.layers))continue;
       if(item.type!=='viewport'){if(drawing.layers.find(l=>l.id===(item.layerId||'0'))?.visible!==false)draw(item);continue;}
       const r=bounds(item);
       pdf.saveGraphicsState();pdf.rect(r.x,r.y,r.width,r.height,null);pdf.clip();pdf.discardPath();
       for(const s of orderDrawing(visibleShapes(drawing))){draw(mapItem(s,p=>modelToPaper(p,item),1/item.denominator),s.type==='dimension'?dimensionGeometry(s,displayUnit).text:undefined);}
       pdf.restoreGraphicsState();
-      if(item.printBorder){pdf.setDrawColor(layout.monochrome?'#17242a':item.color);pdf.setLineWidth(.25);pdf.rect(r.x,r.y,r.width,r.height,'S');}
+      if(item.printBorder){const style=appearance(item,drawing.layers);pdf.saveGraphicsState();pdf.setGState(new GState({opacity:1-style.transparency/100,'stroke-opacity':1-style.transparency/100}));pdf.setDrawColor(layout.monochrome?'#17242a':style.color);pdf.setLineWidth(style.lineweight);pdf.setLineDashPattern(linePatterns[style.linetype],0);pdf.rect(r.x,r.y,r.width,r.height,'S');pdf.restoreGraphicsState();}
     }
     pdf.restoreGraphicsState();
   }

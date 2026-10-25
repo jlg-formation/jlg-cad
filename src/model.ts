@@ -1,3 +1,4 @@
+import {validAppearance,type LineType} from './layers';
 import {referenceDisplayed,referenceCorners,validReferenceShape,validateReferences,type ReferenceSource,type ReferenceShape} from './references';
 import {defaultGrid,readGrid,type DrawingGrid} from './grid';
 import {synchronizeDrawing} from './associations';
@@ -6,7 +7,7 @@ import {validateHatchStyle,hatchBounds} from './hatch';
 import {toModernDxf} from './dxf-modern';
 import {polygonArea} from './hatch';
 export type Point = { x: number; y: number };
-export type BaseShape = { id: string; a: Point; b: Point; color: string; layerId?: string };
+export type BaseShape = { id: string; a: Point; b: Point; color: string; layerId?: string; colorByLayer?:boolean; linetype?:LineType; lineweight?:number; transparency?:number };
 export type SimpleShape = { [K in 'line'|'rect'|'circle']: BaseShape & { type: K } }['line'|'rect'|'circle'];
 export type ArcShape = BaseShape & {type:'arc';bulge:number};
 export type Node = { p: Point; bulge?: number; in?: Point; out?: Point; smooth?: boolean };
@@ -23,10 +24,18 @@ export type TextItem = BaseShape & { type: 'text'; text: string; height: number;
 export type Viewport = BaseShape & { type: 'viewport'; center: Point; denominator: number; locked: boolean; printBorder: boolean };
 export type PaperItem = Shape | TextItem | Viewport;
 export type Layout = { id: string; name: string; format: 'A4' | 'A3'; orientation: 'portrait' | 'landscape'; monochrome: boolean; items: PaperItem[] };
-export type Layer = { id: string; name: string; color: string; visible: boolean; locked: boolean };
-export const defaultLayers = (): Layer[] => [{id:'0',name:'Dessin',color:'#b5ddd6',visible:true,locked:false},{id:'murs',name:'Murs',color:'#a6e0cf',visible:true,locked:false},{id:'ouvertures',name:'Ouvertures',color:'#e6b776',visible:true,locked:false},{id:'cotes',name:'Cotations',color:'#94bfea',visible:true,locked:false}];
-export type Drawing = { format: 'jlg-cad'; version: 11; references?:ReferenceSource[]; blocks?:BlockDefinition[]; name: string; units: 'mm'; shapes: Shape[]; layouts: Layout[]; layers: Layer[]; grid?:DrawingGrid };
-export const documentOf = (name: string, shapes: Shape[], layouts: Layout[] = [], layers: Layer[] = defaultLayers()): Drawing => ({ format: 'jlg-cad', version: 11, references:[], blocks:[], name, units: 'mm', shapes, layouts, layers, grid:defaultGrid() });
+export type Layer = { id: string; name: string; color: string; visible: boolean; locked: boolean; linetype?:LineType; lineweight?:number; printable?:boolean; transparency?:number; description?:string };
+export const defaultLayers = (): Layer[] => [
+ {id:'0',name:'0',color:'#ffffff',lineweight:.25},
+ {id:'tres-epais',name:'Très épais',color:'#ffffff',lineweight:.70},
+ {id:'epais',name:'Épais',color:'#ff0000',lineweight:.50},
+ {id:'moyen',name:'Moyen',color:'#ffff00',lineweight:.35},
+ {id:'fin',name:'Fin',color:'#00ff00',lineweight:.18},
+ {id:'tres-fin',name:'Très fin',color:'#a0522d',lineweight:.09},
+].map(l=>({...l,visible:true,locked:false,printable:true,transparency:0,linetype:'CONTINUOUS',description:''}));
+const legacyLayers = ():Layer[] => [{id:'0',name:'Dessin',color:'#b5ddd6',visible:true,locked:false},{id:'murs',name:'Murs',color:'#a6e0cf',visible:true,locked:false},{id:'ouvertures',name:'Ouvertures',color:'#e6b776',visible:true,locked:false},{id:'cotes',name:'Cotations',color:'#94bfea',visible:true,locked:false}];
+export type Drawing = { format: 'jlg-cad'; version: 12; references?:ReferenceSource[]; blocks?:BlockDefinition[]; name: string; units: 'mm'; shapes: Shape[]; layouts: Layout[]; layers: Layer[]; grid?:DrawingGrid };
+export const documentOf = (name: string, shapes: Shape[], layouts: Layout[] = [], layers: Layer[] = defaultLayers()): Drawing => ({ format: 'jlg-cad', version: 12, references:[], blocks:[], name, units: 'mm', shapes, layouts, layers, grid:defaultGrid() });
 export const visibleShapes = (doc: Drawing) => doc.shapes.filter(s=>doc.layers.find(l=>l.id===(s.layerId||'0'))?.visible!==false&&(s.type!=='reference'||referenceDisplayed(doc,s)));
 export const lockedShape = (doc: Drawing, s: Shape) => !!doc.layers.find(l=>l.id===(s.layerId||'0'))?.locked;
 export const newLayout = (id: string, name: string): Layout => ({ id, name, format: 'A4', orientation: 'landscape', monochrome: true, items: [] });
@@ -75,7 +84,7 @@ export function fitViewport(viewport: Viewport, shapes: Shape[]): Viewport {
 export function parseDrawing(text: string): Drawing {
   const d = JSON.parse(text);
   const point = (p: Point) => p && Number.isFinite(p.x) && Number.isFinite(p.y) && Math.abs(p.x) <= 1e7 && Math.abs(p.y) <= 1e7;
-  const base = (s: PaperItem) => s && typeof s.id === 'string' && point(s.a) && point(s.b) && typeof s.color === 'string' && /^#[0-9a-f]{6}$/i.test(s.color);
+  const base = (s: PaperItem) => s && validAppearance(s) && typeof s.id === 'string' && point(s.a) && point(s.b) && typeof s.color === 'string' && /^#[0-9a-f]{6}$/i.test(s.color);
   const validBlockTransform=(s:BlockShape)=>{
    if(!point(s.yAxis))return false;
    const x={x:s.b.x-s.a.x,y:s.b.y-s.a.y},y={x:s.yAxis.x-s.a.x,y:s.yAxis.y-s.a.y},scale=Math.hypot(x.x,x.y);
@@ -121,10 +130,10 @@ export function parseDrawing(text: string): Drawing {
    return true;
   };
   const list = (items: PaperItem[], paper=false):boolean => Array.isArray(items) && items.length <= 50000 && unique(items) && items.every(s => base(s) && (s.layerId===undefined||typeof s.layerId==='string') && ((s.type==='reference'&&d.version>=11&&validReferenceShape(s)) || (s.type==='block'&&d.version>=10&&typeof s.definitionId==='string'&&validBlockTransform(s)&&Array.isArray(s.entities)&&!s.entities.some((e:Shape)=>e.type==='block')&&list(s.entities)) || (s.type==='hatch'&&hatchValid(s)) || ['line','rect','circle'].includes(s.type) || (s.type==='arc'&&d.version>=7&&Number.isFinite(s.bulge)&&Math.abs(s.bulge)>1e-12&&Math.abs(s.bulge)<1e12&&Math.hypot(s.b.x-s.a.x,s.b.y-s.a.y)>1e-8) || ((s.type==='polyline'||s.type==='bezier') && Array.isArray(s.nodes) && s.nodes.length>=2 && s.nodes.length<=5000 && typeof s.closed==='boolean' && s.nodes.every(n=>point(n.p) && (n.bulge===undefined||Number.isFinite(n.bulge)&&Math.abs(n.bulge)<1e4) && (!n.in||point(n.in)) && (!n.out||point(n.out)) && (n.smooth===undefined||typeof n.smooth==='boolean'))) || (s.type==='dimension'&&(!s.paperLink||paper)&&(s.kind===undefined||['linear','diameter','angular','arcLength','radius','ordinate','jogged'].includes(s.kind))&&validDimensionData(s)&&(s.linearAngle===undefined||s.kind!=='diameter'&&Number.isFinite(s.linearAngle))&&(s.circleId===undefined||d.version>=4&&s.kind==='diameter'&&typeof s.circleId==='string'&&s.circleId.length>0)&&Number.isFinite(s.offset)&&Math.abs(s.offset)<=1e7&&Number.isFinite(s.height)&&s.height>0&&s.height<=1e5) || ((s.type==='text' && (paper||d.version>=6) && typeof s.text==='string' && s.text.length<=10000 && Number.isFinite(s.height) && s.height>0 && s.height<=1e5 && (s.rotation===undefined||Number.isFinite(s.rotation)) && (s.align===undefined||['left','center','right'].includes(s.align)) && (s.vertical===undefined||['top','baseline','middle','bottom'].includes(s.vertical))) || (paper && s.type==='viewport' && point(s.center) && Number.isFinite(s.denominator) && s.denominator>=.01 && s.denominator<=10000 && typeof s.locked==='boolean' && typeof s.printBorder==='boolean' && bounds(s).width>0 && bounds(s).height>0))));
-  if (!d || d.format !== 'jlg-cad' || ![1,2,3,4,5,6,7,8,9,10,11].includes(d.version) || d.units !== 'mm' || typeof d.name !== 'string' || !list(d.shapes)) throw new Error('Ce fichier n’est pas un projet JLG CAD valide.');
-  if(d.version===1) return documentOf(d.name,d.shapes);
+  if (!d || d.format !== 'jlg-cad' || ![1,2,3,4,5,6,7,8,9,10,11,12].includes(d.version) || d.units !== 'mm' || typeof d.name !== 'string' || !list(d.shapes)) throw new Error('Ce fichier n’est pas un projet JLG CAD valide.');
+  if(d.version===1) return documentOf(d.name,d.shapes,[],legacyLayers());
   if(!Array.isArray(d.layouts) || d.layouts.length>100 || !unique(d.layouts) || !d.layouts.every((l:Layout)=>l && typeof l.id==='string' && typeof l.name==='string' && ['A4','A3'].includes(l.format) && ['portrait','landscape'].includes(l.orientation) && typeof l.monochrome==='boolean' && list(l.items,true))) throw new Error('Les présentations du fichier sont invalides.');
-  if(d.version>=3&&(!Array.isArray(d.layers)||!d.layers.length||d.layers.length>200||!unique(d.layers)||!d.layers.some((l:Layer)=>l.id==='0')||!d.layers.every((l:Layer)=>typeof l.name==='string'&&/^#[0-9a-f]{6}$/i.test(l.color)&&typeof l.visible==='boolean'&&typeof l.locked==='boolean')||d.shapes.some((s:Shape)=>s.layerId&&!d.layers.some((l:Layer)=>l.id===s.layerId))))throw new Error('Les calques du fichier sont invalides.');
+  if(d.version>=3&&(!Array.isArray(d.layers)||!d.layers.length||d.layers.length>200||!unique(d.layers)||!d.layers.some((l:Layer)=>l.id==='0')||!d.layers.every((l:Layer)=>validAppearance(l)&& (l.printable===undefined||typeof l.printable==='boolean')&&(l.description===undefined||typeof l.description==='string'&&l.description.length<=255)&&typeof l.name==='string'&&/^#[0-9a-f]{6}$/i.test(l.color)&&typeof l.visible==='boolean'&&typeof l.locked==='boolean')||d.shapes.some((s:Shape)=>s.layerId&&!d.layers.some((l:Layer)=>l.id===s.layerId))))throw new Error('Les calques du fichier sont invalides.');
   if(d.blocks!==undefined&&(!Array.isArray(d.blocks)||d.blocks.length>5000||!unique(d.blocks)||new Set(d.blocks.map((b:BlockDefinition)=>b.name?.toLocaleUpperCase())).size!==d.blocks.length||!d.blocks.every((b:BlockDefinition)=>typeof b.name==='string'&&b.name.trim().length>0&&b.name.length<=255&&!/[\x00-\x1f]/.test(b.name)&&list(b.shapes)&&b.shapes.length>0&&!b.shapes.some(s=>s.type==='block'))))throw new Error('Les définitions de blocs sont invalides.');
   const all=[...d.shapes,...d.layouts.flatMap((l:Layout)=>l.items)];
   if(all.some((s:PaperItem)=>s.type==='block'&&!(d.blocks||[]).some((b:BlockDefinition)=>b.id===s.definitionId)))throw new Error('Définition de bloc manquante.');
@@ -151,7 +160,7 @@ export function parseDrawing(text: string): Drawing {
    });
   };
   if((d.blocks||[]).some((b:BlockDefinition)=>!validateLinks(b.shapes))||!validateLinks(d.shapes)||!d.layouts.every((l:Layout)=>validateLinks(l.items)))throw new Error('La liaison d’une cotation à son cercle est invalide.');
-  const resolved=synchronizeDrawing({...documentOf(d.name,d.shapes,d.layouts,d.version>=3?d.layers:defaultLayers()),references:d.references||[],blocks:d.blocks||[],grid:readGrid(d.grid)});
+  const resolved=synchronizeDrawing({...documentOf(d.name,d.shapes,d.layouts,d.version>=3?d.layers:legacyLayers()),references:d.references||[],blocks:d.blocks||[],grid:readGrid(d.grid)});
   if(!list(resolved.shapes)||!resolved.layouts.every(l=>list(l.items,true)))throw new Error('La géométrie des blocs dépasse les limites du dessin.');
   if((d.blocks||[]).some((b:BlockDefinition)=>b.shapes.some(s=>s.layerId&&!resolved.layers.some(l=>l.id===s.layerId))))throw new Error('Calque de bloc manquant.');
   if(!validateReferences(resolved))throw new Error('Les références du fichier sont invalides.');

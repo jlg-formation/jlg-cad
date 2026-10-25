@@ -1,6 +1,8 @@
 {
   "format": "jlg-cad",
-  "version": 6,
+  "version": 12,
+  "references": [],
+  "blocks": [],
   "name": "rectangle-cercle",
   "units": "mm",
   "shapes": [
@@ -37,31 +39,75 @@
   "layers": [
     {
       "id": "0",
-      "name": "Dessin",
-      "color": "#b5ddd6",
+      "name": "0",
+      "color": "#ffffff",
+      "lineweight": 0.25,
       "visible": true,
-      "locked": false
+      "locked": false,
+      "printable": true,
+      "transparency": 0,
+      "linetype": "CONTINUOUS",
+      "description": ""
     },
     {
-      "id": "murs",
-      "name": "Murs",
-      "color": "#a6e0cf",
+      "id": "tres-epais",
+      "name": "Très épais",
+      "color": "#ffffff",
+      "lineweight": 0.7,
       "visible": true,
-      "locked": false
+      "locked": false,
+      "printable": true,
+      "transparency": 0,
+      "linetype": "CONTINUOUS",
+      "description": ""
     },
     {
-      "id": "ouvertures",
-      "name": "Ouvertures",
-      "color": "#e6b776",
+      "id": "epais",
+      "name": "Épais",
+      "color": "#ff0000",
+      "lineweight": 0.5,
       "visible": true,
-      "locked": false
+      "locked": false,
+      "printable": true,
+      "transparency": 0,
+      "linetype": "CONTINUOUS",
+      "description": ""
     },
     {
-      "id": "cotes",
-      "name": "Cotations",
-      "color": "#94bfea",
+      "id": "moyen",
+      "name": "Moyen",
+      "color": "#ffff00",
+      "lineweight": 0.35,
       "visible": true,
-      "locked": false
+      "locked": false,
+      "printable": true,
+      "transparency": 0,
+      "linetype": "CONTINUOUS",
+      "description": ""
+    },
+    {
+      "id": "fin",
+      "name": "Fin",
+      "color": "#00ff00",
+      "lineweight": 0.18,
+      "visible": true,
+      "locked": false,
+      "printable": true,
+      "transparency": 0,
+      "linetype": "CONTINUOUS",
+      "description": ""
+    },
+    {
+      "id": "tres-fin",
+      "name": "Très fin",
+      "color": "#a0522d",
+      "lineweight": 0.09,
+      "visible": true,
+      "locked": false,
+      "printable": true,
+      "transparency": 0,
+      "linetype": "CONTINUOUS",
+      "description": ""
     }
   ],
   "grid": {

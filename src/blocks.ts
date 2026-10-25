@@ -26,7 +26,7 @@ export function insertBlock(doc:Drawing,definitionId:string,point:Point,scale:nu
  if(!Number.isFinite(scale)||scale<1e-6||scale>1e5||!Number.isFinite(angle))throw new Error('Échelle ou rotation invalide.');
  if(doc.layers.find(l=>l.id===layerId)?.locked)throw new Error('Le calque est verrouillé.');
  const a=-angle*Math.PI/180,c=Math.cos(a)*scale,s=Math.sin(a)*scale;
- const instance:BlockShape={id:makeId(),type:'block',definitionId,a:point,b:{x:point.x+c,y:point.y+s},yAxis:{x:point.x-s,y:point.y+c},color:definition.shapes[0].color,layerId,entities:[]};
+ const instance:BlockShape={id:makeId(),type:'block',definitionId,a:point,b:{x:point.x+c,y:point.y+s},yAxis:{x:point.x-s,y:point.y+c},color:definition.shapes[0].color,colorByLayer:true,layerId,entities:[]};
  instance.entities=blockEntities(definition,instance);
  const box=bounds(instance);if([box.x,box.y,box.x+box.width,box.y+box.height].some(v=>!Number.isFinite(v)||Math.abs(v)>1e7))throw new Error('Le bloc dépasse les limites du dessin.');
  return {...doc,shapes:[...doc.shapes,instance]};

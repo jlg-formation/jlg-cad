@@ -1,6 +1,8 @@
 {
   "format": "jlg-cad",
-  "version": 6,
+  "version": 12,
+  "references": [],
+  "blocks": [],
   "name": "rectangle-cercle",
   "units": "mm",
   "shapes": [
@@ -8,62 +10,53 @@
       "id": "dxf-0",
       "layerId": "0",
       "color": "#ffffff",
+      "colorByLayer": false,
       "a": {
         "x": 100,
         "y": -200
       },
       "b": {
-        "x": 1300,
-        "y": -200
+        "x": 100,
+        "y": -1000
       },
-      "type": "line"
+      "type": "polyline",
+      "nodes": [
+        {
+          "p": {
+            "x": 100,
+            "y": -200
+          },
+          "bulge": 0
+        },
+        {
+          "p": {
+            "x": 1300,
+            "y": -200
+          },
+          "bulge": 0
+        },
+        {
+          "p": {
+            "x": 1300,
+            "y": -1000
+          },
+          "bulge": 0
+        },
+        {
+          "p": {
+            "x": 100,
+            "y": -1000
+          },
+          "bulge": 0
+        }
+      ],
+      "closed": true
     },
     {
       "id": "dxf-1",
       "layerId": "0",
       "color": "#ffffff",
-      "a": {
-        "x": 1300,
-        "y": -200
-      },
-      "b": {
-        "x": 1300,
-        "y": -1000
-      },
-      "type": "line"
-    },
-    {
-      "id": "dxf-2",
-      "layerId": "0",
-      "color": "#ffffff",
-      "a": {
-        "x": 1300,
-        "y": -1000
-      },
-      "b": {
-        "x": 100,
-        "y": -1000
-      },
-      "type": "line"
-    },
-    {
-      "id": "dxf-3",
-      "layerId": "0",
-      "color": "#ffffff",
-      "a": {
-        "x": 100,
-        "y": -1000
-      },
-      "b": {
-        "x": 100,
-        "y": -200
-      },
-      "type": "line"
-    },
-    {
-      "id": "dxf-4",
-      "layerId": "0",
-      "color": "#ffffff",
+      "colorByLayer": false,
       "a": {
         "x": 2000,
         "y": -600
@@ -80,28 +73,72 @@
     {
       "id": "0",
       "name": "0",
+      "linetype": "CONTINUOUS",
+      "lineweight": 0.25,
+      "printable": true,
+      "transparency": 0,
+      "description": "",
       "color": "#ffffff",
       "visible": true,
       "locked": false
     },
     {
       "id": "dxf-layer-1",
-      "name": "Murs_1",
+      "name": "Très épais",
+      "linetype": "CONTINUOUS",
+      "lineweight": 0.7,
+      "printable": true,
+      "transparency": 0,
+      "description": "",
       "color": "#ffffff",
       "visible": true,
       "locked": false
     },
     {
       "id": "dxf-layer-2",
-      "name": "Ouvertures_2",
-      "color": "#ffffff",
+      "name": "Épais",
+      "linetype": "CONTINUOUS",
+      "lineweight": 0.5,
+      "printable": true,
+      "transparency": 0,
+      "description": "",
+      "color": "#ff0000",
       "visible": true,
       "locked": false
     },
     {
       "id": "dxf-layer-3",
-      "name": "Cotations_3",
-      "color": "#ffffff",
+      "name": "Moyen",
+      "linetype": "CONTINUOUS",
+      "lineweight": 0.35,
+      "printable": true,
+      "transparency": 0,
+      "description": "",
+      "color": "#ffff00",
+      "visible": true,
+      "locked": false
+    },
+    {
+      "id": "dxf-layer-4",
+      "name": "Fin",
+      "linetype": "CONTINUOUS",
+      "lineweight": 0.18,
+      "printable": true,
+      "transparency": 0,
+      "description": "",
+      "color": "#00ff00",
+      "visible": true,
+      "locked": false
+    },
+    {
+      "id": "dxf-layer-5",
+      "name": "Très fin",
+      "linetype": "CONTINUOUS",
+      "lineweight": 0.09,
+      "printable": true,
+      "transparency": 0,
+      "description": "",
+      "color": "#a0522d",
       "visible": true,
       "locked": false
     }

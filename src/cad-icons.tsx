@@ -16,6 +16,7 @@ function icon(name:string, drawing:ReactNode):CadIconComponent {
 }
 
 export const ReferencesIcon = icon('references', <><path d="M4 16H2V2h14v2" stroke={blue}/><path d="M6 6h15v16H6Z"/><path d="m9 18 4-5 3 3 2-2" stroke={blue}/><circle cx="11" cy="10" r="1" stroke={gold}/></>);
+export const LayerPropertiesIcon = icon('layer-properties', <><path d="m2 7 7-5 9 0-7 5Z" fill="currentColor" fillOpacity=".18"/><path d="m2 11 3-2m-3 6 3-2M2 11h7M2 15h7"/><path d="M11 9h11v13H11Z"/><path d="M13 11h7v4h-7Z" fill={blue} fillOpacity=".4" stroke={blue}/><path d="M13 18h7m-7 2h7m-5-3v2m3 0v2" stroke={gold}/></>);
 export const AttachImageIcon = icon('attach-image', <><rect x="3" y="4" width="18" height="16"/><path d="m4 18 6-7 5 6 3-4 3 4" stroke={blue}/><circle cx="16" cy="8" r="1.5" stroke={gold}/></>);
 export const AttachPdfIcon = icon('attach-pdf', <><path d="M5 2h10l5 5v15H5Z"/><path d="M15 2v6h5" stroke={blue}/><g stroke={gold} strokeWidth="1"><path d="M7 17v-5h2v2H7m4 3v-5h1.5l1 1v3l-1 1Zm5 0v-5h2m-2 2h1.5"/></g></>);
 export const LineIcon = icon('line', <><path d="M4 20 20 4"/><Grip x={4} y={20}/><Grip x={20} y={4}/></>);
@@ -42,7 +43,7 @@ export const CopyResultIcon = icon('copy-result', <>
  <rect x="3" y="8" width="12" height="14" rx="3"/>
 </>);
 export const PasteIcon = icon('paste', <><path d="M8 5H5v16h13v-5M15 5h3v4"/><path d="M9 3h5v4H9z" fill={gold} stroke={gold}/><path d="M12 11h9v9h-9z" fill="var(--cad-icon-paper, #dce5ed)" stroke="var(--cad-icon-paper-edge, #8ba1b2)"/><path d="M14 14h5m-5 3h4" stroke="#536979"/></>);
-export const LayersIcon = icon('layers', <><path d="m3 16 9 5 9-5" stroke={blue}/><path d="m3 11 9 5 9-5"/><path d="m3 7 9-4 9 4-9 5z" fill="currentColor" fillOpacity=".16"/><path d="M18 14v6m-3-3h6" stroke={gold}/></>);
+export const LayersIcon = icon('layers', <><path d="m3 16 9 5 9-5" stroke={blue}/><path d="m3 11 9 5 9-5"/><path d="m3 7 9-4 9 4-9 5z" fill="currentColor" fillOpacity=".16"/></>);
 
 export const SelectIcon = icon('select', <><path d="m5 3 14 10-7 1-3 7z" fill="currentColor" fillOpacity=".12"/><path d="m12 14 5 7" stroke={blue}/></>);
 export const PanIcon = icon('pan', <><path d="M7 12V7a1.5 1.5 0 0 1 3 0v5-7a1.5 1.5 0 0 1 3 0v7-6a1.5 1.5 0 0 1 3 0v6-3a1.5 1.5 0 0 1 3 0v7l-3 5H9l-5-7a1.5 1.5 0 0 1 2-2l3 3"/><path d="M10 21h6" stroke={blue}/></>);

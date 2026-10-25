@@ -88,7 +88,7 @@ La traduction est centralisée dans src/locales/en.json. Les textes non encore t
 
 ## Formats et limites
 
-Le format natif version 10 conserve le dessin, les arcs natifs, les chemins, les cotations, les hachures et leurs liaisons aux contours, les calques et les présentations. Les fichiers versions 1 à 9 sont migrés à l’ouverture. Les unités sont des millimètres. Les coordonnées affichées dans l’espace objet utilisent Y vers le haut, comme le DXF.
+Le format natif version 12 conserve le dessin, les arcs natifs, les chemins, les cotations, les hachures et leurs liaisons aux contours, les calques et les présentations. Les fichiers versions 1 à 11 sont migrés à l’ouverture. Les unités sont des millimètres. Les coordonnées affichées dans l’espace objet utilisent Y vers le haut, comme le DXF.
 
 ## Espace papier et PDF
 
@@ -118,7 +118,7 @@ Le choix d’unité est obligatoire si `$INSUNITS` est absent, sans unité ou no
 
 Les textes sont éditables dans l’espace objet : contenu, hauteur, rotation, déplacement et copier-coller. Leur alignement est conservé ; les polices sont remplacées par Arial/Helvetica. MTEXT perd ses styles et ses retours automatiques. Les exports DXF conservent les textes et les sauts de ligne explicites. Le format natif version 7 conserve les textes objet et les arcs natifs ; il ouvre les anciennes versions 1 à 6.
 
-**Limites signalées dans le bilan :** hachures, cotations AutoCAD, splines, ellipses, présentations, références externes, objets personnalisés et géométrie 3D. Les textes déformés et les arcs ou cercles soumis à une échelle non uniforme sont exclus. Les types de trait, épaisseurs, largeurs de polyligne et la structure réutilisable des blocs ne sont pas conservés. Un bloc cyclique ou manquant est signalé. Le DXF binaire est refusé.
+**Limites signalées dans le bilan :** hachures, cotations AutoCAD, splines, ellipses, présentations, références externes, objets personnalisés et géométrie 3D. Les textes déformés et les arcs ou cercles soumis à une échelle non uniforme sont exclus. Les types de trait continu, tireté, pointillé et axe ainsi que les épaisseurs sont conservés. Les autres types de trait sont signalés et remplacés par un trait continu. Les largeurs de polyligne ne sont pas conservées. Un bloc cyclique ou manquant est signalé. Le DXF binaire est refusé.
 
 Limites : 20 Mo, 50 000 objets, 200 calques, 5 000 sommets par polyligne, 16 niveaux de blocs et 100 000 visites d’entités. Le fichier importé est cadré automatiquement et marqué comme à sauvegarder en `.jlgcad`. L’import reste entièrement local au navigateur.
 
@@ -177,7 +177,7 @@ L’export PDF inclut les références visibles, leurs transformations et leurs 
 - **Polyligne (P)** : cliquer les sommets, choisir Ligne ou Arc circulaire pour le prochain segment, puis Entrée ou Terminer. Le contour peut être fermé. Les propriétés permettent de déplacer, insérer et supprimer les sommets et de modifier les arcs.
 - **Bézier (B)** : cliquer les points de passage, puis terminer. Les sommets et poignées se déplacent dans le dessin ou par coordonnées. Les poignées peuvent être alignées et un sommet peut être lissé.
 - **Mesurer** affiche distance, écarts X/Y et angle. **Cotation (D)** prend deux points puis la position de la cote ; régler hauteur imprimée et échelle prévue. Les nouvelles cotations explicites suivent les extrémités et centres reconnus ; les anciennes cotations générales restent indépendantes.
-- Les **calques** proposent visibilité, verrouillage, couleur, renommage et ajout. Le verrouillage protège les modifications géométriques ; les calques masqués sont exclus des fenêtres et exports PDF/DXF.
+- Les **calques** se configurent depuis le bouton voisin du sélecteur de calque courant dans la barre d’outils : neuf propriétés, ajout et suppression des calques vides. Les objets héritent de leur calque et permettent des exceptions individuelles. Voir le [guide des calques](docs/layers.md). Le verrouillage protège les modifications géométriques ; les calques masqués sont exclus des fenêtres et exports PDF/DXF.
 
 Les décalages des lignes et arcs sont géométriques. Un décalage de Bézier produit une polyligne approchée à 0,1 mm ; ses intersections utilisent une approximation de 0,05 mm. Les décalages qui écrasent ou croisent un contour sont refusés. Raccords arrondis, blocs et liaisons de cotation aux intersections et aux points arbitraires restent à développer.
 

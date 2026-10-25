@@ -51,7 +51,7 @@ test('PDF and legacy migration retain block contents, bilingual commands and ali
 });
 
 test('copy keeps internal layers; explosion remaps associative dimension sources',()=>{
- const primitive:Shape={...rect,layerId:'murs'},original=createBlock(documentOf('x',[primitive]),[primitive.id],'Mur',{x:0,y:0},id);
+ const primitive:Shape={...rect,layerId:'epais'},original=createBlock(documentOf('x',[primitive]),[primitive.id],'Mur',{x:0,y:0},id);
  const copied=pasteClipboard(documentOf('destination',[]),decodeClipboard(encodeClipboard(original,original.shapes)),{x:10,y:20},id);expect(copied.layers.some(l=>l.id===copied.blocks![0].shapes[0].layerId)).toBe(true);
  const circle:Shape={id:'c',type:'circle',a:{x:0,y:0},b:{x:10,y:0},color:'#ffffff'};
  const dimension:Shape={id:'d',type:'dimension',kind:'diameter',circleId:'c',a:{x:-10,y:0},b:{x:10,y:0},offset:0,height:2,color:'#ffffff'};

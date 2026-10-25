@@ -3,7 +3,7 @@
   "rectangle": {
     "widthMm": 1200,
     "heightMm": 800,
-    "exportedAs": "4 LINE",
+    "exportedAs": "LWPOLYLINE",
     "coordinatesPreserved": true
   },
   "circle": {
@@ -16,14 +16,12 @@
   },
   "unitSelected": "mm",
   "importReport": {
-    "version": "AC1009",
+    "version": "AC1018",
     "unit": "mm",
-    "objects": 5,
+    "objects": 2,
     "blocks": 0,
     "skipped": {},
-    "warnings": [
-      "Unité choisie : mm (1 unité DXF = 1 mm)."
-    ]
+    "warnings": []
   },
   "files": {
     "sourcePath": "D:\\___AGENTS\\jlg-cad\\artifacts\\dxf-roundtrip\\rectangle-cercle-source.jlgcad",

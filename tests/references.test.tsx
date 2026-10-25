@@ -24,7 +24,7 @@ const value=(entity:ReturnType<typeof entities>[number],code:number)=>entity.val
 test('native v11 roundtrip preserves sources and occurrences in model and paper, old documents migrate',()=>{
  const d=drawing(),layout=newLayout('layout','Feuille');layout.items=[{...image(),id:'paper'}];d.layouts=[layout];
  expect(parseDrawing(JSON.stringify(d))).toEqual(d);
- expect(parseDrawing(JSON.stringify({...documentOf('ancien',[]),version:10})).version).toBe(11);
+ expect(parseDrawing(JSON.stringify({...documentOf('ancien',[]),version:10})).version).toBe(12);
  expect(()=>parseDrawing(JSON.stringify({...d,references:[]}))).toThrow();
  expect(()=>parseDrawing(JSON.stringify({...d,references:[source,{...source}]}))).toThrow();
  for(const patch of [{c:{x:NaN,y:0}},{fade:101},{clip:[{x:-1,y:0},{x:1,y:0},{x:1,y:1}]},{sourceId:'missing'},{page:2}])expect(()=>parseDrawing(JSON.stringify({...d,shapes:[{...image(),...patch}]}))).toThrow();

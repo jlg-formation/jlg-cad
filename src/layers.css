@@ -1,0 +1,19 @@
+.layer-select{display:inline-flex;align-items:center;gap:6px;font-size:12px}.layer-select select{max-width:150px}.layer-swatch{width:12px;height:12px;border:1px solid #888;display:inline-block;flex-shrink:0}.layer-dialog{width:min(1200px,94vw);max-height:88vh;padding:22px;border:1px solid #a7b5b1;border-radius:10px;background:#1b252c;color:#d5e1e5;box-shadow:0 12px 60px #0005}.layer-dialog::backdrop{background:#14252b88}.layer-dialog header,.layer-dialog footer{display:flex;align-items:center;gap:12px}.layer-dialog header h2{flex:1;margin:0}.layer-dialog footer{margin-top:18px}.layer-dialog footer span{flex:1}.layer-table-scroll{overflow:auto;max-height:58vh}.layer-dialog table{border-collapse:collapse;width:100%;font-size:12px}.layer-dialog th,.layer-dialog td{padding:8px;border-bottom:1px solid #a7b5b155;text-align:left}.layer-dialog th{position:sticky;top:0;background:#1b252c;z-index:1}.layer-dialog input:not([type=checkbox]):not([type=color]){width:110px}.layer-dialog input[type=number]{width:76px!important}.layer-dialog input[type=color]{width:40px;height:28px}.layer-dialog small{display:block}.object-appearance{border:0;padding:0;margin:0;display:grid;gap:10px}.object-appearance>label{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:12px}.object-appearance select{max-width:140px}.object-appearance input[type=number]{width:74px}.object-appearance input[type=color]{width:36px}.toolbar .layer-select{margin-left:8px}
+
+.layer-dialog header,.layer-dialog footer{position:static;height:auto;min-height:0;padding:0;border:0;background:transparent;box-shadow:none}.layer-dialog header h2{font-size:19px;color:#d5e1e5}.layer-dialog header button{font-size:22px}.layer-dialog button{background:#23343d;color:#d5e1e5;border:1px solid #49616b;border-radius:4px;padding:7px 10px;cursor:pointer}.layer-dialog button:disabled{opacity:.4;cursor:default}.layer-dialog input,.layer-dialog select{background:#10191e;color:#d5e1e5;border:1px solid #49616b;border-radius:4px;padding:6px;font:inherit}.layer-dialog input[type=checkbox]{accent-color:#a6e0cf}.layer-dialog p{font-size:13px;line-height:1.5}.layer-dialog small{color:#a6e0cf}.layer-dialog [role=alert]{color:#ffb5a0}.layer-select{color:#c5d3da}.layer-select select{background:#10191e;color:#d5e1e5;border:1px solid #49616b;border-radius:4px;padding:5px}.layer-dialog:focus-visible{outline:2px solid #a6e0cf}.layer-dialog th{white-space:nowrap}
+
+/* Reuse the toolbar buttons and popup surface used by Blocks and Modify. */
+.layer-tools{display:inline-flex;align-items:center;gap:2px;flex-shrink:0}
+header .architecture-toolbar .layer-tools>.layer-current-trigger{width:auto;min-width:0;max-width:196px;gap:7px;padding:3px 6px}
+.layer-current-name{min-width:0;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px}
+.layer-tools .layer-swatch,.layer-tools-menu .layer-swatch{width:10px;height:10px;border:1px solid #83959e80;border-radius:1px;box-sizing:border-box}
+.layer-tools-menu{width:264px;min-width:0;display:flex;flex-direction:column;overflow:hidden}
+.layer-menu-list{min-height:0;overflow-y:auto;overscroll-behavior:contain}
+.layer-menu-check{display:inline-flex;align-items:center;justify-content:center;width:16px;flex-shrink:0;color:#a6e0cf}
+.layer-menu-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.layer-tools-menu button[aria-checked=true]{background:#2b443f;color:#a6e0cf}
+.layer-tools-menu button:not(:disabled):hover,.layer-tools-menu button:focus-visible{background:#2b443f;color:#a6e0cf}
+.layer-tools-menu button:disabled{opacity:.45;cursor:default}
+.layer-tools-menu>.menu-separator,.layer-tools-menu>button{flex-shrink:0}
+.layer-tools-menu>button>svg{flex-shrink:0}
+@media(max-width:760px){header .architecture-toolbar .layer-tools>.layer-current-trigger{gap:5px;max-width:150px}.layer-current-name{max-width:80px}}

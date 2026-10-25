@@ -1,3 +1,4 @@
+import {layerDefaults,lineTypes,type LineType} from './layers';
 import {mapItem} from './geometry';
 import {documentOf,parseDrawing,type Drawing,type Layer,type Node,type Point,type Shape,type BlockDefinition,type BlockShape} from './model';
 
@@ -57,9 +58,13 @@ export function importDxf(text:string,name:string,override?:DxfUnit):DxfImport{
  const sections=read(text),info=dxfInfo(sections),unit=override||info.unit;if(!unit)throw new Error('Choisissez l’unité du DXF avant de l’importer.');
  const factor=dxfUnits[unit],report:DxfReport={version:info.version,unit,objects:0,blocks:0,skipped:Object.create(null),warnings:[]},warnings=new Set<string>();
  const skip=(reason:string)=>{report.skipped[reason]=(report.skipped[reason]||0)+1;};
+ const typeOf=(e:Entity,inherit=false):LineType|undefined=>{const name=get(e,6,inherit?'BYLAYER':'CONTINUOUS').toUpperCase();if(inherit&&name==='BYLAYER')return undefined;if(Object.hasOwn(lineTypes,name))return name as LineType;warnings.add('Type de trait '+name+' remplacé par un trait continu.');return 'CONTINUOUS';};
+ const transparency=(raw:number)=>Math.min(90,Math.max(0,Math.round((1-(raw&255)/255)*100)));
+ const xdata=(e:Entity,name:string)=>{const start=e.pairs.findIndex(p=>p.code===1001&&p.value===name);if(start<0)return [];const rest=e.pairs.slice(start+1),end=rest.findIndex(p=>p.code===1001);return end<0?rest:rest.slice(0,end);};
+ const props=(e:Entity)=>({colorByLayer:num(e,420,-1)<0&&Math.abs(num(e,62,256))===256,linetype:typeOf(e,true),lineweight:num(e,370,-1)<0?undefined:num(e,370)/100,transparency:num(e,440,0)&0x02000000?transparency(num(e,440)):undefined});
  const layers:Layer[]=[],byName=new Map<string,Layer>();
- const ensureLayer=(name:string,e?:Entity)=>{const key=name.toUpperCase();let l=byName.get(key);if(!l){if(layers.length>=200)throw new Error('DXF trop complexe : plus de 200 calques.');const flags=e?num(e,70):0;l={id:name==='0'?'0':`dxf-layer-${layers.length}`,name,color:e?color(e,'#ffffff','#ffffff'):'#ffffff',visible:!e||num(e,62,7)>=0&&!(flags&1),locked:!!(flags&4)};layers.push(l);byName.set(key,l);}return l;};
- for(const e of entities(sections.get('TABLES')||[]))if(e.type==='LAYER'){ensureLayer(get(e,2,'0'),e);if(get(e,6)&&get(e,6)!=='CONTINUOUS'||num(e,370,-1)>0)warnings.add('Types de trait et épaisseurs remplacés par les traits JLG CAD.');}ensureLayer('0');
+ const ensureLayer=(name:string,e?:Entity)=>{const key=name.toUpperCase();let l=byName.get(key);if(!l){if(layers.length>=200)throw new Error('DXF trop complexe : plus de 200 calques.');const flags=e?num(e,70):0;l={id:name==='0'?'0':`dxf-layer-${layers.length}`,name,...layerDefaults,linetype:e?typeOf(e):'CONTINUOUS',lineweight:e&&num(e,370,-1)>=0?num(e,370)/100:.25,printable:!e||!!num(e,290,1),description:e?decodeUnicode(xdata(e,'AcAecLayerStandard').filter(p=>p.code===1000)[1]?.value||''):'',transparency:e?transparency(Number(xdata(e,'AcCmTransparency').find(p=>p.code===1071)?.value??0x020000ff)):0,color:e?color(e,'#ffffff','#ffffff'):'#ffffff',visible:!e||num(e,62,7)>=0&&!(flags&1),locked:!!(flags&4)};layers.push(l);byName.set(key,l);}return l;};
+ for(const e of entities(sections.get('TABLES')||[]))if(e.type==='LAYER'){ensureLayer(get(e,2,'0'),e);}ensureLayer('0');
  const blocks=new Map<string,Block>(),bs=entities(sections.get('BLOCKS')||[]);
  for(let i=0;i<bs.length;i++)if(bs[i].type==='BLOCK'){const e=bs[i],block:Block={name:get(e,2),base:point(e),entities:[],external:!!(num(e,70)&(4|8|16))};while(bs[i+1]&&bs[i+1].type!=='ENDBLK')block.entities.push(bs[++i]);if(!bs[i+1])throw new Error('Bloc DXF incomplet.');i++;const key=get(e,2).toUpperCase();if(blocks.has(key))throw new Error('Nom de bloc DXF dupliqué.');blocks.set(key,block);}
  const shapes:Shape[]=[],definitions:BlockDefinition[]=[],definitionVariants=new Map<string,BlockDefinition>();let visits=0;
@@ -73,7 +78,6 @@ export function importDxf(text:string,name:string,override?:DxfUnit):DxfImport{
   const layer=ensureLayer(get(e,8,'0')==='0'?parentLayer:get(e,8,'0')),col=color(e,parentColor,layer.color);
   const required=e.type==='LINE'?[10,11]:['ARC','CIRCLE','TEXT','MTEXT','ATTRIB'].includes(e.type)?[10,40]:[];
   if(required.some(code=>!e.pairs.some(p=>p.code===code&&p.value.trim()!=='')))throw new Error(`${e.type} incomplet : coordonnées ou dimensions manquantes.`);
-  if(get(e,6)&&!['CONTINUOUS','BYLAYER','BYBLOCK'].includes(get(e,6))||num(e,370,-1)>0)warnings.add('Types de trait et épaisseurs remplacés par les traits JLG CAD.');
   if(e.type==='INSERT'){
    const key=get(e,2).toUpperCase(),block=blocks.get(key);if(!block){skip(`INSERT : bloc manquant (${key})`);return;}if(block.external){skip('INSERT : référence externe');return;}if(stack.includes(key)||stack.length>=16){skip('INSERT : bloc cyclique ou trop imbriqué');return;}
    const angle=num(e,50)*Math.PI/180,sx=num(e,41,1),sy=num(e,42,1),p=point(e),cols=num(e,70,1),rows=num(e,71,1);
@@ -96,12 +100,12 @@ export function importDxf(text:string,name:string,override?:DxfUnit):DxfImport{
      const variant=key+'\0'+signature;
      let definition=definitionVariants.get(variant);
      if(!definition){let name=block.name,n=2;while(definitions.some(d=>d.name===name))name=block.name+' ('+(n++)+')';definition={id:'dxf-block-'+definitions.length,name,shapes:localShapes};definitions.push(definition);definitionVariants.set(variant,definition);}
-     const instance:BlockShape={id:'dxf-'+start,type:'block',definitionId:definition.id,a,b:{x:a.x+sx0,y:a.y+sx1},yAxis:{x:a.x+sy0,y:a.y+sy1},color:col,layerId:layer.id,entities:content};shapes.push(instance);
+     const instance:BlockShape={id:'dxf-'+start,type:'block',definitionId:definition.id,a,b:{x:a.x+sx0,y:a.y+sx1},yAxis:{x:a.x+sy0,y:a.y+sy1},color:col,...props(e),layerId:layer.id,entities:content};shapes.push(instance);
     }else if(!stack.length&&!uniform)warnings.add('Blocs à échelles non uniformes décomposés en objets indépendants.');
    }return;
   }
   const det=m[0]*m[3]-m[1]*m[2],scale=Math.hypot(m[0],m[1]),similar=Math.abs(Math.hypot(m[2],m[3])-scale)<=scale*1e-8&&Math.abs(m[0]*m[2]+m[1]*m[3])<=scale*scale*1e-8;
-  const fn=(p:Point)=>{const q=apply(m,p);return{x:q.x*factor,y:-q.y*factor};},base={id:`dxf-${shapes.length}`,layerId:layer.id,color:col,a:fn(point(e)),b:fn(point(e,11))};let shape:Shape;
+  const fn=(p:Point)=>{const q=apply(m,p);return{x:q.x*factor,y:-q.y*factor};},base={id:`dxf-${shapes.length}`,layerId:layer.id,color:col,...props(e),a:fn(point(e)),b:fn(point(e,11))};let shape:Shape;
   if(e.type==='LINE')shape={...base,type:'line'};
   else if(e.type==='CIRCLE'||e.type==='ARC'){
    if(!similar){skip(`${e.type} : échelle non uniforme`);return;}const center=point(e),radius=num(e,40);if(radius<=0)throw new Error('Rayon DXF invalide.');

@@ -4,7 +4,7 @@ import type {Settings} from './architecture';
 import type {Snap} from './geometry';
 import {statusTooltip,type Bindings} from './shortcuts';
 
-export const objectSnapKinds:Snap['kind'][]=['Extrémité','Milieu','Centre','Intersection'];
+export const objectSnapKinds:Snap['kind'][]=['Extrémité','Milieu','Centre','Intersection','Alignement des cotations'];
 export function StatusPrecision({bindings,settings,setSettings,kinds,setKinds}:{bindings:Bindings;settings:Settings;setSettings:React.Dispatch<React.SetStateAction<Settings>>;kinds:Snap['kind'][];setKinds:React.Dispatch<React.SetStateAction<Snap['kind'][]>>}){
  const [menu,setMenu]=useState<'osnap'|'polar'|null>(null),root=useRef<HTMLDivElement>(null);
  useEffect(()=>{
@@ -25,7 +25,7 @@ export function StatusPrecision({bindings,settings,setSettings,kinds,setKinds}:{
  </div>
  {menu&&<div className="status-precision-menu" role="group" aria-label={t(menu==='osnap'?'Options OSnap':'Angles du guidage polaire')}>
  <strong>{menu==='osnap'?'Accrochages aux objets':t("Guidage polaire")}</strong>
- {menu==='osnap'?<>{objectSnapKinds.map(kind=><label key={kind}><input type="checkbox" checked={kinds.includes(kind)} onChange={e=>{const enabled=e.target.checked;setKinds(current=>enabled?[...current,kind]:current.filter(k=>k!==kind));}}/>{kind}</label>)}</>:<>{[90,45,30,22.5,18,15,10,5].map(angle=><label key={angle}><input type="radio" name="status-polar-angle" checked={settings.polarAngle===angle} onChange={()=>{setSettings(s=>({...s,polarAngle:angle}));setMenu(null);root.current?.querySelector<HTMLButtonElement>('[data-control="polar"]')?.focus();}}/>{angle.toLocaleString('fr-FR')+'°'}</label>)}</>}
+ {menu==='osnap'?<>{objectSnapKinds.map(kind=><label key={kind}><input type="checkbox" checked={kinds.includes(kind)} onChange={e=>{const enabled=e.target.checked;setKinds(current=>enabled?[...current,kind]:current.filter(k=>k!==kind));}}/>{t(kind)}</label>)}</>:<>{[90,45,30,22.5,18,15,10,5].map(angle=><label key={angle}><input type="radio" name="status-polar-angle" checked={settings.polarAngle===angle} onChange={()=>{setSettings(s=>({...s,polarAngle:angle}));setMenu(null);root.current?.querySelector<HTMLButtonElement>('[data-control="polar"]')?.focus();}}/>{angle.toLocaleString('fr-FR')+'°'}</label>)}</>}
  </div>}
  </div>;
 }

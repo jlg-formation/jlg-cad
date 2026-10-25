@@ -35,7 +35,7 @@ export function objectGrips(s:PaperItem):Grip[]{
  if(s.type==='text')return [{key:'center-0',kind:'center',index:0,point:s.a}];
  if(s.type==='dimension'&&s.points){const indices=[s.kind==='ordinate'?2:3,...(s.kind==='jogged'?[4,5]:[])];return indices.map((index):Grip=>({key:'dimension-'+index,kind:'control',index,point:s.points![index]}));}
  if(s.type==='dimension'&&s.circleId)return [{key:'placement-0',kind:'control',index:0,point:dimensionGeometry(s).label}];
- if(s.type==='dimension'&&s.kind==='linear')return [{key:'placement-0',kind:'control',index:0,point:dimensionGeometry(s).label}];
+ if(s.type==='dimension'&&(!s.kind||s.kind==='linear'))return [{key:'placement-0',kind:'control',index:0,point:dimensionGeometry(s).label}];
  if(s.type==='dimension')return [s.a,s.b].map((point,index)=>({key:`vertex-${index}`,kind:'vertex',index,point}));
  return [];
 }
@@ -44,7 +44,7 @@ export function moveGrip(s:PaperItem,key:string,p:Point):PaperItem{
  const delta=sub(p,grip.point);
  if(s.type==='reference'&&key==='reference-size'){const d=sub(grip.point,s.a),factor=Math.max(.000001,dot(sub(p,s.a),d)/dot(d,d));return {...s,b:add(s.a,mulReference(sub(s.b,s.a),factor)),c:add(s.a,mulReference(sub(s.c,s.a),factor))};}
  if(s.type==='dimension'&&s.points){const points=s.points.map(q=>({...q}));points[grip.index]=p;return {...s,points};}
- if(s.type==='dimension'&&s.kind==='linear'){const angle=s.linearAngle??Math.atan2(s.b.y-s.a.y,s.b.x-s.a.x),n={x:-Math.sin(angle),y:Math.cos(angle)};return {...s,offset:s.offset+dot(delta,n)};}
+ if(s.type==='dimension'&&(!s.kind||s.kind==='linear')){const angle=s.linearAngle??Math.atan2(s.b.y-s.a.y,s.b.x-s.a.x),n={x:-Math.sin(angle),y:Math.cos(angle)};return {...s,offset:s.offset+dot(delta,n)};}
  if(s.type==='dimension'&&s.circleId){const center={x:(s.a.x+s.b.x)/2,y:(s.a.y+s.b.y)/2};return {...diameterDimension({id:s.circleId,type:'circle',a:center,b:s.a,color:s.color},p,s,s.height),circleId:s.circleId};}
  if(grip.kind==='center'||s.type==='line'&&grip.kind==='segment')return translateItem(s,delta.x,delta.y);
  if(s.type==='arc'){const middle=at(segments(s)[0],.5);return threePointArc(grip.kind==='vertex'&&grip.index===0?p:s.a,grip.kind==='control'?p:middle,grip.kind==='vertex'&&grip.index===1?p:s.b,s);}

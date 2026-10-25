@@ -1,3 +1,4 @@
+import {layerDefaults} from './layers';
 import {insertBlock} from './blocks';
 import {detachHatch} from './hatch';
 import {detachDimension,synchronizeDimensions} from './associations';
@@ -39,7 +40,7 @@ export function decodeClipboard(text:string):CadClipboard {
 export function pasteClipboard(doc:Drawing,data:CadClipboard,point:Point,makeId:()=>string):Drawing {
  const layers=[...doc.layers],mapping=new Map<string,string>();
  for(const source of data.drawing.layers){
-  const existing=layers.find(l=>l.name===source.name&&l.color===source.color&&l.visible&&!l.locked);
+  const existing=layers.find(l=>l.name===source.name&&l.color===source.color&&l.visible&&!l.locked&&(['linetype','lineweight','transparency','printable','description'] as const).every(k=>(l[k]??layerDefaults[k])===(source[k]??layerDefaults[k])));
   if(existing){mapping.set(source.id,existing.id);continue;}
   let name=source.name,n=2;while(layers.some(l=>l.name===name))name=`${source.name} (${n++})`;
   const layer={...source,id:makeId(),name,visible:true,locked:false};layers.push(layer);mapping.set(source.id,layer.id);

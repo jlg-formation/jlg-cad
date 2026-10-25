@@ -1,3 +1,4 @@
+import {appearanceFields} from './layers';
 import {type Shape,type Point,type PaperItem,type Drawing,lockedShape} from './model';
 import {segments,shapeFromSegments,distance,sub,dot,cross,mul,add,arcSegment,type Segment} from './geometry';
 
@@ -46,10 +47,10 @@ function mergeArcs(group:Unit[],owner:Shape,explicitSource:boolean):Unit{
  }
  const ids=group.flatMap(u=>u.ids),a=add(arc.center,{x:arc.radius*Math.cos(-origin-start),y:arc.radius*Math.sin(-origin-start)});
  if(sweep>=tau-joinTolerance/Math.max(arc.radius,1)){
-  const shape:Shape={id:owner.id,color:owner.color,layerId:owner.layerId,type:'circle',a:arc.center,b:add(arc.center,{x:arc.radius,y:0})};return {shape,parts:segments(shape),ids};
+  const shape:Shape={id:owner.id,...appearanceFields(owner),type:'circle',a:arc.center,b:add(arc.center,{x:arc.radius,y:0})};return {shape,parts:segments(shape),ids};
  }
  const angle=-origin-start-sweep,b=add(arc.center,{x:arc.radius*Math.cos(angle),y:arc.radius*Math.sin(angle)}),bulge=Math.tan(-sweep/4);
- const shape:Shape={id:owner.id,color:owner.color,layerId:owner.layerId,type:'arc',a,b,bulge};return {shape,parts:segments(shape),ids};
+ const shape:Shape={id:owner.id,...appearanceFields(owner),type:'arc',a,b,bulge};return {shape,parts:segments(shape),ids};
 }
 
 function endpointGraph(units:Unit[]){
@@ -71,7 +72,7 @@ export function joinItems(items:PaperItem[],selectedIds:string[],sourceId?:strin
  if(closeArc){
   if(source?.type!=='arc')throw new Error('Fermer exige un arc source.');
   const arc=arcSegment(source.a,source.b,source.bulge,true);if(arc.kind!=='arc')throw new Error('Arc invalide.');
-  units=[{shape:{id:source.id,color:source.color,layerId:source.layerId,type:'circle',a:arc.center,b:add(arc.center,{x:arc.radius,y:0})},parts:[],ids:[source.id]}];
+  units=[{shape:{id:source.id,...appearanceFields(source),type:'circle',a:arc.center,b:add(arc.center,{x:arc.radius,y:0})},parts:[],ids:[source.id]}];
  }else if(source?.type==='line'){
   const group=units.filter(u=>u.shape.type==='line'&&collinear(source,u.shape));units=group.length>1?[mergeLines(group,source)]:[];
  }else if(source?.type==='arc'){
